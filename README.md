@@ -1,5 +1,7 @@
 # MetroPower Manpower Dashboard
 
+A comprehensive workforce management system for tracking electricians and managing assignments at MetroPower's Tucker Branch. Built for Antoine Haro, Assistant Project Manager, to optimize operations and streamline workforce allocation.
+
 ## Project Overview
 
 This repository contains the complete MetroPower Manpower Dashboard system, a comprehensive workforce management solution designed to solve critical issues with employee tracking, payroll accuracy, and resource allocation across multiple construction projects at MetroPower's Tucker Branch.
@@ -8,53 +10,45 @@ This repository contains the complete MetroPower Manpower Dashboard system, a co
 
 Project managers currently cannot track real-time employee movements between job sites, leading to payroll discrepancies and unfair cost allocation when workers are reassigned mid-week without proper documentation.
 
-## Repository Structure
+## 🚀 Features
 
-```
-MetroPower-Dashboard/
-├── backend/            # Backend API server
-│   ├── src/
-│   │   ├── controllers/    # API endpoint handlers
-│   │   ├── models/        # Database models
-│   │   ├── routes/        # API routes
-│   │   ├── middleware/    # Auth & validation
-│   │   ├── services/      # Business logic
-│   │   ├── utils/         # Helper functions
-│   │   ├── config/        # Configuration
-│   │   └── migrations/    # Database migrations
-│   ├── tests/             # Test suites
-│   ├── docs/              # API documentation
-│   ├── uploads/           # File uploads
-│   └── exports/           # Generated exports
-├── frontend/           # Frontend dashboard
-│   ├── assets/
-│   │   └── images/        # Dashboard images and icons
-│   ├── css/
-│   │   └── dashboard.css  # Main stylesheet
-│   ├── js/
-│   │   └── dashboard.js   # Dashboard functionality
-│   └── index.html         # Main dashboard
-├── docs/               # Project documentation
-│   ├── brand_guidelines.md
-│   ├── dashboard_requirements.md
-│   ├── dashboard_design_best_practices.md
-│   ├── dashboard_features_list.md
-│   ├── dashboard_layout_concepts.md
-│   ├── dashboard_workflow_templates.md
-│   ├── database_schema.md
-│   └── manpower_board_analysis.md
-└── docker-compose.yml  # Development environment
-```
+### Core Functionality
+- **Real-time Dashboard**: Live view of employee assignments across projects
+- **Drag & Drop Interface**: Intuitive assignment management with visual feedback
+- **Employee Management**: Complete CRUD operations for workforce data
+- **Project Tracking**: Comprehensive project management and assignment tracking
+- **Conflict Detection**: Automatic detection and prevention of double-booking
+- **Export System**: Excel, CSV, and PDF export capabilities
+- **Archive System**: Weekly data archiving with historical access
+- **Real-time Updates**: WebSocket-powered live updates across all clients
 
-## Key Features
+### Advanced Features
+- **Role-based Access Control**: Admin, Project Manager, Branch Manager, HR, and View Only roles
+- **Notification System**: Real-time alerts and email notifications
+- **Search & Filtering**: Advanced search capabilities across all data
+- **Responsive Design**: Mobile-friendly interface for field access
+- **API Documentation**: Comprehensive Swagger/OpenAPI documentation
+- **Audit Logging**: Complete audit trail of all system changes
 
-1. **Visual Workforce Placement Board**: Grid showing daily employee assignments across all active projects
-2. **Drag-and-Drop Assignment**: Intuitive interface for moving employees between projects and days
-3. **Employee Quick Search**: Instant lookup by name or Employee ID
-4. **Weekly Archive System**: Save and access historical assignment data
-5. **Multi-Format Export**: Generate Excel, CSV, and Markdown files for payroll reconciliation
-6. **Email Notification System**: Automated alerts when employee assignments change
-7. **Mobile Responsive Design**: Access from any device in the field or office
+## 🏗️ Architecture
+
+### Frontend
+- **Technology**: Vanilla JavaScript, HTML5, CSS3
+- **Features**: Responsive design, drag-and-drop, real-time updates
+- **Styling**: Custom CSS with MetroPower branding
+
+### Backend
+- **Framework**: Node.js with Express.js
+- **Database**: PostgreSQL with connection pooling
+- **Authentication**: JWT-based with bcrypt password hashing
+- **Real-time**: Socket.IO for live updates
+- **Documentation**: Swagger/OpenAPI 3.0
+
+### Infrastructure
+- **Containerization**: Docker and Docker Compose
+- **Reverse Proxy**: Nginx for static file serving and API proxying
+- **Caching**: Redis for session management and caching
+- **Logging**: Winston with structured logging
 
 ## 🚀 Quick Start
 
@@ -170,3 +164,111 @@ Detailed documentation is available in the `docs/` directory:
 - `dashboard_workflow_templates.md`: User workflow templates
 - `database_schema.md`: Database structure and relationships
 - `manpower_board_analysis.md`: Analysis of current system
+## 📊 Dashboard Overview
+
+### Main Dashboard
+- **Weekly Grid View**: Visual representation of employee assignments
+- **Unassigned Employees**: Sidebar showing available workforce
+- **Project Columns**: Organized by active projects
+- **Real-time Updates**: Live changes across all connected clients
+
+### Key Metrics
+- Total active employees
+- Current assignments
+- Utilization rates
+- Project statistics
+
+### Export Options
+- **Excel**: Comprehensive workbook with multiple sheets
+- **CSV**: Individual data exports for analysis
+- **Date Range**: Flexible date selection for exports
+
+## 🛠️ Development
+
+### Backend Development
+```bash
+cd backend
+npm run dev          # Start development server
+npm test            # Run tests
+npm run migrate     # Run database migrations
+npm run seed        # Seed sample data
+```
+
+### Frontend Development
+The frontend uses vanilla JavaScript for maximum compatibility and performance. Key files:
+- `frontend/index.html` - Main dashboard interface
+- `frontend/js/dashboard.js` - Core functionality and API integration
+- `frontend/css/dashboard.css` - Styling and responsive design
+
+## 🔧 Configuration
+
+### Environment Variables
+Key configuration options in `.env`:
+
+```env
+# Server
+NODE_ENV=production
+PORT=3001
+HOST=0.0.0.0
+
+# Database
+DB_HOST=localhost
+DB_PORT=5432
+DB_NAME=metropower_dashboard
+DB_USER=postgres
+DB_PASSWORD=your_password
+
+# JWT
+JWT_SECRET=your_secret_key
+JWT_EXPIRES_IN=24h
+
+# CORS
+CORS_ORIGIN=http://localhost:3000,https://yourdomain.com
+```
+
+## 🔒 Security Features
+
+- **Authentication**: JWT-based with secure token management
+- **Authorization**: Role-based access control (RBAC)
+- **Input Validation**: Comprehensive request validation
+- **Rate Limiting**: API endpoint protection
+- **CORS Configuration**: Secure cross-origin requests
+- **SQL Injection Protection**: Parameterized queries
+- **Password Security**: bcrypt hashing with salt
+
+## 📚 Documentation
+
+- **API Documentation**: Available at `/api-docs` when running
+- **Database Schema**: See `backend/src/migrations/`
+- **Frontend Guide**: See `frontend/README.md`
+- **Deployment Guide**: See `docs/deployment.md`
+
+## 🤝 Contributing
+
+1. Fork the repository
+2. Create a feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit your changes (`git commit -m 'Add amazing feature'`)
+4. Push to the branch (`git push origin feature/amazing-feature`)
+5. Open a Pull Request
+
+## 📄 License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+## 🆘 Support
+
+For support and questions:
+- **Project Manager**: Antoine Haro
+- **Development Team**: Utak West
+- **Email**: support@metropower.com
+- **Issues**: GitHub Issues
+
+## 🙏 Acknowledgments
+
+- MetroPower Tucker Branch team for requirements and feedback
+- Antoine Haro for project management and domain expertise
+- All electricians and field staff for their input on workflow optimization
+
+---
+
+**Built with ❤️ for MetroPower by Utak West**
