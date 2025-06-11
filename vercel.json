@@ -104,7 +104,8 @@
     "RATE_LIMIT_MAX_REQUESTS": "100",
     "LOG_LEVEL": "info",
     "BACKUP_ENABLED": "false",
-    "BACKUP_RETENTION_DAYS": "90"
+    "BACKUP_RETENTION_DAYS": "90",
+    "DEMO_MODE_ENABLED": "true"
   },
   "regions": ["iad1"],
   "github": {

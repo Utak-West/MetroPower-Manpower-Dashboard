@@ -14,6 +14,8 @@ let assignments = {};
 let draggedEmployee = null;
 let authToken = null;
 let socket = null;
+let isDemoMode = false;
+let demoSessionTimeout = null;
 
 // API Configuration
 const API_BASE_URL = window.location.hostname === 'localhost' ?
@@ -103,7 +105,20 @@ class APIClient {
 const api = new APIClient();
 
 // Initialize dashboard
-document.addEventListener('DOMContentLoaded', function() {
+document.addEventListener('DOMContentLoaded', async function() {
+    // Check if demo mode is enabled
+    try {
+        const demoCheck = await fetch('/api/debug/demo-enabled');
+        const demoData = await demoCheck.json();
+
+        if (!demoData.demoEnabled) {
+            // Demo mode disabled, hide demo button in login modal
+            window.demoModeDisabled = true;
+        }
+    } catch (error) {
+        console.log('Could not check demo mode status');
+    }
+
     // Check authentication
     if (!api.token) {
         showLoginModal();
@@ -126,6 +141,27 @@ document.addEventListener('DOMContentLoaded', function() {
 function showLoginModal() {
     const modal = document.createElement('div');
     modal.className = 'login-modal';
+
+    const demoModeSection = window.demoModeDisabled ? '' : `
+        <div class="demo-mode-section">
+            <div class="demo-divider">
+                <span>OR</span>
+            </div>
+            <button type="button" id="demoModeBtn" class="demo-mode-btn">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"></path>
+                    <polyline points="10,17 15,12 10,7"></polyline>
+                    <line x1="15" y1="12" x2="3" y2="12"></line>
+                </svg>
+                Enter Demo Mode as Antoine Harrell
+            </button>
+            <p class="demo-description">
+                Explore the dashboard with sample data as Assistant Project Manager.
+                Perfect for testing features before deployment.
+            </p>
+        </div>
+    `;
+
     modal.innerHTML = `
         <div class="login-form">
             <h2>MetroPower Dashboard Login</h2>
@@ -141,8 +177,11 @@ function showLoginModal() {
                 <button type="submit">Login</button>
                 <div class="login-error" style="display: none;"></div>
             </form>
+
+            ${demoModeSection}
+
             <div class="demo-credentials">
-                <p><strong>Demo Credentials:</strong></p>
+                <p><strong>Full Access Credentials:</strong></p>
                 <p>Email: admin@metropower.com</p>
                 <p>Password: MetroPower2025!</p>
             </div>
@@ -151,6 +190,7 @@ function showLoginModal() {
 
     document.body.appendChild(modal);
 
+    // Regular login form handler
     document.getElementById('loginForm').addEventListener('submit', async (e) => {
         e.preventDefault();
         const identifier = document.getElementById('identifier').value;
@@ -167,10 +207,203 @@ function showLoginModal() {
             document.querySelector('.login-error').style.display = 'block';
         }
     });
+
+    // Demo mode handler (only if demo mode is enabled)
+    const demoBtn = document.getElementById('demoModeBtn');
+    if (demoBtn) {
+        demoBtn.addEventListener('click', () => {
+            enterDemoMode();
+            modal.remove();
+        });
+    }
+}
+
+// Demo Mode Implementation
+function enterDemoMode() {
+    isDemoMode = true;
+
+    // Set demo user info
+    const demoUser = {
+        name: 'Antoine Harrell',
+        role: 'Assistant Project Manager',
+        email: 'antoine.harrell@metropower.com',
+        branch: 'Tucker Branch'
+    };
+
+    // Update user display
+    updateUserDisplay(demoUser);
+
+    // Add demo mode banner
+    addDemoModeBanner();
+
+    // Load demo data
+    loadDemoData();
+
+    // Set session timeout (30 minutes)
+    setDemoSessionTimeout();
+
+    // Initialize dashboard with demo data
+    initDashboard();
+
+    showNotification('Demo Mode Active - Logged in as Antoine Harrell', 'info');
+}
+
+function updateUserDisplay(user) {
+    const userNameElement = document.querySelector('.user-name');
+    const userRoleElement = document.querySelector('.user-role');
+
+    if (userNameElement) userNameElement.textContent = user.name;
+    if (userRoleElement) userRoleElement.textContent = user.role;
+}
+
+function addDemoModeBanner() {
+    // Remove existing banner if present
+    const existingBanner = document.querySelector('.demo-mode-banner');
+    if (existingBanner) existingBanner.remove();
+
+    const banner = document.createElement('div');
+    banner.className = 'demo-mode-banner';
+    banner.innerHTML = `
+        <div class="demo-banner-content">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="12" cy="12" r="10"></circle>
+                <line x1="12" y1="8" x2="12" y2="12"></line>
+                <line x1="12" y1="16" x2="12.01" y2="16"></line>
+            </svg>
+            <span>DEMO MODE - Sample Data Only | Session expires in <span id="demo-timer">30:00</span></span>
+            <button type="button" id="exitDemoBtn" class="exit-demo-btn">Exit Demo</button>
+        </div>
+    `;
+
+    // Insert banner at top of dashboard
+    const dashboardContainer = document.querySelector('.dashboard-container');
+    dashboardContainer.insertBefore(banner, dashboardContainer.firstChild);
+
+    // Add exit demo handler
+    document.getElementById('exitDemoBtn').addEventListener('click', exitDemoMode);
+}
+
+function setDemoSessionTimeout() {
+    // Clear existing timeout
+    if (demoSessionTimeout) {
+        clearTimeout(demoSessionTimeout);
+    }
+
+    let timeLeft = 30 * 60; // 30 minutes in seconds
+
+    // Update timer display every second
+    const timerInterval = setInterval(() => {
+        timeLeft--;
+        const minutes = Math.floor(timeLeft / 60);
+        const seconds = timeLeft % 60;
+        const timerElement = document.getElementById('demo-timer');
+
+        if (timerElement) {
+            timerElement.textContent = `${minutes}:${seconds.toString().padStart(2, '0')}`;
+        }
+
+        if (timeLeft <= 0) {
+            clearInterval(timerInterval);
+            exitDemoMode();
+        }
+    }, 1000);
+
+    // Set main timeout
+    demoSessionTimeout = setTimeout(() => {
+        clearInterval(timerInterval);
+        exitDemoMode();
+    }, 30 * 60 * 1000); // 30 minutes
+}
+
+function exitDemoMode() {
+    isDemoMode = false;
+
+    // Clear timeout
+    if (demoSessionTimeout) {
+        clearTimeout(demoSessionTimeout);
+        demoSessionTimeout = null;
+    }
+
+    // Remove demo banner
+    const banner = document.querySelector('.demo-mode-banner');
+    if (banner) banner.remove();
+
+    // Show login modal again
+    showNotification('Demo session ended', 'info');
+    setTimeout(() => {
+        showLoginModal();
+    }, 1000);
+}
+
+function loadDemoData() {
+    // Set demo week start (current week)
+    const today = new Date();
+    const monday = new Date(today.setDate(today.getDate() - today.getDay() + 1));
+    currentWeekStart = monday.toISOString().split('T')[0];
+
+    // Demo employees data
+    employees = [
+        { employee_id: 'EMP001', name: 'John Smith', position_name: 'Electrician', position_color: '#28A745' },
+        { employee_id: 'EMP002', name: 'Mike Johnson', position_name: 'Apprentice', position_color: '#F7B731' },
+        { employee_id: 'EMP003', name: 'Sarah Davis', position_name: 'Field Supervisor', position_color: '#3B5998' },
+        { employee_id: 'EMP004', name: 'Robert Wilson', position_name: 'General Laborer', position_color: '#6F42C1' },
+        { employee_id: 'EMP005', name: 'Lisa Brown', position_name: 'Electrician', position_color: '#28A745' }
+    ];
+
+    // Demo projects data
+    projects = [
+        { project_id: 'PROJ-T-001', name: 'Tucker Mall Renovation', status: 'Active' },
+        { project_id: 'PROJ-T-002', name: 'Office Complex Wiring', status: 'Active' },
+        { project_id: 'PROJ-T-003', name: 'Residential Development', status: 'Active' },
+        { project_id: 'PROJ-T-004', name: 'Industrial Facility', status: 'Active' }
+    ];
+
+    // Demo assignments data
+    assignments = {
+        days: {
+            Monday: {
+                'PROJ-T-001': [
+                    { employee_id: 'EMP001', employee_name: 'John Smith', position_name: 'Electrician', position_color: '#28A745' },
+                    { employee_id: 'EMP003', employee_name: 'Sarah Davis', position_name: 'Field Supervisor', position_color: '#3B5998' }
+                ],
+                'PROJ-T-002': [
+                    { employee_id: 'EMP002', employee_name: 'Mike Johnson', position_name: 'Apprentice', position_color: '#F7B731' }
+                ]
+            },
+            Tuesday: {
+                'PROJ-T-001': [
+                    { employee_id: 'EMP001', employee_name: 'John Smith', position_name: 'Electrician', position_color: '#28A745' },
+                    { employee_id: 'EMP005', employee_name: 'Lisa Brown', position_name: 'Electrician', position_color: '#28A745' }
+                ],
+                'PROJ-T-003': [
+                    { employee_id: 'EMP004', employee_name: 'Robert Wilson', position_name: 'General Laborer', position_color: '#6F42C1' }
+                ]
+            }
+        }
+    };
+
+    // Render demo data
+    renderDashboard({
+        unassignedToday: employees.slice(0, 2), // Show some as unassigned
+        weekAssignments: assignments,
+        employeeStatistics: {
+            overall: {
+                active_employees: 5,
+                total_employees: 8
+            }
+        }
+    });
+
+    updateWeekDisplay();
 }
 
 // Dashboard initialization
 async function initDashboard() {
+    if (isDemoMode) {
+        console.log('Demo mode - skipping authentication');
+        return;
+    }
+
     try {
         // Verify token is still valid
         await api.get('/auth/verify');
@@ -182,6 +415,11 @@ async function initDashboard() {
 
 // Load dashboard data
 async function loadDashboardData() {
+    if (isDemoMode) {
+        // Demo mode already has data loaded
+        return;
+    }
+
     try {
         showLoading(true);
         const data = await api.get('/dashboard/current');
@@ -303,6 +541,12 @@ function initDragAndDrop() {
 
 // Move employee assignment
 async function moveEmployee(employeeId, fromProject, toProject, assignmentDate) {
+    if (isDemoMode) {
+        // In demo mode, just simulate the move without API call
+        showNotification('Demo Mode: Employee move simulated (changes not saved)', 'info');
+        return { success: true };
+    }
+
     const moveData = {
         employee_id: employeeId,
         from_project_id: fromProject,
@@ -421,6 +665,11 @@ function initExport() {
 async function performExport(format) {
     if (!currentWeekStart) {
         showNotification('No week data available for export', 'error');
+        return;
+    }
+
+    if (isDemoMode) {
+        showNotification(`Demo Mode: ${format.toUpperCase()} export simulated (contains sample data watermarks)`, 'info');
         return;
     }
 

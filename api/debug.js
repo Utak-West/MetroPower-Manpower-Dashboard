@@ -207,12 +207,22 @@ app.post('/api/debug/test-login', async (req, res) => {
   }
 });
 
+// Demo mode check
+app.get('/api/debug/demo-enabled', (req, res) => {
+  const demoEnabled = process.env.DEMO_MODE_ENABLED !== 'false';
+  res.json({
+    demoEnabled: demoEnabled,
+    timestamp: new Date().toISOString()
+  });
+});
+
 // Health check
 app.get('/api/debug/health', (req, res) => {
   res.json({
     status: 'OK',
     timestamp: new Date().toISOString(),
-    service: 'MetroPower Debug API'
+    service: 'MetroPower Debug API',
+    demoMode: process.env.DEMO_MODE_ENABLED !== 'false'
   });
 });
 
