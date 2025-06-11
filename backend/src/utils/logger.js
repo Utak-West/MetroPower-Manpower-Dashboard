@@ -55,6 +55,7 @@ const logger = winston.createLogger({
     version: process.env.APP_VERSION || '1.0.0',
     environment: process.env.NODE_ENV || 'development'
   },
+  exitOnError: false,
   transports: isServerless ? [] : [
     // File transport for all logs (disabled in serverless)
     new winston.transports.File({
@@ -226,13 +227,11 @@ const logMetric = (metric, value, metadata = {}) => {
 };
 
 // Export logger and utility functions
-module.exports = {
-  ...logger,
-  createChildLogger,
-  logQuery,
-  logRequest,
-  logAuth,
-  logBusiness,
-  logSecurity,
-  logMetric
-};
+module.exports = logger;
+module.exports.createChildLogger = createChildLogger;
+module.exports.logQuery = logQuery;
+module.exports.logRequest = logRequest;
+module.exports.logAuth = logAuth;
+module.exports.logBusiness = logBusiness;
+module.exports.logSecurity = logSecurity;
+module.exports.logMetric = logMetric;

@@ -21,8 +21,8 @@ const logger = require('./src/utils/logger');
 const { connectDatabase } = require('./src/config/database');
 
 // Import middleware
-const errorHandler = require('./src/middleware/errorHandler');
-const authMiddleware = require('./src/middleware/auth');
+const { errorHandler } = require('./src/middleware/errorHandler');
+const { authenticate: authMiddleware } = require('./src/middleware/auth');
 
 // Import routes
 const authRoutes = require('./src/routes/auth');
@@ -122,7 +122,7 @@ if (process.env.NODE_ENV !== 'production') {
 // Socket.IO connection handling
 io.on('connection', (socket) => {
   logger.info(`Client connected: ${socket.id}`);
-  
+
   // Join user to their role-based room
   socket.on('join-room', (data) => {
     const { userId, role } = data;
@@ -130,14 +130,14 @@ io.on('connection', (socket) => {
     socket.join(`role-${role}`);
     logger.info(`User ${userId} joined rooms: user-${userId}, role-${role}`);
   });
-  
+
   // Handle assignment updates
   socket.on('assignment-update', (data) => {
     // Broadcast to all connected clients
     socket.broadcast.emit('assignment-changed', data);
     logger.info(`Assignment update broadcasted: ${JSON.stringify(data)}`);
   });
-  
+
   socket.on('disconnect', () => {
     logger.info(`Client disconnected: ${socket.id}`);
   });
@@ -175,6 +175,7 @@ const initializeApp = async () => {
     return true;
   } catch (error) {
     logger.error('Failed to initialize app:', error);
+    logger.warn('Server will start without database connection');
     return false;
   }
 };
@@ -182,7 +183,11 @@ const initializeApp = async () => {
 // Start server (only in non-serverless environments)
 const startServer = async () => {
   try {
-    await initializeApp();
+    const dbConnected = await initializeApp();
+
+    if (!dbConnected) {
+      logger.warn('Starting server without database connection');
+    }
 
     // Start server
     const PORT = process.env.PORT || 3001;
@@ -193,6 +198,9 @@ const startServer = async () => {
       logger.info(`📚 API Documentation available at http://${HOST}:${PORT}/api-docs`);
       logger.info(`🏥 Health check available at http://${HOST}:${PORT}/health`);
       logger.info(`🌍 Environment: ${process.env.NODE_ENV || 'development'}`);
+      if (!dbConnected) {
+        logger.warn('⚠️  Database not connected - some features may not work');
+      }
     });
 
   } catch (error) {

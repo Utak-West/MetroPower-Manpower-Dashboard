@@ -7,7 +7,7 @@
 
 const express = require('express');
 const { body, query, param, validationResult } = require('express-validator');
-const { query as dbQuery } = require('../config/database');
+const { query: dbQuery } = require('../config/database');
 const Assignment = require('../models/Assignment');
 const { asyncHandler, ValidationError, NotFoundError } = require('../middleware/errorHandler');
 const logger = require('../utils/logger');
