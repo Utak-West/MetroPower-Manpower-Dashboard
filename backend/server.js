@@ -166,24 +166,35 @@ app.use('*', (req, res) => {
 // Error handling middleware (must be last)
 app.use(errorHandler);
 
-// Start server
-const startServer = async () => {
+// Initialize database connection for serverless
+const initializeApp = async () => {
   try {
     // Connect to database
     await connectDatabase();
     logger.info('Database connected successfully');
-    
+    return true;
+  } catch (error) {
+    logger.error('Failed to initialize app:', error);
+    return false;
+  }
+};
+
+// Start server (only in non-serverless environments)
+const startServer = async () => {
+  try {
+    await initializeApp();
+
     // Start server
     const PORT = process.env.PORT || 3001;
     const HOST = process.env.HOST || 'localhost';
-    
+
     server.listen(PORT, HOST, () => {
       logger.info(`🚀 MetroPower Dashboard API Server running on http://${HOST}:${PORT}`);
       logger.info(`📚 API Documentation available at http://${HOST}:${PORT}/api-docs`);
       logger.info(`🏥 Health check available at http://${HOST}:${PORT}/health`);
       logger.info(`🌍 Environment: ${process.env.NODE_ENV || 'development'}`);
     });
-    
+
   } catch (error) {
     logger.error('Failed to start server:', error);
     process.exit(1);
@@ -218,7 +229,15 @@ process.on('unhandledRejection', (reason, promise) => {
   process.exit(1);
 });
 
-// Start the server
-startServer();
+// Initialize app for serverless or start server for traditional deployment
+if (process.env.VERCEL || process.env.NODE_ENV === 'production') {
+  // For Vercel/serverless deployment, just initialize the app
+  initializeApp().catch(error => {
+    logger.error('Failed to initialize app for serverless:', error);
+  });
+} else {
+  // For traditional deployment, start the server
+  startServer();
+}
 
-module.exports = { app, server, io };
+module.exports = { app, server, io, initializeApp };

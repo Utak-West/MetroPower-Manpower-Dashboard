@@ -1,0 +1,42 @@
+{
+  "name": "metropower-manpower-dashboard",
+  "version": "1.0.0",
+  "description": "MetroPower Manpower Dashboard - Full-stack employee tracking and project management system for Tucker Branch",
+  "private": true,
+  "scripts": {
+    "dev": "npm run dev --prefix backend",
+    "start": "npm start --prefix backend",
+    "build": "node scripts/vercel-build.js",
+    "test": "npm test --prefix backend",
+    "migrate": "npm run migrate --prefix backend",
+    "seed": "npm run seed --prefix backend",
+    "vercel-build": "node scripts/vercel-build.js",
+    "postinstall": "npm install --prefix backend"
+  },
+  "keywords": [
+    "workforce-management",
+    "employee-tracking",
+    "project-management",
+    "dashboard",
+    "construction",
+    "metropower",
+    "tucker-branch"
+  ],
+  "author": "MetroPower Development Team",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Utak-West/MetroPower-Manpower-Dashboard.git"
+  },
+  "bugs": {
+    "url": "https://github.com/Utak-West/MetroPower-Manpower-Dashboard/issues"
+  },
+  "homepage": "https://github.com/Utak-West/MetroPower-Manpower-Dashboard#readme",
+  "engines": {
+    "node": ">=16.0.0",
+    "npm": ">=8.0.0"
+  },
+  "workspaces": [
+    "backend"
+  ]
+}
