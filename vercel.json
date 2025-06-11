@@ -82,11 +82,6 @@
     "BACKUP_ENABLED": "false",
     "BACKUP_RETENTION_DAYS": "90"
   },
-  "functions": {
-    "backend/server.js": {
-      "maxDuration": 30
-    }
-  },
   "regions": ["iad1"],
   "github": {
     "silent": true
