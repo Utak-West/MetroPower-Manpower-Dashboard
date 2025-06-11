@@ -68,9 +68,12 @@ const connectDatabase = async () => {
     logger.info(`Database time: ${result.rows[0].current_time}`);
     logger.debug(`PostgreSQL version: ${result.rows[0].version}`);
 
+    global.isDemoMode = false;
     return pool;
   } catch (error) {
     logger.error('Failed to connect to database:', error);
+    logger.warn('Switching to demo mode with in-memory data');
+    global.isDemoMode = true;
     throw error;
   }
 };
@@ -82,18 +85,24 @@ const connectDatabase = async () => {
  * @returns {Promise<Object>} Query result
  */
 const query = async (text, params = []) => {
+  // Use demo service if in demo mode
+  if (global.isDemoMode) {
+    const demoService = require('../services/demoService');
+    return await demoService.query(text, params);
+  }
+
   const start = Date.now();
-  
+
   try {
     const result = await pool.query(text, params);
     const duration = Date.now() - start;
-    
+
     logger.debug(`Query executed in ${duration}ms:`, {
       query: text,
       params: params,
       rowCount: result.rowCount
     });
-    
+
     return result;
   } catch (error) {
     const duration = Date.now() - start;

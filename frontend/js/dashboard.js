@@ -103,13 +103,103 @@ class APIClient {
 
 const api = new APIClient();
 
+// Header Authentication Management
+function initHeaderAuthentication() {
+    // Initialize login button click handler
+    const headerLoginButton = document.getElementById('headerLoginButton');
+    if (headerLoginButton) {
+        headerLoginButton.addEventListener('click', showLoginModal);
+    }
+
+    // Initialize logout button click handler
+    const logoutButton = document.getElementById('logoutButton');
+    if (logoutButton) {
+        logoutButton.addEventListener('click', handleLogout);
+    }
+
+    // Set initial authentication state
+    updateHeaderAuthenticationState();
+}
+
+function updateHeaderAuthenticationState() {
+    const loginContainer = document.getElementById('loginButtonContainer');
+    const userContainer = document.getElementById('userInfoContainer');
+
+    if (api.token) {
+        // User is authenticated - show user info, hide login button
+        if (loginContainer) loginContainer.classList.add('hidden');
+        if (userContainer) userContainer.classList.remove('hidden');
+    } else {
+        // User is not authenticated - show login button, hide user info
+        if (loginContainer) loginContainer.classList.remove('hidden');
+        if (userContainer) userContainer.classList.add('hidden');
+    }
+}
+
+function showUnauthenticatedState() {
+    updateHeaderAuthenticationState();
+    showLoginModal();
+}
+
+function showAuthenticatedState(userData) {
+    // Update user info in header
+    const userName = document.getElementById('userName');
+    const userRole = document.getElementById('userRole');
+
+    if (userName && userData.first_name && userData.last_name) {
+        userName.textContent = `${userData.first_name} ${userData.last_name}`;
+    }
+
+    if (userRole && userData.role) {
+        userRole.textContent = userData.role;
+    }
+
+    updateHeaderAuthenticationState();
+}
+
+function handleLogout() {
+    // Clear authentication
+    api.setToken(null);
+
+    // Update header state
+    updateHeaderAuthenticationState();
+
+    // Show login modal
+    showLoginModal();
+
+    // Clear dashboard data
+    clearDashboardData();
+
+    showNotification('Logged out successfully', 'info');
+}
+
+function clearDashboardData() {
+    // Clear global variables
+    currentWeekStart = null;
+    employees = [];
+    projects = [];
+    assignments = {};
+
+    // Clear UI elements
+    const unassignedPool = document.querySelector('.unassigned-pool');
+    if (unassignedPool) {
+        unassignedPool.innerHTML = '<p>Please log in to view employees</p>';
+    }
+
+    const mainGrid = document.querySelector('.main-grid tbody');
+    if (mainGrid) {
+        mainGrid.innerHTML = '<tr><td colspan="5">Please log in to view assignments</td></tr>';
+    }
+}
+
 // Initialize dashboard
 document.addEventListener('DOMContentLoaded', async function() {
-
+    // Initialize header authentication state
+    initHeaderAuthentication();
 
     // Check authentication
     if (!api.token) {
-        showLoginModal();
+        showUnauthenticatedState();
         return;
     }
 
@@ -174,6 +264,10 @@ function showLoginModal() {
         try {
             const response = await api.post('/auth/login', { identifier, password });
             api.setToken(response.accessToken);
+
+            // Update header with user info
+            showAuthenticatedState(response.user);
+
             modal.remove();
             initDashboard();
             loadDashboardData();
@@ -212,10 +306,16 @@ function showLoginModal() {
 async function initDashboard() {
     try {
         // Verify token is still valid
-        await api.get('/auth/verify');
+        const response = await api.get('/auth/verify');
         console.log('Authentication verified');
+
+        // Update header with verified user info
+        if (response.user) {
+            showAuthenticatedState(response.user);
+        }
     } catch (error) {
-        showLoginModal();
+        console.log('Authentication verification failed:', error);
+        showUnauthenticatedState();
     }
 }
 

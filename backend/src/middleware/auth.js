@@ -14,9 +14,25 @@ const logger = require('../utils/logger');
  */
 const authenticate = async (req, res, next) => {
   try {
+    // In demo mode, use demo user
+    if (global.isDemoMode) {
+      const demoService = require('../services/demoService');
+      const demoUser = await demoService.findUserById(1); // Antione Harrell
+
+      req.user = {
+        user_id: demoUser.user_id,
+        username: demoUser.username,
+        email: demoUser.email,
+        role: demoUser.role
+      };
+
+      logger.info('Demo mode: Using demo user for authentication');
+      return next();
+    }
+
     // Get token from Authorization header
     const authHeader = req.headers.authorization;
-    
+
     if (!authHeader || !authHeader.startsWith('Bearer ')) {
       return res.status(401).json({
         error: 'Authentication required',
@@ -28,7 +44,7 @@ const authenticate = async (req, res, next) => {
 
     // Verify token
     const decoded = await User.verifyAccessToken(token);
-    
+
     if (!decoded) {
       return res.status(401).json({
         error: 'Invalid token',

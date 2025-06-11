@@ -198,8 +198,13 @@ const startServer = async () => {
       logger.info(`📚 API Documentation available at http://${HOST}:${PORT}/api-docs`);
       logger.info(`🏥 Health check available at http://${HOST}:${PORT}/health`);
       logger.info(`🌍 Environment: ${process.env.NODE_ENV || 'development'}`);
+
       if (!dbConnected) {
-        logger.warn('⚠️  Database not connected - some features may not work');
+        logger.warn('⚠️  Database not connected - running in DEMO MODE');
+        logger.info('🎭 Demo Mode: Using in-memory data for demonstration');
+        logger.info('🔑 Demo Login: Use any credentials to access the dashboard');
+      } else {
+        logger.info('✅ Database connected - full functionality available');
       }
     });
 

@@ -21,6 +21,32 @@ const router = express.Router();
  * @access  Private
  */
 router.get('/current', asyncHandler(async (req, res) => {
+  // Handle demo mode
+  if (global.isDemoMode) {
+    console.log('Dashboard: Demo mode detected');
+    const demoService = require('../services/demoService');
+    const today = new Date();
+    const todayStr = today.toISOString().split('T')[0];
+    console.log('Dashboard: Getting data for date:', todayStr);
+
+    try {
+      const dashboardData = await demoService.getDashboardData(todayStr);
+      console.log('Dashboard: Data retrieved:', dashboardData);
+
+      return res.json({
+        message: 'Demo dashboard data retrieved successfully',
+        data: {
+          ...dashboardData,
+          currentDate: todayStr,
+          isDemoMode: true
+        }
+      });
+    } catch (error) {
+      console.error('Dashboard demo error:', error);
+      throw error;
+    }
+  }
+
   // Calculate current week start (Monday)
   const today = new Date();
   const dayOfWeek = today.getDay();

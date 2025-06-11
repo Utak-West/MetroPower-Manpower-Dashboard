@@ -41,6 +41,31 @@ router.post('/login', [
 
   const { identifier, password } = req.body;
 
+  // Handle demo mode
+  if (global.isDemoMode) {
+    const demoService = require('../services/demoService');
+
+    // In demo mode, accept any credentials and return demo user
+    const demoUser = await demoService.findUserById(1); // Antione Harrell
+
+    logger.info('Demo mode: Login successful with demo user');
+
+    return res.json({
+      message: 'Demo login successful',
+      user: {
+        user_id: demoUser.user_id,
+        username: demoUser.username,
+        email: demoUser.email,
+        first_name: demoUser.first_name,
+        last_name: demoUser.last_name,
+        role: demoUser.role,
+        last_login: new Date().toISOString()
+      },
+      accessToken: 'demo-token-' + Date.now(), // Simple demo token
+      isDemoMode: true
+    });
+  }
+
   // Authenticate user
   const authResult = await User.authenticate(identifier, password);
 
