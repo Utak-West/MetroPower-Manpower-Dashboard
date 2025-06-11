@@ -1,6 +1,6 @@
 # MetroPower Dashboard - Authentication Troubleshooting Guide
 
-## 🚨 Current Issue: HTTP 500 Login Error
+## Current Issue: HTTP 500 Login Error
 
 Based on the screenshot showing "HTTP 500" error during login, here's a comprehensive troubleshooting guide.
 
@@ -149,8 +149,8 @@ After successful database initialization, use these credentials:
 - Email: `admin@metropower.com`
 - Password: `MetroPower2025!`
 
-**Antoine Harrell (Project Manager):**
-- Email: `antoine.harrell@metropower.com`
+**Antione Harrell (Project Manager):**
+- Email: `antione.harrell@metropower.com`
 - Password: `MetroPower2025!`
 
 ## 🔍 Browser Console Debugging

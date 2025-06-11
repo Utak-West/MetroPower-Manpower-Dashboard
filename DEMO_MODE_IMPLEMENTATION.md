@@ -2,20 +2,20 @@
 
 ## Overview
 
-A comprehensive demo mode has been implemented for the MetroPower Manpower Dashboard, allowing Antoine Harrell and other managers to explore the system with sample data before official deployment.
+A comprehensive demo mode has been implemented for the MetroPower Manpower Dashboard, allowing Antione Harrell and other managers to explore the system with sample data before official deployment.
 
 ## Features Implemented
 
 ### 1. Demo Mode Access
-- **Demo Button**: "Enter Demo Mode as Antoine Harrell" button on login modal
+- **Demo Button**: "Enter Demo Mode as Antione Harrell" button on login modal
 - **Bypass Authentication**: No database or credentials required
 - **Instant Access**: Immediate entry to dashboard with sample data
 
 ### 2. Demo User Profile
-- **Name**: Antoine Harrell
-- **Role**: Assistant Project Manager  
+- **Name**: Antione Harrell
+- **Role**: Assistant Project Manager
 - **Branch**: Tucker Branch
-- **Email**: antoine.harrell@metropower.com
+- **Email**: antione.harrell@metropower.com
 - **Permissions**: Manager-level access with restrictions on sensitive operations
 
 ### 3. Visual Indicators
@@ -62,9 +62,9 @@ A comprehensive demo mode has been implemented for the MetroPower Manpower Dashb
 
 ## Usage Instructions
 
-### For Antoine Harrell and Managers
+### For Antione Harrell and Managers
 1. **Access Demo**: Visit the dashboard URL
-2. **Click Demo Button**: "Enter Demo Mode as Antoine Harrell"
+2. **Click Demo Button**: "Enter Demo Mode as Antione Harrell"
 3. **Explore Features**: 
    - View employee assignments
    - Drag and drop employees between projects

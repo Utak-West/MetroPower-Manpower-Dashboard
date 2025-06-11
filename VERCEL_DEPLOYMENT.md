@@ -1,6 +1,6 @@
 # MetroPower Manpower Dashboard - Vercel Deployment Guide
 
-This guide will help you deploy the MetroPower Manpower Dashboard to Vercel for Antoine Haro and the Metro Power team.
+This guide will help you deploy the MetroPower Manpower Dashboard to Vercel for Antione Harrell and the Metro Power team.
 
 ## Prerequisites
 
@@ -160,7 +160,7 @@ The following files have been created for Vercel deployment:
 3. **Deploy to Vercel**: Follow the deployment steps above
 4. **Configure Environment Variables**: Set all required variables in Vercel dashboard
 5. **Test Deployment**: Verify all functionality works correctly
-6. **Share with Team**: Provide Antoine Haro and the Metro Power team with the deployment URL
+6. **Share with Team**: Provide Antione Harrell and the Metro Power team with the deployment URL
 
 ## Support Contact
 

@@ -1,6 +1,6 @@
 # MetroPower Manpower Dashboard
 
-A comprehensive workforce management system for tracking electricians and managing assignments at MetroPower's Tucker Branch. Built for Antoine Haro, Assistant Project Manager, to optimize operations and streamline workforce allocation.
+A comprehensive workforce management system for tracking electricians and managing assignments at MetroPower's Tucker Branch. Built for Antione Harrell, Assistant Project Manager, to optimize operations and streamline workforce allocation.
 
 ## Project Overview
 
@@ -10,7 +10,7 @@ This repository contains the complete MetroPower Manpower Dashboard system, a co
 
 Project managers currently cannot track real-time employee movements between job sites, leading to payroll discrepancies and unfair cost allocation when workers are reassigned mid-week without proper documentation.
 
-## 🚀 Features
+## Features
 
 ### Core Functionality
 - **Real-time Dashboard**: Live view of employee assignments across projects
@@ -30,7 +30,7 @@ Project managers currently cannot track real-time employee movements between job
 - **API Documentation**: Comprehensive Swagger/OpenAPI documentation
 - **Audit Logging**: Complete audit trail of all system changes
 
-## 🏗️ Architecture
+## Architecture
 
 ### Frontend
 - **Technology**: Vanilla JavaScript, HTML5, CSS3
@@ -50,7 +50,7 @@ Project managers currently cannot track real-time employee movements between job
 - **Caching**: Redis for session management and caching
 - **Logging**: Winston with structured logging
 
-## 🚀 Quick Start
+## Quick Start
 
 ### Prerequisites
 - Node.js 16+
@@ -107,14 +107,14 @@ Project managers currently cannot track real-time employee movements between job
    npx serve -p 3000
    ```
 
-### 🔐 Default Login Credentials
+### Default Login Credentials
 
 After running the seed script, use these credentials:
 
 | Role | Email | Password |
 |------|-------|----------|
 | Admin | admin@metropower.com | MetroPower2025! |
-| Project Manager | antoine.harrell@metropower.com | MetroPower2025! |
+| Project Manager | antione.harrell@metropower.com | MetroPower2025! |
 | Branch Manager | manager@metropower.com | MetroPower2025! |
 | HR | hr@metropower.com | MetroPower2025! |
 
@@ -164,7 +164,7 @@ Detailed documentation is available in the `docs/` directory:
 - `dashboard_workflow_templates.md`: User workflow templates
 - `database_schema.md`: Database structure and relationships
 - `manpower_board_analysis.md`: Analysis of current system
-## 📊 Dashboard Overview
+## Dashboard Overview
 
 ### Main Dashboard
 - **Weekly Grid View**: Visual representation of employee assignments
@@ -183,7 +183,7 @@ Detailed documentation is available in the `docs/` directory:
 - **CSV**: Individual data exports for analysis
 - **Date Range**: Flexible date selection for exports
 
-## 🛠️ Development
+## Development
 
 ### Backend Development
 ```bash
@@ -200,7 +200,7 @@ The frontend uses vanilla JavaScript for maximum compatibility and performance. 
 - `frontend/js/dashboard.js` - Core functionality and API integration
 - `frontend/css/dashboard.css` - Styling and responsive design
 
-## 🔧 Configuration
+## Configuration
 
 ### Environment Variables
 Key configuration options in `.env`:
@@ -226,7 +226,7 @@ JWT_EXPIRES_IN=24h
 CORS_ORIGIN=http://localhost:3000,https://yourdomain.com
 ```
 
-## 🔒 Security Features
+## Security Features
 
 - **Authentication**: JWT-based with secure token management
 - **Authorization**: Role-based access control (RBAC)
@@ -236,14 +236,14 @@ CORS_ORIGIN=http://localhost:3000,https://yourdomain.com
 - **SQL Injection Protection**: Parameterized queries
 - **Password Security**: bcrypt hashing with salt
 
-## 📚 Documentation
+## Documentation
 
 - **API Documentation**: Available at `/api-docs` when running
 - **Database Schema**: See `backend/src/migrations/`
 - **Frontend Guide**: See `frontend/README.md`
 - **Deployment Guide**: See `docs/deployment.md`
 
-## 🤝 Contributing
+## Contributing
 
 1. Fork the repository
 2. Create a feature branch (`git checkout -b feature/amazing-feature`)
@@ -251,24 +251,24 @@ CORS_ORIGIN=http://localhost:3000,https://yourdomain.com
 4. Push to the branch (`git push origin feature/amazing-feature`)
 5. Open a Pull Request
 
-## 📄 License
+## License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
-## 🆘 Support
+## Support
 
 For support and questions:
-- **Project Manager**: Antoine Haro
+- **Project Manager**: Antione Harrell
 - **Development Team**: Utak West
-- **Email**: support@metropower.com
+- **Email**: antione.harrell@metropower.com
 - **Issues**: GitHub Issues
 
-## 🙏 Acknowledgments
+## Acknowledgments
 
 - MetroPower Tucker Branch team for requirements and feedback
-- Antoine Haro for project management and domain expertise
+- Antione Harrell for project management and domain expertise
 - All electricians and field staff for their input on workflow optimization
 
 ---
 
-**Built with ❤️ for MetroPower by Utak West**
+**Built for MetroPower by Utak West**

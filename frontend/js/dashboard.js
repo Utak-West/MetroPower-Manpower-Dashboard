@@ -153,7 +153,7 @@ function showLoginModal() {
                     <polyline points="10,17 15,12 10,7"></polyline>
                     <line x1="15" y1="12" x2="3" y2="12"></line>
                 </svg>
-                Enter Demo Mode as Antoine Harrell
+                Enter Demo Mode as Antione Harrell
             </button>
             <p class="demo-description">
                 Explore the dashboard with sample data as Assistant Project Manager.
@@ -195,6 +195,13 @@ function showLoginModal() {
         e.preventDefault();
         const identifier = document.getElementById('identifier').value;
         const password = document.getElementById('password').value;
+        const errorElement = document.querySelector('.login-error');
+
+        // Show loading state
+        const submitBtn = e.target.querySelector('button[type="submit"]');
+        const originalText = submitBtn.textContent;
+        submitBtn.textContent = 'Logging in...';
+        submitBtn.disabled = true;
 
         try {
             const response = await api.post('/auth/login', { identifier, password });
@@ -203,8 +210,24 @@ function showLoginModal() {
             initDashboard();
             loadDashboardData();
         } catch (error) {
-            document.querySelector('.login-error').textContent = error.message;
-            document.querySelector('.login-error').style.display = 'block';
+            console.error('Login error:', error);
+
+            // Provide helpful error messages
+            let errorMessage = error.message;
+            if (error.message.includes('HTTP 500')) {
+                errorMessage = 'Server error. Please check the debug endpoint at /api/debug for more information.';
+            } else if (error.message.includes('Authentication failed')) {
+                errorMessage = 'Invalid email/username or password. Try: admin@metropower.com / MetroPower2025!';
+            } else if (error.message.includes('fetch')) {
+                errorMessage = 'Cannot connect to server. Please check your internet connection.';
+            }
+
+            errorElement.textContent = errorMessage;
+            errorElement.style.display = 'block';
+        } finally {
+            // Reset button state
+            submitBtn.textContent = originalText;
+            submitBtn.disabled = false;
         }
     });
 
@@ -224,9 +247,9 @@ function enterDemoMode() {
 
     // Set demo user info
     const demoUser = {
-        name: 'Antoine Harrell',
+        name: 'Antione Harrell',
         role: 'Assistant Project Manager',
-        email: 'antoine.harrell@metropower.com',
+        email: 'antione.harrell@metropower.com',
         branch: 'Tucker Branch'
     };
 
@@ -245,7 +268,7 @@ function enterDemoMode() {
     // Initialize dashboard with demo data
     initDashboard();
 
-    showNotification('Demo Mode Active - Logged in as Antoine Harrell', 'info');
+    showNotification('Demo Mode Active - Logged in as Antione Harrell', 'info');
 }
 
 function updateUserDisplay(user) {
