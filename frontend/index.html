@@ -3,7 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MetroPower Manpower Dashboard</title>
+    <title>MetroPower Manpower Dashboard - Tucker Branch</title>
+    <meta name="description" content="MetroPower employee tracking and project management dashboard for Tucker Branch operations">
+    <link rel="icon" type="image/svg+xml" href="assets/images/favicon.svg">
     <link rel="stylesheet" href="css/dashboard.css">
 
     <!-- Socket.IO for real-time updates -->
@@ -14,25 +16,37 @@
         <!-- Dashboard Header -->
         <header class="dashboard-header">
             <div class="logo-container">
-                <img src="assets/images/logo.png" alt="MetroPower Logo">
-                <h1>Manpower Dashboard</h1>
+                <img src="assets/images/metropower-logo.svg" alt="MetroPower Logo" class="company-logo">
+                <div class="dashboard-title">
+                    <h1>Manpower Dashboard</h1>
+                    <span class="branch-name">Tucker Branch</span>
+                </div>
             </div>
-            
+
             <div class="header-controls">
                 <div class="week-navigator">
-                    <button type="button" title="Previous Week">&#9664;</button>
-                    <span>Week of: June 16-22, 2025</span>
-                    <button type="button" title="Next Week">&#9654;</button>
+                    <button type="button" title="Previous Week" class="nav-btn">&#9664;</button>
+                    <span class="week-display">Week of: June 16-22, 2025</span>
+                    <button type="button" title="Next Week" class="nav-btn">&#9654;</button>
                 </div>
-                
+
                 <div class="search-container">
-                    <i>🔍</i>
-                    <input type="text" placeholder="Search employees...">
+                    <svg class="search-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="11" cy="11" r="8"></circle>
+                        <path d="m21 21-4.35-4.35"></path>
+                    </svg>
+                    <input type="text" placeholder="Search employees..." class="search-input">
                 </div>
-                
+
                 <div class="user-info">
-                    <img src="assets/images/user-avatar.png" alt="User Avatar">
-                    <span>Antoine Harrell</span>
+                    <img src="assets/images/user-avatar.svg" alt="User Avatar" class="user-avatar">
+                    <div class="user-details">
+                        <span class="user-name">Antoine Harrell</span>
+                        <span class="user-role">Assistant Project Manager</span>
+                    </div>
+                    <svg class="dropdown-icon" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <polyline points="6,9 12,15 18,9"></polyline>
+                    </svg>
                 </div>
             </div>
         </header>

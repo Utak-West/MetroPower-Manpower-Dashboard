@@ -3,7 +3,7 @@
   "name": "metropower-manpower-dashboard",
   "builds": [
     {
-      "src": "api/index.js",
+      "src": "api/**/*.js",
       "use": "@vercel/node",
       "config": {
         "maxLambdaSize": "50mb",
@@ -11,15 +11,7 @@
       }
     },
     {
-      "src": "api/debug.js",
-      "use": "@vercel/node",
-      "config": {
-        "maxLambdaSize": "50mb",
-        "includeFiles": "backend/**"
-      }
-    },
-    {
-      "src": "frontend/**/*",
+      "src": "frontend/**",
       "use": "@vercel/static"
     }
   ],
@@ -69,8 +61,16 @@
       "dest": "/frontend/assets/$1"
     },
     {
+      "src": "/favicon.ico",
+      "dest": "/frontend/assets/images/favicon.ico"
+    },
+    {
       "src": "/(.*\\.(css|js|png|jpg|jpeg|gif|svg|ico|woff|woff2|ttf|eot))",
       "dest": "/frontend/$1"
+    },
+    {
+      "src": "/",
+      "dest": "/frontend/index.html"
     },
     {
       "src": "/(.*)",
