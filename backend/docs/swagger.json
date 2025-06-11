@@ -1,0 +1,555 @@
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "MetroPower Manpower Dashboard API",
+    "description": "API for managing employee assignments, projects, and workforce tracking at MetroPower's Tucker Branch",
+    "version": "1.0.0",
+    "contact": {
+      "name": "MetroPower Development Team",
+      "email": "dev@metropower.com"
+    },
+    "license": {
+      "name": "MIT",
+      "url": "https://opensource.org/licenses/MIT"
+    }
+  },
+  "servers": [
+    {
+      "url": "http://localhost:3001/api",
+      "description": "Development server"
+    },
+    {
+      "url": "https://api.metropower-dashboard.com/api",
+      "description": "Production server"
+    }
+  ],
+  "components": {
+    "securitySchemes": {
+      "bearerAuth": {
+        "type": "http",
+        "scheme": "bearer",
+        "bearerFormat": "JWT"
+      }
+    },
+    "schemas": {
+      "Employee": {
+        "type": "object",
+        "properties": {
+          "employee_id": {
+            "type": "string",
+            "maxLength": 10,
+            "description": "Unique employee identifier"
+          },
+          "name": {
+            "type": "string",
+            "maxLength": 100,
+            "description": "Full name of employee"
+          },
+          "position_id": {
+            "type": "integer",
+            "description": "Reference to position/trade"
+          },
+          "position_name": {
+            "type": "string",
+            "description": "Name of position/trade"
+          },
+          "position_code": {
+            "type": "string",
+            "description": "Short code for position"
+          },
+          "position_color": {
+            "type": "string",
+            "description": "Hex color code for position"
+          },
+          "status": {
+            "type": "string",
+            "enum": ["Active", "PTO", "Leave", "Military", "Terminated"],
+            "description": "Current employee status"
+          },
+          "employee_number": {
+            "type": "string",
+            "maxLength": 20,
+            "description": "Employee number from ADP system"
+          },
+          "hire_date": {
+            "type": "string",
+            "format": "date",
+            "description": "Date employee was hired"
+          },
+          "phone": {
+            "type": "string",
+            "description": "Employee phone number"
+          },
+          "email": {
+            "type": "string",
+            "format": "email",
+            "description": "Employee email address"
+          },
+          "notes": {
+            "type": "string",
+            "description": "Additional employee information"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Record creation timestamp"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Record last update timestamp"
+          }
+        },
+        "required": ["employee_id", "name", "position_id", "status"]
+      },
+      "Project": {
+        "type": "object",
+        "properties": {
+          "project_id": {
+            "type": "string",
+            "maxLength": 20,
+            "description": "Unique project identifier"
+          },
+          "name": {
+            "type": "string",
+            "maxLength": 100,
+            "description": "Project name"
+          },
+          "number": {
+            "type": "string",
+            "maxLength": 20,
+            "description": "Project number"
+          },
+          "status": {
+            "type": "string",
+            "enum": ["Active", "Completed", "On Hold", "Planned"],
+            "description": "Project status"
+          },
+          "start_date": {
+            "type": "string",
+            "format": "date",
+            "description": "Project start date"
+          },
+          "end_date": {
+            "type": "string",
+            "format": "date",
+            "description": "Projected or actual end date"
+          },
+          "location": {
+            "type": "string",
+            "maxLength": 100,
+            "description": "Project location"
+          },
+          "manager_id": {
+            "type": "integer",
+            "description": "Reference to project manager user"
+          },
+          "manager_name": {
+            "type": "string",
+            "description": "Project manager name"
+          },
+          "description": {
+            "type": "string",
+            "description": "Project description"
+          },
+          "budget": {
+            "type": "number",
+            "format": "decimal",
+            "description": "Project budget"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Record creation timestamp"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Record last update timestamp"
+          }
+        },
+        "required": ["project_id", "name", "number", "status"]
+      },
+      "Assignment": {
+        "type": "object",
+        "properties": {
+          "assignment_id": {
+            "type": "integer",
+            "description": "Unique assignment identifier"
+          },
+          "employee_id": {
+            "type": "string",
+            "description": "Reference to employee"
+          },
+          "employee_name": {
+            "type": "string",
+            "description": "Employee name"
+          },
+          "employee_number": {
+            "type": "string",
+            "description": "Employee number"
+          },
+          "position_name": {
+            "type": "string",
+            "description": "Employee position/trade"
+          },
+          "position_code": {
+            "type": "string",
+            "description": "Position code"
+          },
+          "position_color": {
+            "type": "string",
+            "description": "Position color code"
+          },
+          "project_id": {
+            "type": "string",
+            "description": "Reference to project"
+          },
+          "project_name": {
+            "type": "string",
+            "description": "Project name"
+          },
+          "project_number": {
+            "type": "string",
+            "description": "Project number"
+          },
+          "assignment_date": {
+            "type": "string",
+            "format": "date",
+            "description": "Date of assignment"
+          },
+          "notes": {
+            "type": "string",
+            "description": "Assignment notes"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Record creation timestamp"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Record last update timestamp"
+          }
+        },
+        "required": ["employee_id", "project_id", "assignment_date"]
+      },
+      "User": {
+        "type": "object",
+        "properties": {
+          "user_id": {
+            "type": "integer",
+            "description": "Unique user identifier"
+          },
+          "username": {
+            "type": "string",
+            "maxLength": 50,
+            "description": "Username for login"
+          },
+          "email": {
+            "type": "string",
+            "format": "email",
+            "description": "Email address"
+          },
+          "first_name": {
+            "type": "string",
+            "maxLength": 50,
+            "description": "First name"
+          },
+          "last_name": {
+            "type": "string",
+            "maxLength": 50,
+            "description": "Last name"
+          },
+          "role": {
+            "type": "string",
+            "enum": ["Admin", "Project Manager", "Branch Manager", "HR", "View Only"],
+            "description": "User role"
+          },
+          "is_active": {
+            "type": "boolean",
+            "description": "Whether user account is active"
+          },
+          "last_login": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Last login timestamp"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Record creation timestamp"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Record last update timestamp"
+          }
+        },
+        "required": ["username", "email", "first_name", "last_name", "role"]
+      },
+      "Error": {
+        "type": "object",
+        "properties": {
+          "error": {
+            "type": "string",
+            "description": "Error message"
+          },
+          "code": {
+            "type": "string",
+            "description": "Error code"
+          },
+          "statusCode": {
+            "type": "integer",
+            "description": "HTTP status code"
+          },
+          "timestamp": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Error timestamp"
+          },
+          "validationErrors": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "field": {
+                  "type": "string",
+                  "description": "Field name"
+                },
+                "message": {
+                  "type": "string",
+                  "description": "Validation error message"
+                },
+                "value": {
+                  "description": "Invalid value"
+                }
+              }
+            },
+            "description": "Validation error details"
+          }
+        },
+        "required": ["error", "statusCode", "timestamp"]
+      }
+    }
+  },
+  "security": [
+    {
+      "bearerAuth": []
+    }
+  ],
+  "tags": [
+    {
+      "name": "Authentication",
+      "description": "User authentication and token management"
+    },
+    {
+      "name": "Dashboard",
+      "description": "Dashboard data and metrics"
+    },
+    {
+      "name": "Employees",
+      "description": "Employee management"
+    },
+    {
+      "name": "Projects",
+      "description": "Project management"
+    },
+    {
+      "name": "Assignments",
+      "description": "Employee assignment management"
+    },
+    {
+      "name": "Exports",
+      "description": "Data export functionality"
+    },
+    {
+      "name": "Archives",
+      "description": "Weekly archive management"
+    },
+    {
+      "name": "Notifications",
+      "description": "User notifications"
+    },
+    {
+      "name": "Users",
+      "description": "User management"
+    }
+  ],
+  "paths": {
+    "/health": {
+      "get": {
+        "summary": "Health check",
+        "description": "Check API health status",
+        "tags": ["System"],
+        "security": [],
+        "responses": {
+          "200": {
+            "description": "API is healthy",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "example": "OK"
+                    },
+                    "timestamp": {
+                      "type": "string",
+                      "format": "date-time"
+                    },
+                    "service": {
+                      "type": "string",
+                      "example": "MetroPower Manpower Dashboard API"
+                    },
+                    "version": {
+                      "type": "string",
+                      "example": "1.0.0"
+                    },
+                    "environment": {
+                      "type": "string",
+                      "example": "development"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/auth/login": {
+      "post": {
+        "summary": "User login",
+        "description": "Authenticate user and return JWT tokens",
+        "tags": ["Authentication"],
+        "security": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "identifier": {
+                    "type": "string",
+                    "description": "Email or username"
+                  },
+                  "password": {
+                    "type": "string",
+                    "description": "User password"
+                  }
+                },
+                "required": ["identifier", "password"]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Login successful",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string",
+                      "example": "Login successful"
+                    },
+                    "user": {
+                      "$ref": "#/components/schemas/User"
+                    },
+                    "accessToken": {
+                      "type": "string",
+                      "description": "JWT access token"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Authentication failed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/dashboard/current": {
+      "get": {
+        "summary": "Get current week dashboard data",
+        "description": "Retrieve dashboard data for the current week",
+        "tags": ["Dashboard"],
+        "responses": {
+          "200": {
+            "description": "Dashboard data retrieved successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string"
+                    },
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "weekAssignments": {
+                          "type": "object",
+                          "description": "Week assignments organized by day and project"
+                        },
+                        "activeProjects": {
+                          "type": "array",
+                          "items": {
+                            "$ref": "#/components/schemas/Project"
+                          }
+                        },
+                        "employeeStatistics": {
+                          "type": "object",
+                          "description": "Employee statistics"
+                        },
+                        "unassignedToday": {
+                          "type": "array",
+                          "items": {
+                            "$ref": "#/components/schemas/Employee"
+                          }
+                        },
+                        "currentDate": {
+                          "type": "string",
+                          "format": "date"
+                        },
+                        "weekStart": {
+                          "type": "string",
+                          "format": "date"
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Authentication required",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

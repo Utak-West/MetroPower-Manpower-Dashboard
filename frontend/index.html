@@ -1,0 +1,389 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MetroPower Manpower Dashboard</title>
+    <link rel="stylesheet" href="css/dashboard.css">
+
+    <!-- Socket.IO for real-time updates -->
+    <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
+</head>
+<body>
+    <div class="dashboard-container">
+        <!-- Dashboard Header -->
+        <header class="dashboard-header">
+            <div class="logo-container">
+                <img src="assets/images/logo.png" alt="MetroPower Logo">
+                <h1>Manpower Dashboard</h1>
+            </div>
+            
+            <div class="header-controls">
+                <div class="week-navigator">
+                    <button type="button" title="Previous Week">&#9664;</button>
+                    <span>Week of: June 16-22, 2025</span>
+                    <button type="button" title="Next Week">&#9654;</button>
+                </div>
+                
+                <div class="search-container">
+                    <i>🔍</i>
+                    <input type="text" placeholder="Search employees...">
+                </div>
+                
+                <div class="user-info">
+                    <img src="assets/images/user-avatar.png" alt="User Avatar">
+                    <span>Antoine Harrell</span>
+                </div>
+            </div>
+        </header>
+        
+        <!-- Main Dashboard Content -->
+        <div class="dashboard-content">
+            <!-- Sidebar -->
+            <aside class="dashboard-sidebar">
+                <!-- Unassigned Employee Pool -->
+                <section class="sidebar-section">
+                    <h3>Unassigned Employees</h3>
+                    <div class="unassigned-pool">
+                        <div class="employee-card electrician" id="employee-301257" data-employee-id="301257">
+                            <div class="employee-name">Zack Page</div>
+                            <div class="employee-id">301257</div>
+                            <div class="employee-position">Electrician</div>
+                        </div>
+                        
+                        <div class="employee-card field-supervisor" id="employee-004478" data-employee-id="004478">
+                            <div class="employee-name">Matt Smith</div>
+                            <div class="employee-id">004478</div>
+                            <div class="employee-position">Field Supervisor</div>
+                        </div>
+                        
+                        <div class="employee-card apprentice" id="employee-300956" data-employee-id="300956">
+                            <div class="employee-name">Julian Rodriguez</div>
+                            <div class="employee-id">300956</div>
+                            <div class="employee-position">Apprentice</div>
+                        </div>
+                    </div>
+                </section>
+                
+                <!-- Filters -->
+                <section class="sidebar-section filter-section">
+                    <h3>Filters</h3>
+                    <ul>
+                        <li>
+                            <label>
+                                <input type="checkbox" checked> Electricians
+                            </label>
+                        </li>
+                        <li>
+                            <label>
+                                <input type="checkbox" checked> Field Supervisors
+                            </label>
+                        </li>
+                        <li>
+                            <label>
+                                <input type="checkbox" checked> Apprentices
+                            </label>
+                        </li>
+                        <li>
+                            <label>
+                                <input type="checkbox" checked> General Laborers
+                            </label>
+                        </li>
+                        <li>
+                            <label>
+                                <input type="checkbox" checked> Temps
+                            </label>
+                        </li>
+                    </ul>
+                </section>
+                
+                <!-- Summary Statistics -->
+                <section class="sidebar-section stats-section">
+                    <h3>Summary</h3>
+                    <div class="stat-item">
+                        <span>Total Employees:</span>
+                        <span class="stat-value">52</span>
+                    </div>
+                    <div class="stat-item">
+                        <span>Field Supervisors:</span>
+                        <span class="stat-value">7</span>
+                    </div>
+                    <div class="stat-item">
+                        <span>Electricians:</span>
+                        <span class="stat-value">13</span>
+                    </div>
+                    <div class="stat-item">
+                        <span>Apprentices:</span>
+                        <span class="stat-value">24</span>
+                    </div>
+                    <div class="stat-item">
+                        <span>Temps:</span>
+                        <span class="stat-value">10</span>
+                    </div>
+                    <div class="stat-item">
+                        <span>Unassigned:</span>
+                        <span class="stat-value">3</span>
+                    </div>
+                </section>
+            </aside>
+            
+            <!-- Main Grid -->
+            <div class="main-grid-container">
+                <table class="main-grid">
+                    <thead>
+                        <tr>
+                            <th>Day</th>
+                            <th>Project A - 12345</th>
+                            <th>Project B - 23456</th>
+                            <th>Project C - 34567</th>
+                            <th>Project D - 45678</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Monday</td>
+                            <td>
+                                <div class="grid-cell" data-day="Monday" data-project="Project A - 12345">
+                                    <div class="employee-card field-supervisor" id="employee-004531" data-employee-id="004531">
+                                        <div class="employee-name">Raul Santana</div>
+                                        <div class="employee-id">004531</div>
+                                        <div class="employee-position">Field Supervisor</div>
+                                    </div>
+                                    <div class="employee-card apprentice" id="employee-301001" data-employee-id="301001">
+                                        <div class="employee-name">Mario Santos</div>
+                                        <div class="employee-id">301001</div>
+                                        <div class="employee-position">Apprentice</div>
+                                    </div>
+                                </div>
+                            </td>
+                            <td>
+                                <div class="grid-cell" data-day="Monday" data-project="Project B - 23456">
+                                    <div class="employee-card apprentice" id="employee-301010" data-employee-id="301010">
+                                        <div class="employee-name">Kevin Arredondo</div>
+                                        <div class="employee-id">301010</div>
+                                        <div class="employee-position">Apprentice</div>
+                                    </div>
+                                </div>
+                            </td>
+                            <td>
+                                <div class="grid-cell" data-day="Monday" data-project="Project C - 34567">
+                                    <div class="employee-card apprentice" id="employee-300823" data-employee-id="300823">
+                                        <div class="employee-name">Hunter Murchland</div>
+                                        <div class="employee-id">300823</div>
+                                        <div class="employee-position">Apprentice</div>
+                                    </div>
+                                </div>
+                            </td>
+                            <td>
+                                <div class="grid-cell" data-day="Monday" data-project="Project D - 45678">
+                                    <div class="employee-card apprentice" id="employee-300959" data-employee-id="300959">
+                                        <div class="employee-name">Pedro Orozco</div>
+                                        <div class="employee-id">300959</div>
+                                        <div class="employee-position">Apprentice</div>
+                                    </div>
+                                </div>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>Tuesday</td>
+                            <td>
+                                <div class="grid-cell" data-day="Tuesday" data-project="Project A - 12345">
+                                    <div class="employee-card field-supervisor" id="employee-004531-tue" data-employee-id="004531">
+                                        <div class="employee-name">Raul Santana</div>
+                                        <div class="employee-id">004531</div>
+                                        <div class="employee-position">Field Supervisor</div>
+                                    </div>
+                                    <div class="employee-card apprentice" id="employee-301001-tue" data-employee-id="301001">
+                                        <div class="employee-name">Mario Santos</div>
+                                        <div class="employee-id">301001</div>
+                                        <div class="employee-position">Apprentice</div>
+                                    </div>
+                                </div>
+                            </td>
+                            <td>
+                                <div class="grid-cell" data-day="Tuesday" data-project="Project B - 23456">
+                                    <div class="employee-card apprentice" id="employee-301010-tue" data-employee-id="301010">
+                                        <div class="employee-name">Kevin Arredondo</div>
+                                        <div class="employee-id">301010</div>
+                                        <div class="employee-position">Apprentice</div>
+                                    </div>
+                                </div>
+                            </td>
+                            <td>
+                                <div class="grid-cell" data-day="Tuesday" data-project="Project C - 34567">
+                                    <div class="employee-card apprentice" id="employee-300823-tue" data-employee-id="300823">
+                                        <div class="employee-name">Hunter Murchland</div>
+                                        <div class="employee-id">300823</div>
+                                        <div class="employee-position">Apprentice</div>
+                                    </div>
+                                </div>
+                            </td>
+                            <td>
+                                <div class="grid-cell" data-day="Tuesday" data-project="Project D - 45678">
+                                    <div class="employee-card apprentice" id="employee-300959-tue" data-employee-id="300959">
+                                        <div class="employee-name">Pedro Orozco</div>
+                                        <div class="employee-id">300959</div>
+                                        <div class="employee-position">Apprentice</div>
+                                    </div>
+                                </div>
+                            </td>
+                        </tr>
+                        <tr class="current-day">
+                            <td>Wednesday</td>
+                            <td>
+                                <div class="grid-cell" data-day="Wednesday" data-project="Project A - 12345">
+                                    <div class="employee-card field-supervisor" id="employee-004531-wed" data-employee-id="004531">
+                                        <div class="employee-name">Raul Santana</div>
+                                        <div class="employee-id">004531</div>
+                                        <div class="employee-position">Field Supervisor</div>
+                                    </div>
+                                    <div class="employee-card apprentice" id="employee-301001-wed" data-employee-id="301001">
+                                        <div class="employee-name">Mario Santos</div>
+                                        <div class="employee-id">301001</div>
+                                        <div class="employee-position">Apprentice</div>
+                                    </div>
+                                </div>
+                            </td>
+                            <td>
+                                <div class="grid-cell drop-hover" data-day="Wednesday" data-project="Project B - 23456">
+                                    <div class="employee-card apprentice" id="employee-301010-wed" data-employee-id="301010">
+                                        <div class="employee-name">Kevin Arredondo</div>
+                                        <div class="employee-id">301010</div>
+                                        <div class="employee-position">Apprentice</div>
+                                    </div>
+                                </div>
+                            </td>
+                            <td>
+                                <div class="grid-cell" data-day="Wednesday" data-project="Project C - 34567">
+                                    <div class="employee-card apprentice" id="employee-300823-wed" data-employee-id="300823">
+                                        <div class="employee-name">Hunter Murchland</div>
+                                        <div class="employee-id">300823</div>
+                                        <div class="employee-position">Apprentice</div>
+                                    </div>
+                                </div>
+                            </td>
+                            <td>
+                                <div class="grid-cell" data-day="Wednesday" data-project="Project D - 45678">
+                                    <div class="employee-card apprentice" id="employee-300959-wed" data-employee-id="300959">
+                                        <div class="employee-name">Pedro Orozco</div>
+                                        <div class="employee-id">300959</div>
+                                        <div class="employee-position">Apprentice</div>
+                                    </div>
+                                </div>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>Thursday</td>
+                            <td>
+                                <div class="grid-cell" data-day="Thursday" data-project="Project A - 12345">
+                                    <div class="employee-card field-supervisor" id="employee-004531-thu" data-employee-id="004531">
+                                        <div class="employee-name">Raul Santana</div>
+                                        <div class="employee-id">004531</div>
+                                        <div class="employee-position">Field Supervisor</div>
+                                    </div>
+                                    <div class="employee-card apprentice" id="employee-301001-thu" data-employee-id="301001">
+                                        <div class="employee-name">Mario Santos</div>
+                                        <div class="employee-id">301001</div>
+                                        <div class="employee-position">Apprentice</div>
+                                    </div>
+                                </div>
+                            </td>
+                            <td>
+                                <div class="grid-cell" data-day="Thursday" data-project="Project B - 23456">
+                                    <div class="employee-card apprentice" id="employee-301010-thu" data-employee-id="301010">
+                                        <div class="employee-name">Kevin Arredondo</div>
+                                        <div class="employee-id">301010</div>
+                                        <div class="employee-position">Apprentice</div>
+                                    </div>
+                                </div>
+                            </td>
+                            <td>
+                                <div class="grid-cell" data-day="Thursday" data-project="Project C - 34567">
+                                    <div class="employee-card apprentice" id="employee-300823-thu" data-employee-id="300823">
+                                        <div class="employee-name">Hunter Murchland</div>
+                                        <div class="employee-id">300823</div>
+                                        <div class="employee-position">Apprentice</div>
+                                    </div>
+                                </div>
+                            </td>
+                            <td>
+                                <div class="grid-cell" data-day="Thursday" data-project="Project D - 45678">
+                                    <div class="employee-card apprentice" id="employee-300959-thu" data-employee-id="300959">
+                                        <div class="employee-name">Pedro Orozco</div>
+                                        <div class="employee-id">300959</div>
+                                        <div class="employee-position">Apprentice</div>
+                                    </div>
+                                </div>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>Friday</td>
+                            <td>
+                                <div class="grid-cell" data-day="Friday" data-project="Project A - 12345">
+                                    <div class="employee-card field-supervisor" id="employee-004531-fri" data-employee-id="004531">
+                                        <div class="employee-name">Raul Santana</div>
+                                        <div class="employee-id">004531</div>
+                                        <div class="employee-position">Field Supervisor</div>
+                                    </div>
+                                    <div class="employee-card apprentice" id="employee-301001-fri" data-employee-id="301001">
+                                        <div class="employee-name">Mario Santos</div>
+                                        <div class="employee-id">301001</div>
+                                        <div class="employee-position">Apprentice</div>
+                                    </div>
+                                </div>
+                            </td>
+                            <td>
+                                <div class="grid-cell" data-day="Friday" data-project="Project B - 23456">
+                                    <div class="employee-card apprentice" id="employee-301010-fri" data-employee-id="301010">
+                                        <div class="employee-name">Kevin Arredondo</div>
+                                        <div class="employee-id">301010</div>
+                                        <div class="employee-position">Apprentice</div>
+                                    </div>
+                                </div>
+                            </td>
+                            <td>
+                                <div class="grid-cell" data-day="Friday" data-project="Project C - 34567">
+                                    <div class="employee-card apprentice" id="employee-300823-fri" data-employee-id="300823">
+                                        <div class="employee-name">Hunter Murchland</div>
+                                        <div class="employee-id">300823</div>
+                                        <div class="employee-position">Apprentice</div>
+                                    </div>
+                                </div>
+                            </td>
+                            <td>
+                                <div class="grid-cell" data-day="Friday" data-project="Project D - 45678">
+                                    <div class="employee-card apprentice" id="employee-300959-fri" data-employee-id="300959">
+                                        <div class="employee-name">Pedro Orozco</div>
+                                        <div class="employee-id">300959</div>
+                                        <div class="employee-position">Apprentice</div>
+                                    </div>
+                                </div>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        
+        <!-- Dashboard Footer -->
+        <footer class="dashboard-footer">
+            <div class="export-controls">
+                <button type="button">Export Excel</button>
+                <button type="button">Export CSV</button>
+                <button type="button">Export PDF</button>
+            </div>
+            
+            <div class="status-indicators">
+                Last updated: Today at 10:45 AM
+            </div>
+            
+            <div class="help-support">
+                <a href="#">Help</a>
+                <a href="#">Support</a>
+            </div>
+        </footer>
+    </div>
+
+    <script src="js/dashboard.js"></script>
+</body>
+</html>
