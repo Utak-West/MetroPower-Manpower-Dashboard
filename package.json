@@ -10,6 +10,7 @@
     "test": "npm test --prefix backend",
     "migrate": "npm run migrate --prefix backend",
     "seed": "npm run seed --prefix backend",
+    "test-db": "node scripts/test-db-connection.js",
     "vercel-build": "node scripts/vercel-build.js",
     "postinstall": "npm install --prefix backend"
   },

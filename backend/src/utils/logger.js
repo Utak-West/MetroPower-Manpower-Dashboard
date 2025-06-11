@@ -9,10 +9,16 @@ const winston = require('winston');
 const path = require('path');
 const fs = require('fs');
 
-// Ensure logs directory exists
+// Ensure logs directory exists (skip in serverless environment)
 const logsDir = path.join(__dirname, '../../logs');
-if (!fs.existsSync(logsDir)) {
-  fs.mkdirSync(logsDir, { recursive: true });
+const isServerless = process.env.VERCEL || process.env.DISABLE_FILE_LOGGING;
+
+if (!isServerless && !fs.existsSync(logsDir)) {
+  try {
+    fs.mkdirSync(logsDir, { recursive: true });
+  } catch (error) {
+    console.warn('Could not create logs directory:', error.message);
+  }
 }
 
 // Custom log format
@@ -49,8 +55,8 @@ const logger = winston.createLogger({
     version: process.env.APP_VERSION || '1.0.0',
     environment: process.env.NODE_ENV || 'development'
   },
-  transports: [
-    // File transport for all logs
+  transports: isServerless ? [] : [
+    // File transport for all logs (disabled in serverless)
     new winston.transports.File({
       filename: path.join(logsDir, 'error.log'),
       level: 'error',
@@ -61,8 +67,8 @@ const logger = winston.createLogger({
         winston.format.json()
       )
     }),
-    
-    // File transport for all logs
+
+    // File transport for all logs (disabled in serverless)
     new winston.transports.File({
       filename: path.join(logsDir, 'combined.log'),
       maxsize: 5242880, // 5MB
@@ -74,16 +80,16 @@ const logger = winston.createLogger({
     })
   ],
   
-  // Handle exceptions and rejections
-  exceptionHandlers: [
+  // Handle exceptions and rejections (disabled in serverless)
+  exceptionHandlers: isServerless ? [] : [
     new winston.transports.File({
       filename: path.join(logsDir, 'exceptions.log'),
       maxsize: 5242880, // 5MB
       maxFiles: 3
     })
   ],
-  
-  rejectionHandlers: [
+
+  rejectionHandlers: isServerless ? [] : [
     new winston.transports.File({
       filename: path.join(logsDir, 'rejections.log'),
       maxsize: 5242880, // 5MB
@@ -92,11 +98,11 @@ const logger = winston.createLogger({
   ]
 });
 
-// Add console transport for non-production environments
-if (process.env.NODE_ENV !== 'production') {
+// Add console transport for non-production environments or serverless
+if (process.env.NODE_ENV !== 'production' || isServerless) {
   logger.add(new winston.transports.Console({
     format: consoleFormat,
-    level: 'debug'
+    level: isServerless ? 'error' : 'debug'
   }));
 }
 
