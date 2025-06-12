@@ -1,29 +1,29 @@
 /**
  * Error Handling Middleware
- * 
- * Centralized error handling for the MetroPower Dashboard API.
- * Provides consistent error responses and logging.
+ *
+ * Comprehensive error handling for the MetroPower Dashboard API
+ * with proper logging, sanitization, and user-friendly responses.
+ *
+ * Copyright 2025 The HigherSelf Network
  */
 
 const logger = require('../utils/logger');
 
 /**
- * Custom error class for application-specific errors
+ * Custom error classes
  */
 class AppError extends Error {
-  constructor(message, statusCode = 500, code = null) {
+  constructor(message, statusCode = 500, code = 'INTERNAL_ERROR', isOperational = true) {
     super(message);
     this.statusCode = statusCode;
     this.code = code;
-    this.isOperational = true;
-    
+    this.isOperational = isOperational;
+    this.timestamp = new Date().toISOString();
+
     Error.captureStackTrace(this, this.constructor);
   }
 }
 
-/**
- * Validation error class
- */
 class ValidationError extends AppError {
   constructor(message, errors = []) {
     super(message, 400, 'VALIDATION_ERROR');
@@ -31,159 +31,163 @@ class ValidationError extends AppError {
   }
 }
 
-/**
- * Database error class
- */
-class DatabaseError extends AppError {
-  constructor(message, originalError = null) {
-    super(message, 500, 'DATABASE_ERROR');
-    this.originalError = originalError;
-  }
-}
-
-/**
- * Authentication error class
- */
 class AuthenticationError extends AppError {
   constructor(message = 'Authentication failed') {
     super(message, 401, 'AUTHENTICATION_ERROR');
   }
 }
 
-/**
- * Authorization error class
- */
 class AuthorizationError extends AppError {
-  constructor(message = 'Access denied') {
+  constructor(message = 'Insufficient permissions') {
     super(message, 403, 'AUTHORIZATION_ERROR');
   }
 }
 
-/**
- * Not found error class
- */
 class NotFoundError extends AppError {
   constructor(message = 'Resource not found') {
     super(message, 404, 'NOT_FOUND_ERROR');
   }
 }
 
-/**
- * Conflict error class (for duplicate resources, etc.)
- */
 class ConflictError extends AppError {
   constructor(message = 'Resource conflict') {
     super(message, 409, 'CONFLICT_ERROR');
   }
 }
 
+class RateLimitError extends AppError {
+  constructor(message = 'Too many requests') {
+    super(message, 429, 'RATE_LIMIT_ERROR');
+  }
+}
+
 /**
- * Handle PostgreSQL database errors
- * @param {Error} error - Database error
- * @returns {AppError} Formatted application error
+ * Async handler wrapper to catch async errors
  */
-const handleDatabaseError = (error) => {
-  logger.error('Database error:', error);
+const asyncHandler = (fn) => {
+  return (req, res, next) => {
+    Promise.resolve(fn(req, res, next)).catch(next);
+  };
+};
+
+/**
+ * Handle specific database errors
+ */
+const handleDatabaseError = (err) => {
+  let error;
 
   // PostgreSQL error codes
-  switch (error.code) {
+  switch (err.code) {
     case '23505': // Unique violation
-      const match = error.detail?.match(/Key \((.+)\)=\((.+)\) already exists/);
-      if (match) {
-        const field = match[1];
-        const value = match[2];
-        return new ConflictError(`${field} '${value}' already exists`);
-      }
-      return new ConflictError('Duplicate entry detected');
-
+      error = new ConflictError('Resource already exists');
+      break;
     case '23503': // Foreign key violation
-      return new ValidationError('Referenced resource does not exist');
-
+      error = new ValidationError('Referenced resource does not exist');
+      break;
     case '23502': // Not null violation
-      const column = error.column;
-      return new ValidationError(`${column} is required`);
-
-    case '23514': // Check constraint violation
-      return new ValidationError('Data validation failed');
-
+      error = new ValidationError('Required field is missing');
+      break;
+    case '23514': // Check violation
+      error = new ValidationError('Data validation failed');
+      break;
     case '42P01': // Undefined table
-      return new DatabaseError('Database table not found');
-
+      error = new AppError('Database table not found', 500, 'DATABASE_ERROR');
+      break;
     case '42703': // Undefined column
-      return new DatabaseError('Database column not found');
-
+      error = new AppError('Database column not found', 500, 'DATABASE_ERROR');
+      break;
     case '28P01': // Invalid password
-      return new DatabaseError('Database authentication failed');
-
-    case 'ECONNREFUSED':
-      return new DatabaseError('Database connection refused');
-
-    case 'ENOTFOUND':
-      return new DatabaseError('Database host not found');
-
+      error = new AppError('Database authentication failed', 500, 'DATABASE_ERROR');
+      break;
+    case '3D000': // Invalid database name
+      error = new AppError('Database not found', 500, 'DATABASE_ERROR');
+      break;
+    case '08006': // Connection failure
+      error = new AppError('Database connection failed', 500, 'DATABASE_ERROR');
+      break;
     default:
-      return new DatabaseError('Database operation failed', error);
+      error = new AppError('Database operation failed', 500, 'DATABASE_ERROR');
   }
+
+  error.originalError = err;
+  return error;
 };
 
 /**
  * Handle JWT errors
- * @param {Error} error - JWT error
- * @returns {AppError} Formatted application error
  */
-const handleJWTError = (error) => {
-  switch (error.name) {
+const handleJWTError = (err) => {
+  let error;
+
+  switch (err.name) {
     case 'JsonWebTokenError':
-      return new AuthenticationError('Invalid token');
+      error = new AuthenticationError('Invalid authentication token');
+      break;
     case 'TokenExpiredError':
-      return new AuthenticationError('Token expired');
+      error = new AuthenticationError('Authentication token has expired');
+      break;
     case 'NotBeforeError':
-      return new AuthenticationError('Token not active');
+      error = new AuthenticationError('Authentication token not active yet');
+      break;
     default:
-      return new AuthenticationError('Token verification failed');
+      error = new AuthenticationError('Authentication token error');
   }
+
+  error.originalError = err;
+  return error;
 };
 
 /**
- * Handle validation errors from Joi or express-validator
- * @param {Error} error - Validation error
- * @returns {AppError} Formatted application error
+ * Handle validation errors
  */
-const handleValidationError = (error) => {
-  if (error.isJoi) {
-    // Joi validation error
-    const errors = error.details.map(detail => ({
+const handleValidationError = (err) => {
+  let errors = [];
+
+  if (err.isJoi) {
+    // Joi validation errors
+    errors = err.details.map(detail => ({
       field: detail.path.join('.'),
       message: detail.message,
       value: detail.context?.value
     }));
-    
-    return new ValidationError('Validation failed', errors);
-  }
-
-  // Express-validator errors
-  if (error.array && typeof error.array === 'function') {
-    const errors = error.array().map(err => ({
-      field: err.param,
-      message: err.msg,
-      value: err.value
+  } else if (err.array && typeof err.array === 'function') {
+    // Express-validator errors
+    errors = err.array().map(error => ({
+      field: error.param || error.path,
+      message: error.msg,
+      value: error.value
     }));
-    
-    return new ValidationError('Validation failed', errors);
+  } else if (err.errors) {
+    // Mongoose-style validation errors
+    errors = Object.keys(err.errors).map(key => ({
+      field: key,
+      message: err.errors[key].message,
+      value: err.errors[key].value
+    }));
   }
 
-  return new ValidationError(error.message);
+  const error = new ValidationError('Validation failed', errors);
+  error.originalError = err;
+  return error;
 };
 
 /**
  * Main error handling middleware
- * @param {Error} err - Error object
- * @param {Object} req - Express request object
- * @param {Object} res - Express response object
- * @param {Function} next - Express next function
  */
 const errorHandler = (err, req, res, next) => {
   let error = err;
+
+  // Log the original error
+  logger.error('Error occurred:', {
+    message: err.message,
+    stack: err.stack,
+    url: req.originalUrl,
+    method: req.method,
+    ip: req.ip,
+    userAgent: req.get('User-Agent'),
+    userId: req.user?.user_id,
+    timestamp: new Date().toISOString()
+  });
 
   // Handle different types of errors
   if (err.name === 'CastError') {
@@ -202,36 +206,19 @@ const errorHandler = (err, req, res, next) => {
     error = new AppError('Something went wrong', 500, 'INTERNAL_ERROR');
   }
 
-  // Log error details
-  const errorLog = {
-    message: error.message,
-    statusCode: error.statusCode,
-    code: error.code,
-    stack: error.stack,
-    url: req.originalUrl,
-    method: req.method,
-    ip: req.ip,
-    userAgent: req.get('User-Agent')
-  };
-
-  if (req.user) {
-    errorLog.userId = req.user.user_id;
-    errorLog.userRole = req.user.role;
-  }
-
-  if (error.statusCode >= 500) {
-    logger.error('Server Error:', errorLog);
-  } else if (error.statusCode >= 400) {
-    logger.warn('Client Error:', errorLog);
-  }
-
   // Prepare error response
   const errorResponse = {
-    error: error.message,
-    code: error.code,
-    statusCode: error.statusCode,
-    timestamp: new Date().toISOString()
+    error: error.code || 'INTERNAL_ERROR',
+    message: error.message,
+    timestamp: error.timestamp || new Date().toISOString(),
+    path: req.originalUrl,
+    method: req.method
   };
+
+  // Add request ID if available
+  if (req.id) {
+    errorResponse.requestId = req.id;
+  }
 
   // Add additional error details in development
   if (process.env.NODE_ENV === 'development') {
@@ -250,9 +237,6 @@ const errorHandler = (err, req, res, next) => {
 
 /**
  * Handle 404 errors for undefined routes
- * @param {Object} req - Express request object
- * @param {Object} res - Express response object
- * @param {Function} next - Express next function
  */
 const notFoundHandler = (req, res, next) => {
   const error = new NotFoundError(`Route ${req.method} ${req.originalUrl} not found`);
@@ -260,26 +244,27 @@ const notFoundHandler = (req, res, next) => {
 };
 
 /**
- * Async error wrapper
- * Wraps async route handlers to catch errors and pass them to error handler
- * @param {Function} fn - Async function to wrap
- * @returns {Function} Wrapped function
+ * Handle uncaught exceptions in async routes
  */
-const asyncHandler = (fn) => {
-  return (req, res, next) => {
-    Promise.resolve(fn(req, res, next)).catch(next);
-  };
+const handleAsyncErrors = (app) => {
+  app.use((err, req, res, next) => {
+    if (err instanceof Error) {
+      return errorHandler(err, req, res, next);
+    }
+    next();
+  });
 };
 
 module.exports = {
-  errorHandler,
-  notFoundHandler,
-  asyncHandler,
   AppError,
   ValidationError,
-  DatabaseError,
   AuthenticationError,
   AuthorizationError,
   NotFoundError,
-  ConflictError
+  ConflictError,
+  RateLimitError,
+  asyncHandler,
+  errorHandler,
+  notFoundHandler,
+  handleAsyncErrors
 };

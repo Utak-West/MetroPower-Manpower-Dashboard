@@ -1,34 +1,40 @@
 /**
- * Logging Utility
- * 
- * Centralized logging configuration using Winston for the MetroPower Dashboard.
- * Provides structured logging with different levels and formats.
+ * Logger Utility
+ *
+ * Centralized logging configuration for the MetroPower Dashboard
+ * with structured logging, file rotation, and security logging.
+ *
+ * Copyright 2025 The HigherSelf Network
  */
 
 const winston = require('winston');
+const DailyRotateFile = require('winston-daily-rotate-file');
 const path = require('path');
 const fs = require('fs');
+const config = require('../config/app');
 
-// Ensure logs directory exists (skip in serverless environment)
-const logsDir = path.join(__dirname, '../../logs');
-const isServerless = process.env.VERCEL || process.env.DISABLE_FILE_LOGGING;
-
-if (!isServerless && !fs.existsSync(logsDir)) {
-  try {
-    fs.mkdirSync(logsDir, { recursive: true });
-  } catch (error) {
-    console.warn('Could not create logs directory:', error.message);
-  }
+// Ensure logs directory exists
+const logsDir = path.dirname(config.logging.file);
+if (!fs.existsSync(logsDir)) {
+  fs.mkdirSync(logsDir, { recursive: true });
 }
 
-// Custom log format
-const logFormat = winston.format.combine(
+// Custom format for structured logging
+const customFormat = winston.format.combine(
   winston.format.timestamp({
     format: 'YYYY-MM-DD HH:mm:ss'
   }),
   winston.format.errors({ stack: true }),
   winston.format.json(),
-  winston.format.prettyPrint()
+  winston.format.printf(({ timestamp, level, message, ...meta }) => {
+    let logMessage = `${timestamp} [${level.toUpperCase()}]: ${message}`;
+
+    if (Object.keys(meta).length > 0) {
+      logMessage += ` ${JSON.stringify(meta)}`;
+    }
+
+    return logMessage;
+  })
 );
 
 // Console format for development
@@ -38,105 +44,101 @@ const consoleFormat = winston.format.combine(
     format: 'HH:mm:ss'
   }),
   winston.format.printf(({ timestamp, level, message, ...meta }) => {
-    let msg = `${timestamp} [${level}]: ${message}`;
+    let logMessage = `${timestamp} ${level}: ${message}`;
+
     if (Object.keys(meta).length > 0) {
-      msg += ` ${JSON.stringify(meta, null, 2)}`;
+      logMessage += ` ${JSON.stringify(meta, null, 2)}`;
     }
-    return msg;
+
+    return logMessage;
   })
 );
 
+// Create transports array
+const transports = [];
+
+// Console transport (always enabled)
+transports.push(
+  new winston.transports.Console({
+    level: config.logging.level,
+    format: process.env.NODE_ENV === 'production' ? customFormat : consoleFormat,
+    handleExceptions: true,
+    handleRejections: true
+  })
+);
+
+// File transport (disabled in serverless environments)
+if (!config.logging.disableFileLogging && process.env.NODE_ENV !== 'test') {
+  // Main log file with rotation
+  transports.push(
+    new DailyRotateFile({
+      filename: config.logging.file.replace('.log', '-%DATE%.log'),
+      datePattern: 'YYYY-MM-DD',
+      maxSize: config.logging.maxSize,
+      maxFiles: config.logging.maxFiles,
+      level: config.logging.level,
+      format: customFormat,
+      handleExceptions: true,
+      handleRejections: true
+    })
+  );
+
+  // Error log file
+  transports.push(
+    new DailyRotateFile({
+      filename: config.logging.file.replace('.log', '-error-%DATE%.log'),
+      datePattern: 'YYYY-MM-DD',
+      maxSize: config.logging.maxSize,
+      maxFiles: config.logging.maxFiles,
+      level: 'error',
+      format: customFormat
+    })
+  );
+
+  // Security log file
+  transports.push(
+    new DailyRotateFile({
+      filename: config.logging.file.replace('.log', '-security-%DATE%.log'),
+      datePattern: 'YYYY-MM-DD',
+      maxSize: config.logging.maxSize,
+      maxFiles: config.logging.maxFiles,
+      level: 'warn',
+      format: customFormat
+    })
+  );
+}
+
 // Create logger instance
 const logger = winston.createLogger({
-  level: process.env.LOG_LEVEL || 'info',
-  format: logFormat,
+  level: config.logging.level,
+  format: customFormat,
   defaultMeta: {
-    service: 'metropower-dashboard-api',
-    version: process.env.APP_VERSION || '1.0.0',
-    environment: process.env.NODE_ENV || 'development'
+    service: 'metropower-dashboard',
+    environment: config.app.environment,
+    version: config.app.version
   },
-  exitOnError: false,
-  transports: isServerless ? [] : [
-    // File transport for all logs (disabled in serverless)
-    new winston.transports.File({
-      filename: path.join(logsDir, 'error.log'),
-      level: 'error',
-      maxsize: 5242880, // 5MB
-      maxFiles: 5,
-      format: winston.format.combine(
-        winston.format.timestamp(),
-        winston.format.json()
-      )
-    }),
-
-    // File transport for all logs (disabled in serverless)
-    new winston.transports.File({
-      filename: path.join(logsDir, 'combined.log'),
-      maxsize: 5242880, // 5MB
-      maxFiles: 5,
-      format: winston.format.combine(
-        winston.format.timestamp(),
-        winston.format.json()
-      )
-    })
-  ],
-  
-  // Handle exceptions and rejections (disabled in serverless)
-  exceptionHandlers: isServerless ? [] : [
-    new winston.transports.File({
-      filename: path.join(logsDir, 'exceptions.log'),
-      maxsize: 5242880, // 5MB
-      maxFiles: 3
-    })
-  ],
-
-  rejectionHandlers: isServerless ? [] : [
-    new winston.transports.File({
-      filename: path.join(logsDir, 'rejections.log'),
-      maxsize: 5242880, // 5MB
-      maxFiles: 3
-    })
-  ]
+  transports,
+  exitOnError: false
 });
 
-// Add console transport for non-production environments or serverless
-if (process.env.NODE_ENV !== 'production' || isServerless) {
-  logger.add(new winston.transports.Console({
-    format: consoleFormat,
-    level: isServerless ? 'error' : 'debug'
-  }));
-}
-
-// Add production-specific transports
-if (process.env.NODE_ENV === 'production') {
-  // You can add additional transports here for production
-  // such as external logging services (e.g., CloudWatch, Splunk, etc.)
-}
-
-/**
- * Create a child logger with additional metadata
- * @param {Object} meta - Additional metadata to include in logs
- * @returns {Object} Child logger instance
- */
-const createChildLogger = (meta) => {
-  return logger.child(meta);
+// Add request correlation ID support
+logger.addRequestId = (req, res, next) => {
+  req.id = req.id || Math.random().toString(36).substr(2, 9);
+  logger.defaultMeta.requestId = req.id;
+  next();
 };
 
 /**
- * Log database queries (for debugging)
- * @param {string} query - SQL query
- * @param {Array} params - Query parameters
- * @param {number} duration - Query execution time in ms
+ * Log security events
+ * @param {string} event - Security event type
+ * @param {Object} data - Additional data
  */
-const logQuery = (query, params = [], duration = 0) => {
-  if (process.env.LOG_LEVEL === 'debug') {
-    logger.debug('Database Query', {
-      query: query.replace(/\s+/g, ' ').trim(),
-      params,
-      duration: `${duration}ms`,
-      type: 'database'
-    });
-  }
+logger.logSecurity = (event, data = {}) => {
+  logger.warn('Security Event', {
+    event,
+    timestamp: new Date().toISOString(),
+    ...data
+  });
 };
 
 /**
@@ -145,7 +147,7 @@ const logQuery = (query, params = [], duration = 0) => {
  * @param {Object} res - Express response object
  * @param {number} duration - Request processing time in ms
  */
-const logRequest = (req, res, duration) => {
+logger.logRequest = (req, res, duration) => {
   const logData = {
     method: req.method,
     url: req.originalUrl,
@@ -162,6 +164,11 @@ const logRequest = (req, res, duration) => {
     logData.userRole = req.user.role;
   }
 
+  // Add request ID if available
+  if (req.id) {
+    logData.requestId = req.id;
+  }
+
   // Log based on status code
   if (res.statusCode >= 500) {
     logger.error('API Request Error', logData);
@@ -173,41 +180,43 @@ const logRequest = (req, res, duration) => {
 };
 
 /**
- * Log authentication events
- * @param {string} event - Authentication event type
- * @param {Object} data - Event data
+ * Log database operations
+ * @param {string} operation - Database operation type
+ * @param {string} table - Table name
+ * @param {Object} data - Additional data
  */
-const logAuth = (event, data) => {
+logger.logDatabase = (operation, table, data = {}) => {
+  logger.debug('Database Operation', {
+    operation,
+    table,
+    timestamp: new Date().toISOString(),
+    ...data
+  });
+};
+
+/**
+ * Log authentication events
+ * @param {string} event - Auth event type
+ * @param {Object} data - Additional data
+ */
+logger.logAuth = (event, data = {}) => {
   logger.info('Authentication Event', {
     event,
-    ...data,
-    type: 'authentication'
+    timestamp: new Date().toISOString(),
+    ...data
   });
 };
 
 /**
- * Log business events (assignments, exports, etc.)
+ * Log business events
  * @param {string} event - Business event type
- * @param {Object} data - Event data
+ * @param {Object} data - Additional data
  */
-const logBusiness = (event, data) => {
+logger.logBusiness = (event, data = {}) => {
   logger.info('Business Event', {
     event,
-    ...data,
-    type: 'business'
-  });
-};
-
-/**
- * Log security events
- * @param {string} event - Security event type
- * @param {Object} data - Event data
- */
-const logSecurity = (event, data) => {
-  logger.warn('Security Event', {
-    event,
-    ...data,
-    type: 'security'
+    timestamp: new Date().toISOString(),
+    ...data
   });
 };
 
@@ -215,23 +224,48 @@ const logSecurity = (event, data) => {
  * Log performance metrics
  * @param {string} metric - Metric name
  * @param {number} value - Metric value
- * @param {Object} metadata - Additional metadata
+ * @param {Object} data - Additional data
  */
-const logMetric = (metric, value, metadata = {}) => {
+logger.logMetric = (metric, value, data = {}) => {
   logger.info('Performance Metric', {
     metric,
     value,
-    ...metadata,
-    type: 'performance'
+    timestamp: new Date().toISOString(),
+    ...data
   });
 };
 
-// Export logger and utility functions
+/**
+ * Create child logger with additional context
+ * @param {Object} context - Additional context
+ * @returns {Object} Child logger
+ */
+logger.child = (context) => {
+  return logger.child(context);
+};
+
+/**
+ * Graceful shutdown
+ */
+logger.gracefulShutdown = () => {
+  return new Promise((resolve) => {
+    logger.info('Shutting down logger...');
+    logger.end(() => {
+      resolve();
+    });
+  });
+};
+
+// Handle logger errors
+logger.on('error', (error) => {
+  console.error('Logger error:', error);
+});
+
+// Log startup message
+logger.info('Logger initialized', {
+  level: config.logging.level,
+  environment: config.app.environment,
+  fileLogging: !config.logging.disableFileLogging
+});
+
 module.exports = logger;
-module.exports.createChildLogger = createChildLogger;
-module.exports.logQuery = logQuery;
-module.exports.logRequest = logRequest;
-module.exports.logAuth = logAuth;
-module.exports.logBusiness = logBusiness;
-module.exports.logSecurity = logSecurity;
-module.exports.logMetric = logMetric;

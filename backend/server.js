@@ -1,8 +1,10 @@
 /**
- * MetroPower Manpower Dashboard - Main Server Entry Point
- * 
- * This is the main server file that initializes the Express application,
- * sets up middleware, routes, and starts the server.
+ * MetroPower Dashboard - Main Server
+ *
+ * Express.js server with comprehensive error handling, authentication,
+ * and real-time capabilities for the MetroPower workforce management system.
+ *
+ * Copyright 2025 The HigherSelf Network
  */
 
 require('dotenv').config();
@@ -12,6 +14,7 @@ const helmet = require('helmet');
 const morgan = require('morgan');
 const compression = require('compression');
 const rateLimit = require('express-rate-limit');
+const cookieParser = require('cookie-parser');
 const { createServer } = require('http');
 const { Server } = require('socket.io');
 
@@ -21,8 +24,8 @@ const logger = require('./src/utils/logger');
 const { connectDatabase } = require('./src/config/database');
 
 // Import middleware
-const { errorHandler } = require('./src/middleware/errorHandler');
-const { authenticate: authMiddleware } = require('./src/middleware/auth');
+const { errorHandler, notFoundHandler } = require('./src/middleware/errorHandler');
+const { authenticate: authMiddleware, auditLog } = require('./src/middleware/auth');
 
 // Import routes
 const authRoutes = require('./src/routes/auth');
@@ -43,8 +46,20 @@ const server = createServer(app);
 const io = new Server(server, {
   cors: {
     origin: process.env.WEBSOCKET_CORS_ORIGIN?.split(',') || ['http://localhost:3000'],
-    methods: ['GET', 'POST']
+    methods: ['GET', 'POST'],
+    credentials: true
   }
+});
+
+// Global error handlers
+process.on('uncaughtException', (error) => {
+  logger.error('Uncaught Exception:', error);
+  process.exit(1);
+});
+
+process.on('unhandledRejection', (reason, promise) => {
+  logger.error('Unhandled Rejection at:', promise, 'reason:', reason);
+  process.exit(1);
 });
 
 // Security middleware
@@ -52,11 +67,13 @@ app.use(helmet({
   contentSecurityPolicy: {
     directives: {
       defaultSrc: ["'self'"],
-      styleSrc: ["'self'", "'unsafe-inline'"],
-      scriptSrc: ["'self'"],
+      styleSrc: ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com"],
+      fontSrc: ["'self'", "https://fonts.gstatic.com"],
+      scriptSrc: ["'self'", "'unsafe-inline'"],
       imgSrc: ["'self'", "data:", "https:"],
-    },
-  },
+      connectSrc: ["'self'", "ws:", "wss:"]
+    }
+  }
 }));
 
 // CORS configuration
@@ -72,34 +89,70 @@ const limiter = rateLimit({
   windowMs: parseInt(process.env.RATE_LIMIT_WINDOW_MS) || 15 * 60 * 1000, // 15 minutes
   max: parseInt(process.env.RATE_LIMIT_MAX_REQUESTS) || 100,
   message: {
-    error: 'Too many requests from this IP, please try again later.',
-    retryAfter: Math.ceil((parseInt(process.env.RATE_LIMIT_WINDOW_MS) || 900000) / 1000)
+    error: 'Too many requests',
+    message: 'Please try again later'
   },
   standardHeaders: true,
-  legacyHeaders: false,
+  legacyHeaders: false
 });
-app.use('/api/', limiter);
 
-// General middleware
-app.use(compression());
-app.use(morgan('combined', { stream: { write: message => logger.info(message.trim()) } }));
+app.use(limiter);
+
+// Body parsing middleware
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
+app.use(cookieParser());
+
+// Compression middleware
+app.use(compression());
+
+// Logging middleware
+if (process.env.NODE_ENV !== 'test') {
+  app.use(morgan('combined', {
+    stream: {
+      write: (message) => logger.info(message.trim())
+    }
+  }));
+}
+
+// Audit logging middleware
+app.use(auditLog);
+
+// Health check endpoint
+app.get('/health', (req, res) => {
+  res.json({
+    status: 'healthy',
+    timestamp: new Date().toISOString(),
+    version: process.env.npm_package_version || '1.0.0',
+    environment: process.env.NODE_ENV || 'development',
+    database: global.isDemoMode ? 'demo' : 'connected'
+  });
+});
+
+// API Documentation
+app.get('/api-docs', (req, res) => {
+  res.json({
+    name: 'MetroPower Dashboard API',
+    version: '1.0.0',
+    description: 'Workforce management system API',
+    endpoints: {
+      auth: '/api/auth',
+      employees: '/api/employees',
+      projects: '/api/projects',
+      assignments: '/api/assignments',
+      dashboard: '/api/dashboard',
+      exports: '/api/exports',
+      archives: '/api/archives',
+      notifications: '/api/notifications',
+      users: '/api/users'
+    },
+    documentation: 'https://github.com/Utak-West/The-HigherSelf-Network-Server'
+  });
+});
 
 // Static file serving
 app.use('/uploads', express.static('uploads'));
 app.use('/exports', express.static('exports'));
-
-// Health check endpoint
-app.get('/health', (req, res) => {
-  res.status(200).json({
-    status: 'OK',
-    timestamp: new Date().toISOString(),
-    service: 'MetroPower Manpower Dashboard API',
-    version: process.env.APP_VERSION || '1.0.0',
-    environment: process.env.NODE_ENV || 'development'
-  });
-});
 
 // API Routes
 app.use('/api/auth', authRoutes);
@@ -112,34 +165,19 @@ app.use('/api/archives', authMiddleware, archiveRoutes);
 app.use('/api/notifications', authMiddleware, notificationRoutes);
 app.use('/api/users', authMiddleware, userRoutes);
 
-// API Documentation (Swagger)
-if (process.env.NODE_ENV !== 'production') {
-  const swaggerUi = require('swagger-ui-express');
-  const swaggerDocument = require('./docs/swagger.json');
-  app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocument));
-}
-
 // Socket.IO connection handling
 io.on('connection', (socket) => {
-  logger.info(`Client connected: ${socket.id}`);
+  logger.info(`Socket connected: ${socket.id}`);
 
-  // Join user to their role-based room
   socket.on('join-room', (data) => {
     const { userId, role } = data;
     socket.join(`user-${userId}`);
     socket.join(`role-${role}`);
-    logger.info(`User ${userId} joined rooms: user-${userId}, role-${role}`);
-  });
-
-  // Handle assignment updates
-  socket.on('assignment-update', (data) => {
-    // Broadcast to all connected clients
-    socket.broadcast.emit('assignment-changed', data);
-    logger.info(`Assignment update broadcasted: ${JSON.stringify(data)}`);
+    logger.info(`User ${userId} joined room with role ${role}`);
   });
 
   socket.on('disconnect', () => {
-    logger.info(`Client disconnected: ${socket.id}`);
+    logger.info(`Socket disconnected: ${socket.id}`);
   });
 });
 
@@ -147,21 +185,7 @@ io.on('connection', (socket) => {
 app.set('io', io);
 
 // 404 handler
-app.use('*', (req, res) => {
-  res.status(404).json({
-    error: 'Endpoint not found',
-    message: `The requested endpoint ${req.method} ${req.originalUrl} was not found.`,
-    availableEndpoints: [
-      'GET /health',
-      'POST /api/auth/login',
-      'GET /api/employees',
-      'GET /api/projects',
-      'GET /api/assignments',
-      'GET /api/dashboard/current',
-      'GET /api-docs (development only)'
-    ]
-  });
-});
+app.use(notFoundHandler);
 
 // Error handling middleware (must be last)
 app.use(errorHandler);
@@ -175,7 +199,8 @@ const initializeApp = async () => {
     return true;
   } catch (error) {
     logger.error('Failed to initialize app:', error);
-    logger.warn('Server will start without database connection');
+    logger.warn('Server will start without database connection - switching to demo mode');
+    global.isDemoMode = true;
     return false;
   }
 };
@@ -194,19 +219,31 @@ const startServer = async () => {
     const HOST = process.env.HOST || 'localhost';
 
     server.listen(PORT, HOST, () => {
-      logger.info(`🚀 MetroPower Dashboard API Server running on http://${HOST}:${PORT}`);
-      logger.info(`📚 API Documentation available at http://${HOST}:${PORT}/api-docs`);
-      logger.info(`🏥 Health check available at http://${HOST}:${PORT}/health`);
-      logger.info(`🌍 Environment: ${process.env.NODE_ENV || 'development'}`);
+      logger.info(`MetroPower Dashboard API Server running on http://${HOST}:${PORT}`);
+      logger.info(`API Documentation available at http://${HOST}:${PORT}/api-docs`);
+      logger.info(`Health check available at http://${HOST}:${PORT}/health`);
+      logger.info(`Environment: ${process.env.NODE_ENV || 'development'}`);
 
       if (!dbConnected) {
-        logger.warn('⚠️  Database not connected - running in DEMO MODE');
-        logger.info('🎭 Demo Mode: Using in-memory data for demonstration');
-        logger.info('🔑 Demo Login: Use any credentials to access the dashboard');
+        logger.warn('Database not connected - running in DEMO MODE');
+        logger.info('Demo Mode: Using in-memory data for demonstration');
+        logger.info('Demo Login: Use any credentials to access the dashboard');
       } else {
-        logger.info('✅ Database connected - full functionality available');
+        logger.info('Database connected - full functionality available');
       }
     });
+
+    // Graceful shutdown
+    const gracefulShutdown = (signal) => {
+      logger.info(`Received ${signal}. Shutting down gracefully...`);
+      server.close(() => {
+        logger.info('Server closed');
+        process.exit(0);
+      });
+    };
+
+    process.on('SIGTERM', () => gracefulShutdown('SIGTERM'));
+    process.on('SIGINT', () => gracefulShutdown('SIGINT'));
 
   } catch (error) {
     logger.error('Failed to start server:', error);
@@ -214,43 +251,10 @@ const startServer = async () => {
   }
 };
 
-// Graceful shutdown
-process.on('SIGTERM', () => {
-  logger.info('SIGTERM received, shutting down gracefully');
-  server.close(() => {
-    logger.info('Process terminated');
-    process.exit(0);
-  });
-});
-
-process.on('SIGINT', () => {
-  logger.info('SIGINT received, shutting down gracefully');
-  server.close(() => {
-    logger.info('Process terminated');
-    process.exit(0);
-  });
-});
-
-// Handle uncaught exceptions
-process.on('uncaughtException', (error) => {
-  logger.error('Uncaught Exception:', error);
-  process.exit(1);
-});
-
-process.on('unhandledRejection', (reason, promise) => {
-  logger.error('Unhandled Rejection at:', promise, 'reason:', reason);
-  process.exit(1);
-});
-
-// Initialize app for serverless or start server for traditional deployment
-if (process.env.VERCEL || process.env.NODE_ENV === 'production') {
-  // For Vercel/serverless deployment, just initialize the app
-  initializeApp().catch(error => {
-    logger.error('Failed to initialize app for serverless:', error);
-  });
-} else {
-  // For traditional deployment, start the server
+// Only start server if not in serverless environment
+if (require.main === module) {
   startServer();
 }
 
-module.exports = { app, server, io, initializeApp };
+// Export for serverless deployment
+module.exports = { app, server, initializeApp };

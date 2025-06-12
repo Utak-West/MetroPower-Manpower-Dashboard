@@ -1,239 +1,370 @@
 /**
- * Demo Service for MetroPower Dashboard
- * 
- * Provides in-memory database operations for demo mode.
- * Simulates database queries using mock data.
+ * Demo Service
+ *
+ * Provides in-memory data and functionality when database is unavailable
+ * for the MetroPower Dashboard demonstration mode.
+ *
+ * Copyright 2025 The HigherSelf Network
  */
 
-const { 
-  demoUsers, 
-  demoEmployees, 
-  demoProjects, 
-  demoAssignments, 
-  demoNotifications 
-} = require('../data/demoData');
+const config = require('../config/app');
+const logger = require('../utils/logger');
+
+// In-memory demo data
+let demoData = {
+  users: [
+    {
+      user_id: 1,
+      username: 'antione.harrell',
+      email: 'antione.harrell@metropower.com',
+      password_hash: '$2a$12$demo.hash.for.antione.harrell', // Demo hash
+      first_name: 'Antione',
+      last_name: 'Harrell',
+      role: 'Project Manager',
+      is_active: true,
+      created_at: '2024-01-01T00:00:00.000Z',
+      updated_at: '2024-01-01T00:00:00.000Z',
+      last_login: new Date().toISOString()
+    },
+    {
+      user_id: 2,
+      username: 'demo.user',
+      email: 'demo@metropower.com',
+      password_hash: '$2a$12$demo.hash.for.demo.user', // Demo hash
+      first_name: 'Demo',
+      last_name: 'User',
+      role: 'View Only',
+      is_active: true,
+      created_at: '2024-01-01T00:00:00.000Z',
+      updated_at: '2024-01-01T00:00:00.000Z',
+      last_login: new Date().toISOString()
+    }
+  ],
+  employees: [
+    {
+      employee_id: 1,
+      first_name: 'John',
+      last_name: 'Smith',
+      trade: 'Electrician',
+      level: 'Journeyman',
+      hourly_rate: 28.50,
+      is_active: true,
+      hire_date: '2023-01-15',
+      phone: '555-0101',
+      email: 'john.smith@metropower.com'
+    },
+    {
+      employee_id: 2,
+      first_name: 'Mike',
+      last_name: 'Johnson',
+      trade: 'Electrician',
+      level: 'Apprentice',
+      hourly_rate: 22.00,
+      is_active: true,
+      hire_date: '2023-03-20',
+      phone: '555-0102',
+      email: 'mike.johnson@metropower.com'
+    },
+    {
+      employee_id: 3,
+      first_name: 'Sarah',
+      last_name: 'Williams',
+      trade: 'Field Supervisor',
+      level: 'Senior',
+      hourly_rate: 35.00,
+      is_active: true,
+      hire_date: '2022-08-10',
+      phone: '555-0103',
+      email: 'sarah.williams@metropower.com'
+    },
+    {
+      employee_id: 4,
+      first_name: 'David',
+      last_name: 'Brown',
+      trade: 'Electrician',
+      level: 'Master',
+      hourly_rate: 32.00,
+      is_active: true,
+      hire_date: '2021-11-05',
+      phone: '555-0104',
+      email: 'david.brown@metropower.com'
+    },
+    {
+      employee_id: 5,
+      first_name: 'Lisa',
+      last_name: 'Davis',
+      trade: 'Electrician',
+      level: 'Journeyman',
+      hourly_rate: 29.00,
+      is_active: true,
+      hire_date: '2023-02-14',
+      phone: '555-0105',
+      email: 'lisa.davis@metropower.com'
+    }
+  ],
+  projects: [
+    {
+      project_id: 1,
+      project_name: 'Tucker Mall Renovation',
+      project_code: 'TM-2024-001',
+      client_name: 'Tucker Development Corp',
+      start_date: '2024-01-15',
+      end_date: '2024-06-30',
+      status: 'Active',
+      project_manager: 'Antione Harrell',
+      estimated_hours: 2400,
+      actual_hours: 1200
+    },
+    {
+      project_id: 2,
+      project_name: 'Office Complex Wiring',
+      project_code: 'OC-2024-002',
+      client_name: 'Metro Business Park',
+      start_date: '2024-02-01',
+      end_date: '2024-05-15',
+      status: 'Active',
+      project_manager: 'Antione Harrell',
+      estimated_hours: 1800,
+      actual_hours: 900
+    },
+    {
+      project_id: 3,
+      project_name: 'Residential Development',
+      project_code: 'RD-2024-003',
+      client_name: 'Tucker Homes LLC',
+      start_date: '2024-03-01',
+      end_date: '2024-08-31',
+      status: 'Active',
+      project_manager: 'Antione Harrell',
+      estimated_hours: 3200,
+      actual_hours: 800
+    }
+  ],
+  assignments: [
+    {
+      assignment_id: 1,
+      employee_id: 1,
+      project_id: 1,
+      assignment_date: new Date().toISOString().split('T')[0],
+      hours_assigned: 8,
+      status: 'Assigned'
+    },
+    {
+      assignment_id: 2,
+      employee_id: 2,
+      project_id: 1,
+      assignment_date: new Date().toISOString().split('T')[0],
+      hours_assigned: 8,
+      status: 'Assigned'
+    },
+    {
+      assignment_id: 3,
+      employee_id: 3,
+      project_id: 2,
+      assignment_date: new Date().toISOString().split('T')[0],
+      hours_assigned: 8,
+      status: 'Assigned'
+    }
+  ]
+};
 
 class DemoService {
-  constructor() {
-    // Create copies of demo data to allow modifications
-    this.users = [...demoUsers];
-    this.employees = [...demoEmployees];
-    this.projects = [...demoProjects];
-    this.assignments = [...demoAssignments];
-    this.notifications = [...demoNotifications];
-    
-    // Auto-increment IDs
-    this.nextUserId = Math.max(...this.users.map(u => u.user_id)) + 1;
-    this.nextEmployeeId = Math.max(...this.employees.map(e => e.employee_id)) + 1;
-    this.nextProjectId = Math.max(...this.projects.map(p => p.project_id)) + 1;
-    this.nextAssignmentId = Math.max(...this.assignments.map(a => a.assignment_id)) + 1;
-    this.nextNotificationId = Math.max(...this.notifications.map(n => n.notification_id)) + 1;
+  /**
+   * Initialize demo service
+   */
+  static initialize() {
+    logger.info('Demo service initialized with in-memory data');
+    logger.info(`Demo users: ${demoData.users.length}`);
+    logger.info(`Demo employees: ${demoData.employees.length}`);
+    logger.info(`Demo projects: ${demoData.projects.length}`);
+    logger.info(`Demo assignments: ${demoData.assignments.length}`);
   }
 
-  // Simulate database query method
-  async query(sql, params = []) {
-    // This is a simplified simulation - in a real implementation,
-    // you'd parse the SQL and execute the appropriate operation
-    
-    // For demo purposes, we'll handle common query patterns
-    const sqlLower = sql.toLowerCase().trim();
-    
-    if (sqlLower.includes('select') && sqlLower.includes('users')) {
-      return { rows: this.users };
-    }
-    
-    if (sqlLower.includes('select') && sqlLower.includes('employees')) {
-      return { rows: this.employees };
-    }
-    
-    if (sqlLower.includes('select') && sqlLower.includes('projects')) {
-      return { rows: this.projects };
-    }
-    
-    if (sqlLower.includes('select') && sqlLower.includes('assignments')) {
-      return { rows: this.assignments };
-    }
-    
-    if (sqlLower.includes('select') && sqlLower.includes('notifications')) {
-      return { rows: this.notifications };
-    }
-    
-    // Default empty result
-    return { rows: [] };
+  /**
+   * Find user by ID
+   * @param {number} userId - User ID
+   * @returns {Promise<Object|null>} User data or null
+   */
+  static async findUserById(userId) {
+    const user = demoData.users.find(u => u.user_id === userId);
+    return user ? { ...user } : null;
   }
 
-  // User operations
-  async findUserByEmail(email) {
-    const user = this.users.find(u => u.email === email);
-    return user || null;
+  /**
+   * Find user by identifier (username or email)
+   * @param {string} identifier - Username or email
+   * @returns {Promise<Object|null>} User data or null
+   */
+  static async findUserByIdentifier(identifier) {
+    const user = demoData.users.find(u =>
+      u.username === identifier || u.email === identifier
+    );
+    return user ? { ...user } : null;
   }
 
-  async findUserById(id) {
-    const user = this.users.find(u => u.user_id === id);
-    return user || null;
+  /**
+   * Get all employees
+   * @returns {Promise<Array>} Array of employees
+   */
+  static async getEmployees() {
+    return [...demoData.employees];
   }
 
-  // Employee operations
-  async getAllEmployees() {
-    return this.employees.filter(e => e.is_active);
-  }
+  /**
+   * Get unassigned employees for a specific date
+   * @param {string} date - Date in YYYY-MM-DD format
+   * @returns {Promise<Array>} Array of unassigned employees
+   */
+  static async getUnassignedEmployees(date) {
+    const assignedEmployeeIds = demoData.assignments
+      .filter(a => a.assignment_date === date)
+      .map(a => a.employee_id);
 
-  async getEmployeeById(id) {
-    return this.employees.find(e => e.employee_id === id && e.is_active) || null;
-  }
-
-  async createEmployee(employeeData) {
-    const newEmployee = {
-      employee_id: this.nextEmployeeId++,
-      ...employeeData,
-      created_at: new Date().toISOString(),
-      is_active: true
-    };
-    this.employees.push(newEmployee);
-    return newEmployee;
-  }
-
-  async updateEmployee(id, updates) {
-    const index = this.employees.findIndex(e => e.employee_id === id);
-    if (index !== -1) {
-      this.employees[index] = { ...this.employees[index], ...updates };
-      return this.employees[index];
-    }
-    return null;
-  }
-
-  // Project operations
-  async getAllProjects() {
-    return this.projects;
-  }
-
-  async getProjectById(id) {
-    return this.projects.find(p => p.project_id === id) || null;
-  }
-
-  // Assignment operations
-  async getAssignmentsByDate(date) {
-    return this.assignments.filter(a => a.date === date);
-  }
-
-  async getAssignmentsByEmployee(employeeId) {
-    return this.assignments.filter(a => a.employee_id === employeeId);
-  }
-
-  async getAssignmentsByProject(projectId) {
-    return this.assignments.filter(a => a.project_id === projectId);
-  }
-
-  async createAssignment(assignmentData) {
-    const newAssignment = {
-      assignment_id: this.nextAssignmentId++,
-      ...assignmentData,
-      created_at: new Date().toISOString(),
-      status: 'Assigned'
-    };
-    this.assignments.push(newAssignment);
-    return newAssignment;
-  }
-
-  async updateAssignment(id, updates) {
-    const index = this.assignments.findIndex(a => a.assignment_id === id);
-    if (index !== -1) {
-      this.assignments[index] = { ...this.assignments[index], ...updates };
-      return this.assignments[index];
-    }
-    return null;
-  }
-
-  async deleteAssignment(id) {
-    const index = this.assignments.findIndex(a => a.assignment_id === id);
-    if (index !== -1) {
-      return this.assignments.splice(index, 1)[0];
-    }
-    return null;
-  }
-
-  // Dashboard operations
-  async getDashboardData(date) {
-    const assignments = await this.getAssignmentsByDate(date);
-    const totalEmployees = this.employees.filter(e => e.is_active).length;
-    const assignedEmployees = new Set(assignments.map(a => a.employee_id)).size;
-    const unassignedEmployees = totalEmployees - assignedEmployees;
-    const activeProjects = this.projects.filter(p => p.status === 'Active').length;
-
-    return {
-      totalEmployees,
-      assignedEmployees,
-      unassignedEmployees,
-      activeProjects,
-      totalAssignments: assignments.length,
-      assignments
-    };
-  }
-
-  // Notification operations
-  async getNotificationsByUser(userId) {
-    return this.notifications.filter(n => n.recipient_id === userId);
-  }
-
-  async markNotificationAsRead(id) {
-    const index = this.notifications.findIndex(n => n.notification_id === id);
-    if (index !== -1) {
-      this.notifications[index].read_status = true;
-      return this.notifications[index];
-    }
-    return null;
-  }
-
-  // Statistics
-  async getEmployeeStatistics() {
-    const total = this.employees.filter(e => e.is_active).length;
-    const assigned = new Set(this.assignments.map(a => a.employee_id)).size;
-    const unassigned = total - assigned;
-    
-    return {
-      total,
-      assigned,
-      unassigned,
-      utilization: total > 0 ? Math.round((assigned / total) * 100) : 0
-    };
-  }
-
-  async getProjectStatistics() {
-    const total = this.projects.length;
-    const active = this.projects.filter(p => p.status === 'Active').length;
-    const planned = this.projects.filter(p => p.status === 'Planned').length;
-    const completed = this.projects.filter(p => p.status === 'Completed').length;
-    
-    return {
-      total,
-      active,
-      planned,
-      completed
-    };
-  }
-
-  // Search operations
-  async searchEmployees(query) {
-    const searchTerm = query.toLowerCase();
-    return this.employees.filter(e => 
-      e.is_active && (
-        e.first_name.toLowerCase().includes(searchTerm) ||
-        e.last_name.toLowerCase().includes(searchTerm) ||
-        e.email.toLowerCase().includes(searchTerm) ||
-        e.position.toLowerCase().includes(searchTerm)
-      )
+    return demoData.employees.filter(e =>
+      e.is_active && !assignedEmployeeIds.includes(e.employee_id)
     );
   }
 
-  // Reset demo data (useful for testing)
-  resetData() {
-    this.users = [...demoUsers];
-    this.employees = [...demoEmployees];
-    this.projects = [...demoProjects];
-    this.assignments = [...demoAssignments];
-    this.notifications = [...demoNotifications];
+  /**
+   * Get all projects
+   * @returns {Promise<Array>} Array of projects
+   */
+  static async getProjects() {
+    return [...demoData.projects];
+  }
+
+  /**
+   * Get active projects
+   * @returns {Promise<Array>} Array of active projects
+   */
+  static async getActiveProjects() {
+    return demoData.projects.filter(p => p.status === 'Active');
+  }
+
+  /**
+   * Get assignments for a specific week
+   * @param {string} weekStart - Week start date in YYYY-MM-DD format
+   * @returns {Promise<Object>} Assignments grouped by date and project
+   */
+  static async getWeekAssignments(weekStart) {
+    const weekDates = [];
+    const startDate = new Date(weekStart);
+
+    // Generate 7 days from start date
+    for (let i = 0; i < 7; i++) {
+      const date = new Date(startDate);
+      date.setDate(startDate.getDate() + i);
+      weekDates.push(date.toISOString().split('T')[0]);
+    }
+
+    const assignments = {};
+
+    weekDates.forEach(date => {
+      assignments[date] = {};
+
+      demoData.projects.forEach(project => {
+        assignments[date][project.project_id] = demoData.assignments
+          .filter(a => a.assignment_date === date && a.project_id === project.project_id)
+          .map(a => {
+            const employee = demoData.employees.find(e => e.employee_id === a.employee_id);
+            return {
+              ...a,
+              employee
+            };
+          });
+      });
+    });
+
+    return assignments;
+  }
+
+  /**
+   * Get dashboard metrics
+   * @returns {Promise<Object>} Dashboard metrics
+   */
+  static async getDashboardMetrics() {
+    const today = new Date().toISOString().split('T')[0];
+
+    return {
+      totalEmployees: demoData.employees.filter(e => e.is_active).length,
+      activeProjects: demoData.projects.filter(p => p.status === 'Active').length,
+      todayAssignments: demoData.assignments.filter(a => a.assignment_date === today).length,
+      unassignedToday: await this.getUnassignedEmployees(today)
+    };
+  }
+
+  /**
+   * Create assignment (demo mode)
+   * @param {Object} assignmentData - Assignment data
+   * @returns {Promise<Object>} Created assignment
+   */
+  static async createAssignment(assignmentData) {
+    const newAssignment = {
+      assignment_id: Math.max(...demoData.assignments.map(a => a.assignment_id)) + 1,
+      ...assignmentData,
+      status: 'Assigned'
+    };
+
+    demoData.assignments.push(newAssignment);
+
+    logger.info('Demo assignment created', {
+      assignmentId: newAssignment.assignment_id,
+      employeeId: newAssignment.employee_id,
+      projectId: newAssignment.project_id
+    });
+
+    return newAssignment;
+  }
+
+  /**
+   * Update assignment (demo mode)
+   * @param {number} assignmentId - Assignment ID
+   * @param {Object} updateData - Update data
+   * @returns {Promise<Object>} Updated assignment
+   */
+  static async updateAssignment(assignmentId, updateData) {
+    const index = demoData.assignments.findIndex(a => a.assignment_id === assignmentId);
+
+    if (index === -1) {
+      throw new Error('Assignment not found');
+    }
+
+    demoData.assignments[index] = {
+      ...demoData.assignments[index],
+      ...updateData
+    };
+
+    logger.info('Demo assignment updated', {
+      assignmentId,
+      updateData
+    });
+
+    return demoData.assignments[index];
+  }
+
+  /**
+   * Delete assignment (demo mode)
+   * @param {number} assignmentId - Assignment ID
+   * @returns {Promise<boolean>} Success status
+   */
+  static async deleteAssignment(assignmentId) {
+    const index = demoData.assignments.findIndex(a => a.assignment_id === assignmentId);
+
+    if (index === -1) {
+      throw new Error('Assignment not found');
+    }
+
+    demoData.assignments.splice(index, 1);
+
+    logger.info('Demo assignment deleted', {
+      assignmentId
+    });
+
+    return true;
   }
 }
 
-// Export singleton instance
-module.exports = new DemoService();
+// Initialize demo service when module is loaded
+DemoService.initialize();
+
+module.exports = DemoService;

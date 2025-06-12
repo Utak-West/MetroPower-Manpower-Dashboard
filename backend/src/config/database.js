@@ -1,15 +1,16 @@
 /**
- * Database Configuration and Connection Management
- * 
- * Handles PostgreSQL database connection, pooling, and query execution
- * for the MetroPower Dashboard application.
+ * Database Configuration
+ *
+ * PostgreSQL connection configuration with connection pooling,
+ * error handling, and demo mode fallback for the MetroPower Dashboard.
+ *
+ * Copyright 2025 The HigherSelf Network
  */
 
 const { Pool } = require('pg');
 const config = require('./app');
 const logger = require('../utils/logger');
 
-// Database connection pool
 let pool = null;
 
 /**
@@ -28,6 +29,9 @@ const createPool = () => {
     acquireTimeoutMillis: config.database.pool.acquire,
     idleTimeoutMillis: config.database.pool.idle,
     connectionTimeoutMillis: 10000,
+    statement_timeout: 30000,
+    query_timeout: 30000,
+    application_name: 'MetroPower Dashboard'
   };
 
   pool = new Pool(dbConfig);
@@ -35,6 +39,7 @@ const createPool = () => {
   // Handle pool errors
   pool.on('error', (err) => {
     logger.error('Unexpected error on idle client:', err);
+    // Don't exit the process, just log the error
   });
 
   // Handle pool connection
@@ -59,56 +64,74 @@ const connectDatabase = async () => {
       createPool();
     }
 
-    // Test the connection
-    const client = await pool.connect();
-    const result = await client.query('SELECT NOW() as current_time, version() as version');
-    client.release();
+    // Test the connection with retry logic
+    let retries = 3;
+    let lastError;
 
-    logger.info('Database connection established successfully');
-    logger.info(`Database time: ${result.rows[0].current_time}`);
-    logger.debug(`PostgreSQL version: ${result.rows[0].version}`);
+    while (retries > 0) {
+      try {
+        const client = await pool.connect();
+        const result = await client.query('SELECT NOW() as current_time, version() as version');
+        client.release();
 
-    global.isDemoMode = false;
-    return pool;
+        logger.info('Database connection established successfully');
+        logger.info(`Database time: ${result.rows[0].current_time}`);
+        logger.debug(`PostgreSQL version: ${result.rows[0].version}`);
+
+        global.isDemoMode = false;
+        return pool;
+      } catch (error) {
+        lastError = error;
+        retries--;
+        if (retries > 0) {
+          logger.warn(`Database connection failed, retrying... (${retries} attempts left)`);
+          await new Promise(resolve => setTimeout(resolve, 2000));
+        }
+      }
+    }
+
+    throw lastError;
   } catch (error) {
-    logger.error('Failed to connect to database:', error);
+    logger.error('Failed to connect to database after all retries:', error);
     logger.warn('Switching to demo mode with in-memory data');
     global.isDemoMode = true;
+
+    // Initialize demo service
+    require('../services/demoService');
+
     throw error;
   }
 };
 
 /**
- * Execute a query with parameters
- * @param {string} text - SQL query text
- * @param {Array} params - Query parameters
- * @returns {Promise<Object>} Query result
+ * Execute a database query with error handling
  */
 const query = async (text, params = []) => {
-  // Use demo service if in demo mode
   if (global.isDemoMode) {
-    const demoService = require('../services/demoService');
-    return await demoService.query(text, params);
+    throw new Error('Database operations not available in demo mode');
+  }
+
+  if (!pool) {
+    throw new Error('Database pool not initialized');
   }
 
   const start = Date.now();
-
   try {
     const result = await pool.query(text, params);
     const duration = Date.now() - start;
 
-    logger.debug(`Query executed in ${duration}ms:`, {
-      query: text,
-      params: params,
-      rowCount: result.rowCount
+    logger.debug('Executed query', {
+      text: text.substring(0, 100) + (text.length > 100 ? '...' : ''),
+      duration: `${duration}ms`,
+      rows: result.rowCount
     });
 
     return result;
   } catch (error) {
     const duration = Date.now() - start;
-    logger.error(`Query failed after ${duration}ms:`, {
-      query: text,
-      params: params,
+    logger.error('Query error', {
+      text: text.substring(0, 100) + (text.length > 100 ? '...' : ''),
+      duration: `${duration}ms`,
       error: error.message
     });
     throw error;
@@ -116,13 +139,19 @@ const query = async (text, params = []) => {
 };
 
 /**
- * Execute a transaction
- * @param {Function} callback - Function containing queries to execute in transaction
- * @returns {Promise<any>} Transaction result
+ * Execute a transaction with automatic rollback on error
  */
 const transaction = async (callback) => {
+  if (global.isDemoMode) {
+    throw new Error('Transactions not available in demo mode');
+  }
+
+  if (!pool) {
+    throw new Error('Database pool not initialized');
+  }
+
   const client = await pool.connect();
-  
+
   try {
     await client.query('BEGIN');
     const result = await callback(client);
@@ -130,7 +159,6 @@ const transaction = async (callback) => {
     return result;
   } catch (error) {
     await client.query('ROLLBACK');
-    logger.error('Transaction rolled back:', error);
     throw error;
   } finally {
     client.release();
@@ -138,32 +166,21 @@ const transaction = async (callback) => {
 };
 
 /**
- * Get a client from the pool for manual transaction management
- * @returns {Promise<Object>} Database client
- */
-const getClient = async () => {
-  return await pool.connect();
-};
-
-/**
- * Close the database connection pool
- */
-const closeDatabase = async () => {
-  if (pool) {
-    await pool.end();
-    pool = null;
-    logger.info('Database connection pool closed');
-  }
-};
-
-/**
  * Get database connection status
- * @returns {Object} Connection status information
  */
 const getConnectionStatus = () => {
+  if (global.isDemoMode) {
+    return {
+      status: 'demo',
+      totalCount: 0,
+      idleCount: 0,
+      waitingCount: 0
+    };
+  }
+
   if (!pool) {
     return {
-      connected: false,
+      status: 'disconnected',
       totalCount: 0,
       idleCount: 0,
       waitingCount: 0
@@ -171,7 +188,7 @@ const getConnectionStatus = () => {
   }
 
   return {
-    connected: true,
+    status: 'connected',
     totalCount: pool.totalCount,
     idleCount: pool.idleCount,
     waitingCount: pool.waitingCount
@@ -179,100 +196,63 @@ const getConnectionStatus = () => {
 };
 
 /**
- * Health check for database connection
- * @returns {Promise<Object>} Health check result
+ * Close database connection pool
  */
-const healthCheck = async () => {
-  try {
-    const result = await query('SELECT 1 as health_check');
-    return {
-      status: 'healthy',
-      timestamp: new Date().toISOString(),
-      responseTime: 'fast',
-      connection: getConnectionStatus()
-    };
-  } catch (error) {
-    return {
-      status: 'unhealthy',
-      timestamp: new Date().toISOString(),
-      error: error.message,
-      connection: getConnectionStatus()
-    };
+const closeDatabase = async () => {
+  if (pool) {
+    try {
+      await pool.end();
+      logger.info('Database connection pool closed');
+    } catch (error) {
+      logger.error('Error closing database pool:', error);
+    } finally {
+      pool = null;
+    }
   }
 };
 
 /**
- * Common database utility functions
+ * Health check for database
  */
-const utils = {
-  /**
-   * Build WHERE clause from filters
-   * @param {Object} filters - Filter object
-   * @param {number} startIndex - Starting parameter index
-   * @returns {Object} WHERE clause and parameters
-   */
-  buildWhereClause: (filters, startIndex = 1) => {
-    const conditions = [];
-    const params = [];
-    let paramIndex = startIndex;
+const healthCheck = async () => {
+  if (global.isDemoMode) {
+    return {
+      status: 'demo',
+      message: 'Running in demo mode',
+      timestamp: new Date().toISOString()
+    };
+  }
 
-    Object.entries(filters).forEach(([key, value]) => {
-      if (value !== undefined && value !== null && value !== '') {
-        if (Array.isArray(value)) {
-          const placeholders = value.map(() => `$${paramIndex++}`).join(',');
-          conditions.push(`${key} IN (${placeholders})`);
-          params.push(...value);
-        } else if (typeof value === 'string' && value.includes('%')) {
-          conditions.push(`${key} ILIKE $${paramIndex++}`);
-          params.push(value);
-        } else {
-          conditions.push(`${key} = $${paramIndex++}`);
-          params.push(value);
-        }
-      }
-    });
+  try {
+    if (!pool) {
+      throw new Error('Database pool not initialized');
+    }
+
+    const client = await pool.connect();
+    const result = await client.query('SELECT 1 as health_check');
+    client.release();
 
     return {
-      whereClause: conditions.length > 0 ? `WHERE ${conditions.join(' AND ')}` : '',
-      params
+      status: 'healthy',
+      message: 'Database connection is working',
+      timestamp: new Date().toISOString(),
+      connectionCount: pool.totalCount
     };
-  },
-
-  /**
-   * Build pagination clause
-   * @param {number} page - Page number (1-based)
-   * @param {number} limit - Items per page
-   * @returns {Object} Pagination clause and offset
-   */
-  buildPaginationClause: (page = 1, limit = 50) => {
-    const offset = (page - 1) * limit;
+  } catch (error) {
     return {
-      paginationClause: `LIMIT ${limit} OFFSET ${offset}`,
-      offset,
-      limit
+      status: 'unhealthy',
+      message: error.message,
+      timestamp: new Date().toISOString()
     };
-  },
-
-  /**
-   * Build ORDER BY clause
-   * @param {string} sortBy - Column to sort by
-   * @param {string} sortOrder - Sort order (ASC/DESC)
-   * @returns {string} ORDER BY clause
-   */
-  buildOrderClause: (sortBy = 'created_at', sortOrder = 'DESC') => {
-    const validOrders = ['ASC', 'DESC'];
-    const order = validOrders.includes(sortOrder.toUpperCase()) ? sortOrder.toUpperCase() : 'DESC';
-    return `ORDER BY ${sortBy} ${order}`;
   }
 };
 
 module.exports = {
   connectDatabase,
-  closeDatabase,
   query,
   transaction,
-  getClient,
   getConnectionStatus,
+  closeDatabase,
   healthCheck,
-  utils
+  getPool: () => pool
 };

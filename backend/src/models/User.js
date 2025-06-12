@@ -1,169 +1,64 @@
 /**
  * User Model
- * 
- * Handles all database operations related to users in the MetroPower Dashboard.
- * Includes authentication, user management, and role-based access control.
+ *
+ * Handles user authentication, authorization, and management
+ * for the MetroPower Dashboard with comprehensive security features.
+ *
+ * Copyright 2025 The HigherSelf Network
  */
 
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
-const crypto = require('crypto');
 const { query, transaction } = require('../config/database');
-const logger = require('../utils/logger');
 const config = require('../config/app');
+const logger = require('../utils/logger');
+const { ValidationError, AuthenticationError } = require('../middleware/errorHandler');
 
 class User {
   /**
-   * Get all users with optional filtering and pagination
-   * @param {Object} filters - Filter criteria
-   * @param {Object} pagination - Pagination options
-   * @returns {Promise<Object>} Users data with metadata
-   */
-  static async getAll(filters = {}, pagination = {}) {
-    try {
-      const { page = 1, limit = 50, sortBy = 'last_name', sortOrder = 'ASC' } = pagination;
-      const offset = (page - 1) * limit;
-
-      // Build WHERE clause
-      const conditions = [];
-      const params = [];
-      let paramIndex = 1;
-
-      if (filters.role) {
-        conditions.push(`role = $${paramIndex++}`);
-        params.push(filters.role);
-      }
-
-      if (filters.is_active !== undefined) {
-        conditions.push(`is_active = $${paramIndex++}`);
-        params.push(filters.is_active);
-      }
-
-      if (filters.search) {
-        conditions.push(`(first_name ILIKE $${paramIndex} OR last_name ILIKE $${paramIndex} OR email ILIKE $${paramIndex} OR username ILIKE $${paramIndex})`);
-        params.push(`%${filters.search}%`);
-        paramIndex++;
-      }
-
-      const whereClause = conditions.length > 0 ? `WHERE ${conditions.join(' AND ')}` : '';
-
-      // Main query (exclude password_hash)
-      const usersQuery = `
-        SELECT 
-          user_id,
-          username,
-          email,
-          first_name,
-          last_name,
-          role,
-          is_active,
-          last_login,
-          created_at,
-          updated_at
-        FROM users
-        ${whereClause}
-        ORDER BY ${sortBy} ${sortOrder}
-        LIMIT $${paramIndex} OFFSET $${paramIndex + 1}
-      `;
-
-      params.push(limit, offset);
-
-      // Count query
-      const countQuery = `
-        SELECT COUNT(*) as total
-        FROM users
-        ${whereClause}
-      `;
-
-      const countParams = params.slice(0, -2); // Remove limit and offset
-
-      const [usersResult, countResult] = await Promise.all([
-        query(usersQuery, params),
-        query(countQuery, countParams)
-      ]);
-
-      const total = parseInt(countResult.rows[0].total);
-      const totalPages = Math.ceil(total / limit);
-
-      return {
-        users: usersResult.rows,
-        pagination: {
-          page,
-          limit,
-          total,
-          totalPages,
-          hasNext: page < totalPages,
-          hasPrev: page > 1
-        }
-      };
-
-    } catch (error) {
-      logger.error('Error getting users:', error);
-      throw error;
-    }
-  }
-
-  /**
-   * Get user by ID
+   * Find user by ID
    * @param {number} userId - User ID
    * @returns {Promise<Object|null>} User data or null
    */
-  static async getById(userId) {
+  static async findById(userId) {
     try {
-      const userQuery = `
-        SELECT 
-          user_id,
-          username,
-          email,
-          first_name,
-          last_name,
-          role,
-          is_active,
-          last_login,
-          created_at,
-          updated_at
-        FROM users
-        WHERE user_id = $1
-      `;
+      if (global.isDemoMode) {
+        const demoService = require('../services/demoService');
+        return await demoService.findUserById(userId);
+      }
 
-      const result = await query(userQuery, [userId]);
+      const result = await query(
+        'SELECT user_id, username, email, first_name, last_name, role, is_active, created_at, updated_at, last_login FROM users WHERE user_id = $1',
+        [userId]
+      );
+
       return result.rows[0] || null;
-
     } catch (error) {
-      logger.error(`Error getting user ${userId}:`, error);
+      logger.error('Error finding user by ID:', error);
       throw error;
     }
   }
 
   /**
-   * Get user by email or username
-   * @param {string} identifier - Email or username
+   * Find user by username or email
+   * @param {string} identifier - Username or email
    * @returns {Promise<Object|null>} User data or null
    */
   static async getByIdentifier(identifier) {
     try {
-      const userQuery = `
-        SELECT 
-          user_id,
-          username,
-          email,
-          password_hash,
-          first_name,
-          last_name,
-          role,
-          is_active,
-          last_login,
-          created_at,
-          updated_at
-        FROM users
-        WHERE email = $1 OR username = $1
-      `;
+      if (global.isDemoMode) {
+        const demoService = require('../services/demoService');
+        return await demoService.findUserByIdentifier(identifier);
+      }
 
-      const result = await query(userQuery, [identifier]);
+      const result = await query(
+        'SELECT user_id, username, email, password_hash, first_name, last_name, role, is_active, created_at, updated_at, last_login FROM users WHERE username = $1 OR email = $1',
+        [identifier]
+      );
+
       return result.rows[0] || null;
-
     } catch (error) {
-      logger.error(`Error getting user by identifier ${identifier}:`, error);
+      logger.error('Error finding user by identifier:', error);
       throw error;
     }
   }
@@ -186,32 +81,43 @@ class User {
       } = userData;
 
       // Hash password
-      const saltRounds = 12;
+      const saltRounds = config.security.bcryptRounds;
       const password_hash = await bcrypt.hash(password, saltRounds);
 
       const insertQuery = `
         INSERT INTO users (
-          username, email, password_hash, first_name, last_name, role
-        ) VALUES ($1, $2, $3, $4, $5, $6)
+          username, email, password_hash, first_name, last_name, role, created_by
+        ) VALUES ($1, $2, $3, $4, $5, $6, $7)
         RETURNING user_id, username, email, first_name, last_name, role, is_active, created_at
       `;
 
-      const params = [username, email, password_hash, first_name, last_name, role];
-      const result = await query(insertQuery, params);
-      const newUser = result.rows[0];
+      const result = await query(insertQuery, [
+        username,
+        email,
+        password_hash,
+        first_name,
+        last_name,
+        role,
+        createdBy
+      ]);
 
-      logger.logAuth('user_created', {
-        userId: newUser.user_id,
-        username: newUser.username,
-        email: newUser.email,
-        role: newUser.role,
+      const user = result.rows[0];
+
+      logger.info('User created successfully', {
+        userId: user.user_id,
+        username: user.username,
+        role: user.role,
         createdBy
       });
 
-      return newUser;
-
+      return user;
     } catch (error) {
       logger.error('Error creating user:', error);
+
+      if (error.code === '23505') {
+        throw new ValidationError('Username or email already exists');
+      }
+
       throw error;
     }
   }
@@ -223,59 +129,194 @@ class User {
    * @param {number} updatedBy - User ID who updated the user
    * @returns {Promise<Object>} Updated user data
    */
-  static async update(userId, updateData, updatedBy) {
+  static async update(userId, updateData, updatedBy = null) {
     try {
       const allowedFields = ['username', 'email', 'first_name', 'last_name', 'role', 'is_active'];
       const updates = [];
-      const params = [];
-      let paramIndex = 1;
+      const values = [];
+      let paramCount = 1;
 
-      // Handle password update separately
-      if (updateData.password) {
-        const saltRounds = 12;
-        const password_hash = await bcrypt.hash(updateData.password, saltRounds);
-        updates.push(`password_hash = $${paramIndex++}`);
-        params.push(password_hash);
-      }
-
-      Object.entries(updateData).forEach(([key, value]) => {
+      // Build dynamic update query
+      for (const [key, value] of Object.entries(updateData)) {
         if (allowedFields.includes(key) && value !== undefined) {
-          updates.push(`${key} = $${paramIndex++}`);
-          params.push(value);
+          updates.push(`${key} = $${paramCount}`);
+          values.push(value);
+          paramCount++;
         }
-      });
+      }
 
       if (updates.length === 0) {
-        throw new Error('No valid fields to update');
+        throw new ValidationError('No valid fields to update');
       }
 
-      params.push(userId);
+      // Add updated_by and updated_at
+      updates.push(`updated_by = $${paramCount}`, `updated_at = NOW()`);
+      values.push(updatedBy);
+      paramCount++;
+
+      // Add user ID for WHERE clause
+      values.push(userId);
 
       const updateQuery = `
-        UPDATE users 
-        SET ${updates.join(', ')}, updated_at = CURRENT_TIMESTAMP
-        WHERE user_id = $${paramIndex}
+        UPDATE users
+        SET ${updates.join(', ')}
+        WHERE user_id = $${paramCount}
         RETURNING user_id, username, email, first_name, last_name, role, is_active, updated_at
       `;
 
-      const result = await query(updateQuery, params);
-      
+      const result = await query(updateQuery, values);
+
       if (result.rows.length === 0) {
-        throw new Error('User not found');
+        throw new ValidationError('User not found');
       }
 
-      const updatedUser = result.rows[0];
+      const user = result.rows[0];
 
-      logger.logAuth('user_updated', {
-        userId,
+      logger.info('User updated successfully', {
+        userId: user.user_id,
         updatedFields: Object.keys(updateData),
         updatedBy
       });
 
-      return updatedUser;
-
+      return user;
     } catch (error) {
-      logger.error(`Error updating user ${userId}:`, error);
+      logger.error('Error updating user:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Update user password
+   * @param {number} userId - User ID
+   * @param {string} newPassword - New password
+   * @param {number} updatedBy - User ID who updated the password
+   * @returns {Promise<boolean>} Success status
+   */
+  static async updatePassword(userId, newPassword, updatedBy = null) {
+    try {
+      // Hash new password
+      const saltRounds = config.security.bcryptRounds;
+      const password_hash = await bcrypt.hash(newPassword, saltRounds);
+
+      const result = await query(
+        'UPDATE users SET password_hash = $1, updated_by = $2, updated_at = NOW() WHERE user_id = $3',
+        [password_hash, updatedBy, userId]
+      );
+
+      if (result.rowCount === 0) {
+        throw new ValidationError('User not found');
+      }
+
+      logger.info('User password updated successfully', {
+        userId,
+        updatedBy
+      });
+
+      return true;
+    } catch (error) {
+      logger.error('Error updating user password:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Delete user (soft delete)
+   * @param {number} userId - User ID
+   * @param {number} deletedBy - User ID who deleted the user
+   * @returns {Promise<boolean>} Success status
+   */
+  static async delete(userId, deletedBy = null) {
+    try {
+      const result = await query(
+        'UPDATE users SET is_active = false, updated_by = $1, updated_at = NOW() WHERE user_id = $2',
+        [deletedBy, userId]
+      );
+
+      if (result.rowCount === 0) {
+        throw new ValidationError('User not found');
+      }
+
+      logger.info('User deleted successfully', {
+        userId,
+        deletedBy
+      });
+
+      return true;
+    } catch (error) {
+      logger.error('Error deleting user:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * List all users with pagination
+   * @param {Object} options - Query options
+   * @returns {Promise<Object>} Users list with pagination info
+   */
+  static async list(options = {}) {
+    try {
+      const {
+        page = 1,
+        limit = 10,
+        role = null,
+        active = null,
+        search = null
+      } = options;
+
+      const offset = (page - 1) * limit;
+      const conditions = [];
+      const values = [];
+      let paramCount = 1;
+
+      // Build WHERE conditions
+      if (role) {
+        conditions.push(`role = $${paramCount}`);
+        values.push(role);
+        paramCount++;
+      }
+
+      if (active !== null) {
+        conditions.push(`is_active = $${paramCount}`);
+        values.push(active);
+        paramCount++;
+      }
+
+      if (search) {
+        conditions.push(`(username ILIKE $${paramCount} OR email ILIKE $${paramCount} OR first_name ILIKE $${paramCount} OR last_name ILIKE $${paramCount})`);
+        values.push(`%${search}%`);
+        paramCount++;
+      }
+
+      const whereClause = conditions.length > 0 ? `WHERE ${conditions.join(' AND ')}` : '';
+
+      // Get total count
+      const countQuery = `SELECT COUNT(*) as total FROM users ${whereClause}`;
+      const countResult = await query(countQuery, values);
+      const total = parseInt(countResult.rows[0].total);
+
+      // Get users
+      const usersQuery = `
+        SELECT user_id, username, email, first_name, last_name, role, is_active, created_at, updated_at, last_login
+        FROM users
+        ${whereClause}
+        ORDER BY created_at DESC
+        LIMIT $${paramCount} OFFSET $${paramCount + 1}
+      `;
+
+      values.push(limit, offset);
+      const usersResult = await query(usersQuery, values);
+
+      return {
+        users: usersResult.rows,
+        pagination: {
+          page,
+          limit,
+          total,
+          pages: Math.ceil(total / limit)
+        }
+      };
+    } catch (error) {
+      logger.error('Error listing users:', error);
       throw error;
     }
   }
@@ -289,33 +330,33 @@ class User {
   static async authenticate(identifier, password) {
     try {
       const user = await this.getByIdentifier(identifier);
-      
+
       if (!user) {
-        logger.logSecurity('login_attempt_invalid_user', { identifier });
+        logger.warn('Authentication failed - user not found', { identifier });
         return null;
       }
 
       if (!user.is_active) {
-        logger.logSecurity('login_attempt_inactive_user', { 
+        logger.warn('Authentication failed - user inactive', {
           userId: user.user_id,
-          identifier 
+          identifier
         });
         return null;
       }
 
       const isValidPassword = await bcrypt.compare(password, user.password_hash);
-      
+
       if (!isValidPassword) {
-        logger.logSecurity('login_attempt_invalid_password', { 
+        logger.warn('Authentication failed - invalid password', {
           userId: user.user_id,
-          identifier 
+          identifier
         });
         return null;
       }
 
       // Update last login
       await query(
-        'UPDATE users SET last_login = CURRENT_TIMESTAMP WHERE user_id = $1',
+        'UPDATE users SET last_login = NOW() WHERE user_id = $1',
         [user.user_id]
       );
 
@@ -323,14 +364,15 @@ class User {
       const accessToken = this.generateAccessToken(user);
       const refreshToken = this.generateRefreshToken(user);
 
-      // Remove password hash from response
-      delete user.password_hash;
-
-      logger.logAuth('user_login_success', {
+      logger.info('User authentication successful', {
         userId: user.user_id,
         username: user.username,
         role: user.role
       });
+
+      // Remove password hash from user object
+      delete user.password_hash;
+      user.last_login = new Date().toISOString();
 
       return {
         user,
@@ -339,9 +381,8 @@ class User {
           refreshToken
         }
       };
-
     } catch (error) {
-      logger.error('Error authenticating user:', error);
+      logger.error('Authentication error:', error);
       throw error;
     }
   }
@@ -362,7 +403,7 @@ class User {
 
     return jwt.sign(payload, config.jwt.secret, {
       expiresIn: config.jwt.expiresIn,
-      issuer: config.app.name,
+      issuer: config.jwt.issuer,
       subject: user.user_id.toString()
     });
   }
@@ -380,142 +421,76 @@ class User {
 
     return jwt.sign(payload, config.jwt.refreshSecret, {
       expiresIn: config.jwt.refreshExpiresIn,
-      issuer: config.app.name,
+      issuer: config.jwt.issuer,
       subject: user.user_id.toString()
     });
   }
 
   /**
    * Verify access token
-   * @param {string} token - JWT token
+   * @param {string} token - JWT access token
    * @returns {Promise<Object|null>} Decoded token data or null
    */
   static async verifyAccessToken(token) {
     try {
       const decoded = jwt.verify(token, config.jwt.secret);
-      
-      if (decoded.type !== 'access') {
-        return null;
-      }
 
-      // Check if user still exists and is active
-      const user = await this.getById(decoded.user_id);
-      if (!user || !user.is_active) {
-        return null;
+      if (decoded.type !== 'access') {
+        throw new AuthenticationError('Invalid token type');
       }
 
       return decoded;
-
     } catch (error) {
-      logger.debug('Token verification failed:', error.message);
+      if (error.name === 'TokenExpiredError') {
+        logger.debug('Access token expired');
+      } else if (error.name === 'JsonWebTokenError') {
+        logger.debug('Invalid access token');
+      } else {
+        logger.error('Access token verification error:', error);
+      }
       return null;
     }
   }
 
   /**
-   * Refresh access token
-   * @param {string} refreshToken - Refresh token
-   * @returns {Promise<Object|null>} New tokens or null
+   * Verify refresh token and generate new access token
+   * @param {string} refreshToken - JWT refresh token
+   * @returns {Promise<Object|null>} New access token or null
    */
-  static async refreshToken(refreshToken) {
+  static async refreshAccessToken(refreshToken) {
     try {
       const decoded = jwt.verify(refreshToken, config.jwt.refreshSecret);
-      
+
       if (decoded.type !== 'refresh') {
-        return null;
+        throw new AuthenticationError('Invalid token type');
       }
 
-      const user = await this.getById(decoded.user_id);
+      // Get fresh user data
+      const user = await this.findById(decoded.user_id);
+
       if (!user || !user.is_active) {
-        return null;
+        throw new AuthenticationError('User not found or inactive');
       }
 
-      const newAccessToken = this.generateAccessToken(user);
-      const newRefreshToken = this.generateRefreshToken(user);
+      // Generate new access token
+      const accessToken = this.generateAccessToken(user);
 
-      logger.logAuth('token_refreshed', {
+      logger.info('Access token refreshed successfully', {
         userId: user.user_id
       });
 
       return {
-        accessToken: newAccessToken,
-        refreshToken: newRefreshToken
+        accessToken
       };
-
     } catch (error) {
-      logger.debug('Refresh token verification failed:', error.message);
+      if (error.name === 'TokenExpiredError') {
+        logger.debug('Refresh token expired');
+      } else if (error.name === 'JsonWebTokenError') {
+        logger.debug('Invalid refresh token');
+      } else {
+        logger.error('Refresh token verification error:', error);
+      }
       return null;
-    }
-  }
-
-  /**
-   * Generate password reset token
-   * @param {string} email - User email
-   * @returns {Promise<string|null>} Reset token or null
-   */
-  static async generatePasswordResetToken(email) {
-    try {
-      const user = await this.getByIdentifier(email);
-      if (!user || !user.is_active) {
-        return null;
-      }
-
-      const resetToken = crypto.randomBytes(32).toString('hex');
-      const resetExpires = new Date(Date.now() + 3600000); // 1 hour
-
-      await query(
-        'UPDATE users SET password_reset_token = $1, password_reset_expires = $2 WHERE user_id = $3',
-        [resetToken, resetExpires, user.user_id]
-      );
-
-      logger.logAuth('password_reset_requested', {
-        userId: user.user_id,
-        email
-      });
-
-      return resetToken;
-
-    } catch (error) {
-      logger.error('Error generating password reset token:', error);
-      throw error;
-    }
-  }
-
-  /**
-   * Reset password using token
-   * @param {string} token - Reset token
-   * @param {string} newPassword - New password
-   * @returns {Promise<boolean>} Success status
-   */
-  static async resetPassword(token, newPassword) {
-    try {
-      const user = await query(
-        'SELECT user_id FROM users WHERE password_reset_token = $1 AND password_reset_expires > CURRENT_TIMESTAMP',
-        [token]
-      );
-
-      if (user.rows.length === 0) {
-        return false;
-      }
-
-      const userId = user.rows[0].user_id;
-      const saltRounds = 12;
-      const password_hash = await bcrypt.hash(newPassword, saltRounds);
-
-      await query(
-        'UPDATE users SET password_hash = $1, password_reset_token = NULL, password_reset_expires = NULL WHERE user_id = $2',
-        [password_hash, userId]
-      );
-
-      logger.logAuth('password_reset_completed', {
-        userId
-      });
-
-      return true;
-
-    } catch (error) {
-      logger.error('Error resetting password:', error);
-      throw error;
     }
   }
 }
