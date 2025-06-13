@@ -7,19 +7,17 @@
  * Copyright 2025 The HigherSelf Network
  */
 
-const path = require('path');
-
 // Validate required environment variables
 const requiredEnvVars = [
   'JWT_SECRET',
   'JWT_REFRESH_SECRET'
-];
+]
 
-const missingEnvVars = requiredEnvVars.filter(envVar => !process.env[envVar]);
+const missingEnvVars = requiredEnvVars.filter(envVar => !process.env[envVar])
 
 if (missingEnvVars.length > 0 && process.env.NODE_ENV === 'production') {
-  console.error('Missing required environment variables:', missingEnvVars.join(', '));
-  process.exit(1);
+  console.error('Missing required environment variables:', missingEnvVars.join(', '))
+  process.exit(1)
 }
 
 const config = {
@@ -190,43 +188,43 @@ const config = {
     cacheTtl: parseInt(process.env.CACHE_TTL) || 300, // 5 minutes
     requestTimeout: parseInt(process.env.REQUEST_TIMEOUT) || 30000 // 30 seconds
   }
-};
+}
 
 // Validate configuration
 const validateConfig = () => {
-  const errors = [];
+  const errors = []
 
   // Validate JWT secrets in production
   if (config.app.environment === 'production') {
     if (config.jwt.secret === 'metropower_jwt_secret_development_only') {
-      errors.push('JWT_SECRET must be set to a secure value in production');
+      errors.push('JWT_SECRET must be set to a secure value in production')
     }
     if (config.jwt.refreshSecret === 'metropower_refresh_secret_development_only') {
-      errors.push('JWT_REFRESH_SECRET must be set to a secure value in production');
+      errors.push('JWT_REFRESH_SECRET must be set to a secure value in production')
     }
   }
 
   // Validate database configuration
   if (!config.database.host) {
-    errors.push('DB_HOST is required');
+    errors.push('DB_HOST is required')
   }
   if (!config.database.name) {
-    errors.push('DB_NAME is required');
+    errors.push('DB_NAME is required')
   }
   if (!config.database.user) {
-    errors.push('DB_USER is required');
+    errors.push('DB_USER is required')
   }
 
   if (errors.length > 0) {
-    console.error('Configuration validation errors:');
-    errors.forEach(error => console.error(`  - ${error}`));
+    console.error('Configuration validation errors:')
+    errors.forEach(error => console.error(`  - ${error}`))
     if (config.app.environment === 'production') {
-      process.exit(1);
+      process.exit(1)
     }
   }
-};
+}
 
 // Validate configuration on load
-validateConfig();
+validateConfig()
 
-module.exports = config;
+module.exports = config

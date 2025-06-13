@@ -7,11 +7,11 @@
  * Copyright 2025 The HigherSelf Network
  */
 
-const express = require('express');
-const { asyncHandler } = require('../middleware/errorHandler');
-const logger = require('../utils/logger');
+const express = require('express')
+const { asyncHandler } = require('../middleware/errorHandler')
+const logger = require('../utils/logger')
 
-const router = express.Router();
+const router = express.Router()
 
 /**
  * @route   GET /api/dashboard/current
@@ -20,18 +20,18 @@ const router = express.Router();
  */
 router.get('/current', asyncHandler(async (req, res) => {
   try {
-    const today = new Date();
-    const todayStr = today.toISOString().split('T')[0];
+    const today = new Date()
+    const todayStr = today.toISOString().split('T')[0]
 
     // Calculate current week start (Monday)
-    const dayOfWeek = today.getDay();
-    const daysToMonday = dayOfWeek === 0 ? -6 : 1 - dayOfWeek;
-    const monday = new Date(today);
-    monday.setDate(today.getDate() + daysToMonday);
-    const weekStartDate = monday.toISOString().split('T')[0];
+    const dayOfWeek = today.getDay()
+    const daysToMonday = dayOfWeek === 0 ? -6 : 1 - dayOfWeek
+    const monday = new Date(today)
+    monday.setDate(today.getDate() + daysToMonday)
+    const weekStartDate = monday.toISOString().split('T')[0]
 
     if (global.isDemoMode) {
-      const demoService = require('../services/demoService');
+      const demoService = require('../services/demoService')
 
       const [
         unassignedToday,
@@ -43,7 +43,7 @@ router.get('/current', asyncHandler(async (req, res) => {
         demoService.getActiveProjects(),
         demoService.getWeekAssignments(weekStartDate),
         demoService.getDashboardMetrics()
-      ]);
+      ])
 
       return res.json({
         success: true,
@@ -64,12 +64,12 @@ router.get('/current', asyncHandler(async (req, res) => {
           }
         },
         isDemoMode: true
-      });
+      })
     }
 
     // Database mode implementation would go here
     // For now, fallback to demo service
-    const demoService = require('../services/demoService');
+    const demoService = require('../services/demoService')
 
     const [
       unassignedToday,
@@ -81,7 +81,7 @@ router.get('/current', asyncHandler(async (req, res) => {
       demoService.getActiveProjects(),
       demoService.getWeekAssignments(weekStartDate),
       demoService.getDashboardMetrics()
-    ]);
+    ])
 
     res.json({
       success: true,
@@ -101,16 +101,15 @@ router.get('/current', asyncHandler(async (req, res) => {
           total: metrics.activeProjects
         }
       }
-    });
-
+    })
   } catch (error) {
-    logger.error('Error fetching dashboard data:', error);
+    logger.error('Error fetching dashboard data:', error)
     res.status(500).json({
       error: 'Dashboard data error',
       message: 'Failed to fetch dashboard data'
-    });
+    })
   }
-}));
+}))
 
 /**
  * @route   GET /api/dashboard/metrics
@@ -120,34 +119,33 @@ router.get('/current', asyncHandler(async (req, res) => {
 router.get('/metrics', asyncHandler(async (req, res) => {
   try {
     if (global.isDemoMode) {
-      const demoService = require('../services/demoService');
-      const metrics = await demoService.getDashboardMetrics();
+      const demoService = require('../services/demoService')
+      const metrics = await demoService.getDashboardMetrics()
 
       return res.json({
         success: true,
         data: metrics,
         isDemoMode: true
-      });
+      })
     }
 
     // Database mode implementation would go here
     // For now, fallback to demo service
-    const demoService = require('../services/demoService');
-    const metrics = await demoService.getDashboardMetrics();
+    const demoService = require('../services/demoService')
+    const metrics = await demoService.getDashboardMetrics()
 
     res.json({
       success: true,
       data: metrics
-    });
-
+    })
   } catch (error) {
-    logger.error('Error fetching dashboard metrics:', error);
+    logger.error('Error fetching dashboard metrics:', error)
     res.status(500).json({
       error: 'Metrics error',
       message: 'Failed to fetch dashboard metrics'
-    });
+    })
   }
-}));
+}))
 
 /**
  * @route   GET /api/dashboard/week/:date
@@ -156,19 +154,19 @@ router.get('/metrics', asyncHandler(async (req, res) => {
  */
 router.get('/week/:date', asyncHandler(async (req, res) => {
   try {
-    const { date } = req.params;
+    const { date } = req.params
 
     // Validate date format
     if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) {
       return res.status(400).json({
         error: 'Invalid date format',
         message: 'Date must be in YYYY-MM-DD format'
-      });
+      })
     }
 
     if (global.isDemoMode) {
-      const demoService = require('../services/demoService');
-      const weekAssignments = await demoService.getWeekAssignments(date);
+      const demoService = require('../services/demoService')
+      const weekAssignments = await demoService.getWeekAssignments(date)
 
       return res.json({
         success: true,
@@ -177,13 +175,13 @@ router.get('/week/:date', asyncHandler(async (req, res) => {
           assignments: weekAssignments
         },
         isDemoMode: true
-      });
+      })
     }
 
     // Database mode implementation would go here
     // For now, fallback to demo service
-    const demoService = require('../services/demoService');
-    const weekAssignments = await demoService.getWeekAssignments(date);
+    const demoService = require('../services/demoService')
+    const weekAssignments = await demoService.getWeekAssignments(date)
 
     res.json({
       success: true,
@@ -191,16 +189,15 @@ router.get('/week/:date', asyncHandler(async (req, res) => {
         weekStart: date,
         assignments: weekAssignments
       }
-    });
-
+    })
   } catch (error) {
-    logger.error('Error fetching weekly data:', error);
+    logger.error('Error fetching weekly data:', error)
     res.status(500).json({
       error: 'Weekly data error',
       message: 'Failed to fetch weekly assignment data'
-    });
+    })
   }
-}));
+}))
 
 /**
  * @route   GET /api/dashboard/health
@@ -218,25 +215,24 @@ router.get('/health', asyncHandler(async (req, res) => {
         dashboard: 'operational',
         logging: 'operational'
       }
-    };
+    }
 
     if (global.isDemoMode) {
-      healthStatus.mode = 'demo';
-      healthStatus.message = 'Running in demonstration mode with in-memory data';
+      healthStatus.mode = 'demo'
+      healthStatus.message = 'Running in demonstration mode with in-memory data'
     }
 
     res.json({
       success: true,
       data: healthStatus
-    });
-
+    })
   } catch (error) {
-    logger.error('Error checking dashboard health:', error);
+    logger.error('Error checking dashboard health:', error)
     res.status(500).json({
       error: 'Health check error',
       message: 'Failed to check dashboard health'
-    });
+    })
   }
-}));
+}))
 
-module.exports = router;
+module.exports = router

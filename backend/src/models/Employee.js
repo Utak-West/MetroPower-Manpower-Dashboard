@@ -1,13 +1,12 @@
 /**
  * Employee Model
- * 
+ *
  * Handles all database operations related to employees in the MetroPower Dashboard.
  * Includes CRUD operations, search, filtering, and business logic.
  */
 
-const { query, transaction } = require('../config/database');
-const logger = require('../utils/logger');
-const config = require('../config/app');
+const { query, transaction } = require('../config/database')
+const logger = require('../utils/logger')
 
 class Employee {
   /**
@@ -16,33 +15,33 @@ class Employee {
    * @param {Object} pagination - Pagination options
    * @returns {Promise<Object>} Employees data with metadata
    */
-  static async getAll(filters = {}, pagination = {}) {
+  static async getAll (filters = {}, pagination = {}) {
     try {
-      const { page = 1, limit = 50, sortBy = 'name', sortOrder = 'ASC' } = pagination;
-      const offset = (page - 1) * limit;
+      const { page = 1, limit = 50, sortBy = 'name', sortOrder = 'ASC' } = pagination
+      const offset = (page - 1) * limit
 
       // Build WHERE clause
-      const conditions = [];
-      const params = [];
-      let paramIndex = 1;
+      const conditions = []
+      const params = []
+      let paramIndex = 1
 
       if (filters.status) {
-        conditions.push(`e.status = $${paramIndex++}`);
-        params.push(filters.status);
+        conditions.push(`e.status = $${paramIndex++}`)
+        params.push(filters.status)
       }
 
       if (filters.position_id) {
-        conditions.push(`e.position_id = $${paramIndex++}`);
-        params.push(filters.position_id);
+        conditions.push(`e.position_id = $${paramIndex++}`)
+        params.push(filters.position_id)
       }
 
       if (filters.search) {
-        conditions.push(`(e.name ILIKE $${paramIndex} OR e.employee_id ILIKE $${paramIndex} OR e.employee_number ILIKE $${paramIndex})`);
-        params.push(`%${filters.search}%`);
-        paramIndex++;
+        conditions.push(`(e.name ILIKE $${paramIndex} OR e.employee_id ILIKE $${paramIndex} OR e.employee_number ILIKE $${paramIndex})`)
+        params.push(`%${filters.search}%`)
+        paramIndex++
       }
 
-      const whereClause = conditions.length > 0 ? `WHERE ${conditions.join(' AND ')}` : '';
+      const whereClause = conditions.length > 0 ? `WHERE ${conditions.join(' AND ')}` : ''
 
       // Main query
       const employeesQuery = `
@@ -66,9 +65,9 @@ class Employee {
         ${whereClause}
         ORDER BY ${sortBy} ${sortOrder}
         LIMIT $${paramIndex} OFFSET $${paramIndex + 1}
-      `;
+      `
 
-      params.push(limit, offset);
+      params.push(limit, offset)
 
       // Count query
       const countQuery = `
@@ -76,17 +75,17 @@ class Employee {
         FROM employees e
         LEFT JOIN positions p ON e.position_id = p.position_id
         ${whereClause}
-      `;
+      `
 
-      const countParams = params.slice(0, -2); // Remove limit and offset
+      const countParams = params.slice(0, -2) // Remove limit and offset
 
       const [employeesResult, countResult] = await Promise.all([
         query(employeesQuery, params),
         query(countQuery, countParams)
-      ]);
+      ])
 
-      const total = parseInt(countResult.rows[0].total);
-      const totalPages = Math.ceil(total / limit);
+      const total = parseInt(countResult.rows[0].total)
+      const totalPages = Math.ceil(total / limit)
 
       return {
         employees: employeesResult.rows,
@@ -98,11 +97,10 @@ class Employee {
           hasNext: page < totalPages,
           hasPrev: page > 1
         }
-      };
-
+      }
     } catch (error) {
-      logger.error('Error getting employees:', error);
-      throw error;
+      logger.error('Error getting employees:', error)
+      throw error
     }
   }
 
@@ -111,7 +109,7 @@ class Employee {
    * @param {string} employeeId - Employee ID
    * @returns {Promise<Object|null>} Employee data or null
    */
-  static async getById(employeeId) {
+  static async getById (employeeId) {
     try {
       const employeeQuery = `
         SELECT 
@@ -132,14 +130,13 @@ class Employee {
         FROM employees e
         LEFT JOIN positions p ON e.position_id = p.position_id
         WHERE e.employee_id = $1
-      `;
+      `
 
-      const result = await query(employeeQuery, [employeeId]);
-      return result.rows[0] || null;
-
+      const result = await query(employeeQuery, [employeeId])
+      return result.rows[0] || null
     } catch (error) {
-      logger.error(`Error getting employee ${employeeId}:`, error);
-      throw error;
+      logger.error(`Error getting employee ${employeeId}:`, error)
+      throw error
     }
   }
 
@@ -149,7 +146,7 @@ class Employee {
    * @param {number} createdBy - User ID who created the employee
    * @returns {Promise<Object>} Created employee data
    */
-  static async create(employeeData, createdBy) {
+  static async create (employeeData, createdBy) {
     try {
       const {
         employee_id,
@@ -161,7 +158,7 @@ class Employee {
         phone,
         email,
         notes
-      } = employeeData;
+      } = employeeData
 
       const insertQuery = `
         INSERT INTO employees (
@@ -169,27 +166,26 @@ class Employee {
           hire_date, phone, email, notes
         ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
         RETURNING *
-      `;
+      `
 
       const params = [
         employee_id, name, position_id, status, employee_number,
         hire_date, phone, email, notes
-      ];
+      ]
 
-      const result = await query(insertQuery, params);
-      const newEmployee = result.rows[0];
+      const result = await query(insertQuery, params)
+      const newEmployee = result.rows[0]
 
       logger.logBusiness('employee_created', {
         employeeId: newEmployee.employee_id,
         name: newEmployee.name,
         createdBy
-      });
+      })
 
-      return await this.getById(newEmployee.employee_id);
-
+      return await this.getById(newEmployee.employee_id)
     } catch (error) {
-      logger.error('Error creating employee:', error);
-      throw error;
+      logger.error('Error creating employee:', error)
+      throw error
     }
   }
 
@@ -200,54 +196,53 @@ class Employee {
    * @param {number} updatedBy - User ID who updated the employee
    * @returns {Promise<Object>} Updated employee data
    */
-  static async update(employeeId, updateData, updatedBy) {
+  static async update (employeeId, updateData, updatedBy) {
     try {
       const allowedFields = [
         'name', 'position_id', 'status', 'employee_number',
         'hire_date', 'phone', 'email', 'notes'
-      ];
+      ]
 
-      const updates = [];
-      const params = [];
-      let paramIndex = 1;
+      const updates = []
+      const params = []
+      let paramIndex = 1
 
       Object.entries(updateData).forEach(([key, value]) => {
         if (allowedFields.includes(key) && value !== undefined) {
-          updates.push(`${key} = $${paramIndex++}`);
-          params.push(value);
+          updates.push(`${key} = $${paramIndex++}`)
+          params.push(value)
         }
-      });
+      })
 
       if (updates.length === 0) {
-        throw new Error('No valid fields to update');
+        throw new Error('No valid fields to update')
       }
 
-      params.push(employeeId);
+      params.push(employeeId)
 
       const updateQuery = `
         UPDATE employees 
         SET ${updates.join(', ')}, updated_at = CURRENT_TIMESTAMP
         WHERE employee_id = $${paramIndex}
         RETURNING *
-      `;
+      `
 
-      const result = await query(updateQuery, params);
-      
+      const result = await query(updateQuery, params)
+
       if (result.rows.length === 0) {
-        throw new Error('Employee not found');
+        throw new Error('Employee not found')
       }
 
       logger.logBusiness('employee_updated', {
         employeeId,
         updatedFields: Object.keys(updateData),
         updatedBy
-      });
+      })
 
-      return await this.getById(employeeId);
-
+      return await this.getById(employeeId)
     } catch (error) {
-      logger.error(`Error updating employee ${employeeId}:`, error);
-      throw error;
+      logger.error(`Error updating employee ${employeeId}:`, error)
+      throw error
     }
   }
 
@@ -257,36 +252,35 @@ class Employee {
    * @param {number} deletedBy - User ID who deleted the employee
    * @returns {Promise<boolean>} Success status
    */
-  static async delete(employeeId, deletedBy) {
+  static async delete (employeeId, deletedBy) {
     try {
       return await transaction(async (client) => {
         // Update employee status to Terminated
         const updateResult = await client.query(
           'UPDATE employees SET status = $1, updated_at = CURRENT_TIMESTAMP WHERE employee_id = $2 RETURNING *',
           ['Terminated', employeeId]
-        );
+        )
 
         if (updateResult.rows.length === 0) {
-          throw new Error('Employee not found');
+          throw new Error('Employee not found')
         }
 
         // Remove future assignments
         await client.query(
           'DELETE FROM assignments WHERE employee_id = $1 AND assignment_date > CURRENT_DATE',
           [employeeId]
-        );
+        )
 
         logger.logBusiness('employee_deleted', {
           employeeId,
           deletedBy
-        });
+        })
 
-        return true;
-      });
-
+        return true
+      })
     } catch (error) {
-      logger.error(`Error deleting employee ${employeeId}:`, error);
-      throw error;
+      logger.error(`Error deleting employee ${employeeId}:`, error)
+      throw error
     }
   }
 
@@ -295,7 +289,7 @@ class Employee {
    * @param {string} date - Date in YYYY-MM-DD format
    * @returns {Promise<Array>} Unassigned employees
    */
-  static async getUnassigned(date) {
+  static async getUnassigned (date) {
     try {
       const unassignedQuery = `
         SELECT 
@@ -312,14 +306,13 @@ class Employee {
         LEFT JOIN assignments a ON e.employee_id = a.employee_id AND a.assignment_date = $1
         WHERE e.status = 'Active' AND a.assignment_id IS NULL
         ORDER BY e.name
-      `;
+      `
 
-      const result = await query(unassignedQuery, [date]);
-      return result.rows;
-
+      const result = await query(unassignedQuery, [date])
+      return result.rows
     } catch (error) {
-      logger.error(`Error getting unassigned employees for ${date}:`, error);
-      throw error;
+      logger.error(`Error getting unassigned employees for ${date}:`, error)
+      throw error
     }
   }
 
@@ -329,7 +322,7 @@ class Employee {
    * @param {number} limit - Maximum results to return
    * @returns {Promise<Array>} Matching employees
    */
-  static async search(searchTerm, limit = 20) {
+  static async search (searchTerm, limit = 20) {
     try {
       const searchQuery = `
         SELECT 
@@ -356,17 +349,16 @@ class Employee {
           END,
           e.name
         LIMIT $3
-      `;
+      `
 
-      const searchPattern = `%${searchTerm}%`;
-      const exactPattern = `${searchTerm}%`;
-      
-      const result = await query(searchQuery, [searchPattern, exactPattern, limit]);
-      return result.rows;
+      const searchPattern = `%${searchTerm}%`
+      const exactPattern = `${searchTerm}%`
 
+      const result = await query(searchQuery, [searchPattern, exactPattern, limit])
+      return result.rows
     } catch (error) {
-      logger.error(`Error searching employees with term "${searchTerm}":`, error);
-      throw error;
+      logger.error(`Error searching employees with term "${searchTerm}":`, error)
+      throw error
     }
   }
 
@@ -374,7 +366,7 @@ class Employee {
    * Get employee statistics
    * @returns {Promise<Object>} Employee statistics
    */
-  static async getStatistics() {
+  static async getStatistics () {
     try {
       const statsQuery = `
         SELECT 
@@ -385,7 +377,7 @@ class Employee {
           COUNT(CASE WHEN status = 'Military' THEN 1 END) as military_employees,
           COUNT(CASE WHEN status = 'Terminated' THEN 1 END) as terminated_employees
         FROM employees
-      `;
+      `
 
       const positionStatsQuery = `
         SELECT 
@@ -397,23 +389,22 @@ class Employee {
         LEFT JOIN employees e ON p.position_id = e.position_id AND e.status = 'Active'
         GROUP BY p.position_id, p.name, p.code, p.color_code
         ORDER BY count DESC
-      `;
+      `
 
       const [statsResult, positionStatsResult] = await Promise.all([
         query(statsQuery),
         query(positionStatsQuery)
-      ]);
+      ])
 
       return {
         overall: statsResult.rows[0],
         byPosition: positionStatsResult.rows
-      };
-
+      }
     } catch (error) {
-      logger.error('Error getting employee statistics:', error);
-      throw error;
+      logger.error('Error getting employee statistics:', error)
+      throw error
     }
   }
 }
 
-module.exports = Employee;
+module.exports = Employee

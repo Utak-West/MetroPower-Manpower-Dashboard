@@ -6,11 +6,10 @@
  * Copyright 2025 The HigherSelf Network
  */
 
-const express = require('express');
-const { asyncHandler } = require('../middleware/errorHandler');
-const logger = require('../utils/logger');
+const express = require('express')
+const { asyncHandler } = require('../middleware/errorHandler')
 
-const router = express.Router();
+const router = express.Router()
 
 /**
  * @route   GET /api/archives
@@ -21,7 +20,7 @@ router.get('/', asyncHandler(async (req, res) => {
   res.status(501).json({
     error: 'Not implemented',
     message: 'Archive functionality not yet implemented'
-  });
-}));
+  })
+}))
 
-module.exports = router;
+module.exports = router

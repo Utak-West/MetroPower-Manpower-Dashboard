@@ -7,16 +7,16 @@
  * Copyright 2025 The HigherSelf Network
  */
 
-const winston = require('winston');
-const DailyRotateFile = require('winston-daily-rotate-file');
-const path = require('path');
-const fs = require('fs');
-const config = require('../config/app');
+const winston = require('winston')
+const DailyRotateFile = require('winston-daily-rotate-file')
+const path = require('path')
+const fs = require('fs')
+const config = require('../config/app')
 
 // Ensure logs directory exists
-const logsDir = path.dirname(config.logging.file);
+const logsDir = path.dirname(config.logging.file)
 if (!fs.existsSync(logsDir)) {
-  fs.mkdirSync(logsDir, { recursive: true });
+  fs.mkdirSync(logsDir, { recursive: true })
 }
 
 // Custom format for structured logging
@@ -27,15 +27,15 @@ const customFormat = winston.format.combine(
   winston.format.errors({ stack: true }),
   winston.format.json(),
   winston.format.printf(({ timestamp, level, message, ...meta }) => {
-    let logMessage = `${timestamp} [${level.toUpperCase()}]: ${message}`;
+    let logMessage = `${timestamp} [${level.toUpperCase()}]: ${message}`
 
     if (Object.keys(meta).length > 0) {
-      logMessage += ` ${JSON.stringify(meta)}`;
+      logMessage += ` ${JSON.stringify(meta)}`
     }
 
-    return logMessage;
+    return logMessage
   })
-);
+)
 
 // Console format for development
 const consoleFormat = winston.format.combine(
@@ -44,18 +44,18 @@ const consoleFormat = winston.format.combine(
     format: 'HH:mm:ss'
   }),
   winston.format.printf(({ timestamp, level, message, ...meta }) => {
-    let logMessage = `${timestamp} ${level}: ${message}`;
+    let logMessage = `${timestamp} ${level}: ${message}`
 
     if (Object.keys(meta).length > 0) {
-      logMessage += ` ${JSON.stringify(meta, null, 2)}`;
+      logMessage += ` ${JSON.stringify(meta, null, 2)}`
     }
 
-    return logMessage;
+    return logMessage
   })
-);
+)
 
 // Create transports array
-const transports = [];
+const transports = []
 
 // Console transport (always enabled)
 transports.push(
@@ -65,7 +65,7 @@ transports.push(
     handleExceptions: true,
     handleRejections: true
   })
-);
+)
 
 // File transport (disabled in serverless environments)
 if (!config.logging.disableFileLogging && process.env.NODE_ENV !== 'test') {
@@ -81,7 +81,7 @@ if (!config.logging.disableFileLogging && process.env.NODE_ENV !== 'test') {
       handleExceptions: true,
       handleRejections: true
     })
-  );
+  )
 
   // Error log file
   transports.push(
@@ -93,7 +93,7 @@ if (!config.logging.disableFileLogging && process.env.NODE_ENV !== 'test') {
       level: 'error',
       format: customFormat
     })
-  );
+  )
 
   // Security log file
   transports.push(
@@ -105,7 +105,7 @@ if (!config.logging.disableFileLogging && process.env.NODE_ENV !== 'test') {
       level: 'warn',
       format: customFormat
     })
-  );
+  )
 }
 
 // Create logger instance
@@ -119,14 +119,14 @@ const logger = winston.createLogger({
   },
   transports,
   exitOnError: false
-});
+})
 
 // Add request correlation ID support
 logger.addRequestId = (req, res, next) => {
-  req.id = req.id || Math.random().toString(36).substr(2, 9);
-  logger.defaultMeta.requestId = req.id;
-  next();
-};
+  req.id = req.id || Math.random().toString(36).substr(2, 9)
+  logger.defaultMeta.requestId = req.id
+  next()
+}
 
 /**
  * Log security events
@@ -138,8 +138,8 @@ logger.logSecurity = (event, data = {}) => {
     event,
     timestamp: new Date().toISOString(),
     ...data
-  });
-};
+  })
+}
 
 /**
  * Log API requests
@@ -156,28 +156,28 @@ logger.logRequest = (req, res, duration) => {
     userAgent: req.get('User-Agent'),
     ip: req.ip || req.connection.remoteAddress,
     type: 'api-request'
-  };
+  }
 
   // Add user info if available
   if (req.user) {
-    logData.userId = req.user.user_id;
-    logData.userRole = req.user.role;
+    logData.userId = req.user.user_id
+    logData.userRole = req.user.role
   }
 
   // Add request ID if available
   if (req.id) {
-    logData.requestId = req.id;
+    logData.requestId = req.id
   }
 
   // Log based on status code
   if (res.statusCode >= 500) {
-    logger.error('API Request Error', logData);
+    logger.error('API Request Error', logData)
   } else if (res.statusCode >= 400) {
-    logger.warn('API Request Warning', logData);
+    logger.warn('API Request Warning', logData)
   } else {
-    logger.info('API Request', logData);
+    logger.info('API Request', logData)
   }
-};
+}
 
 /**
  * Log database operations
@@ -191,8 +191,8 @@ logger.logDatabase = (operation, table, data = {}) => {
     table,
     timestamp: new Date().toISOString(),
     ...data
-  });
-};
+  })
+}
 
 /**
  * Log authentication events
@@ -204,8 +204,8 @@ logger.logAuth = (event, data = {}) => {
     event,
     timestamp: new Date().toISOString(),
     ...data
-  });
-};
+  })
+}
 
 /**
  * Log business events
@@ -217,8 +217,8 @@ logger.logBusiness = (event, data = {}) => {
     event,
     timestamp: new Date().toISOString(),
     ...data
-  });
-};
+  })
+}
 
 /**
  * Log performance metrics
@@ -232,8 +232,8 @@ logger.logMetric = (metric, value, data = {}) => {
     value,
     timestamp: new Date().toISOString(),
     ...data
-  });
-};
+  })
+}
 
 /**
  * Create child logger with additional context
@@ -241,31 +241,31 @@ logger.logMetric = (metric, value, data = {}) => {
  * @returns {Object} Child logger
  */
 logger.child = (context) => {
-  return logger.child(context);
-};
+  return logger.child(context)
+}
 
 /**
  * Graceful shutdown
  */
 logger.gracefulShutdown = () => {
   return new Promise((resolve) => {
-    logger.info('Shutting down logger...');
+    logger.info('Shutting down logger...')
     logger.end(() => {
-      resolve();
-    });
-  });
-};
+      resolve()
+    })
+  })
+}
 
 // Handle logger errors
 logger.on('error', (error) => {
-  console.error('Logger error:', error);
-});
+  console.error('Logger error:', error)
+})
 
 // Log startup message
 logger.info('Logger initialized', {
   level: config.logging.level,
   environment: config.app.environment,
   fileLogging: !config.logging.disableFileLogging
-});
+})
 
-module.exports = logger;
+module.exports = logger

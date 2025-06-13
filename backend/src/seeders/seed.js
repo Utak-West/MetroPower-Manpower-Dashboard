@@ -1,19 +1,19 @@
 /**
  * Database Seeder
- * 
+ *
  * Populates the MetroPower Dashboard database with initial data
  * including positions, users, employees, projects, and sample assignments.
  */
 
-const bcrypt = require('bcryptjs');
-const { query, connectDatabase } = require('../config/database');
-const logger = require('../utils/logger');
+const bcrypt = require('bcryptjs')
+const { query, connectDatabase } = require('../config/database')
+const logger = require('../utils/logger')
 
 /**
  * Seed positions/trades data
  */
 const seedPositions = async () => {
-  logger.info('Seeding positions...');
+  logger.info('Seeding positions...')
 
   const positions = [
     { name: 'Electrician', code: 'EL', color_code: '#28A745', description: 'Licensed electrician' },
@@ -21,27 +21,27 @@ const seedPositions = async () => {
     { name: 'Apprentice', code: 'AP', color_code: '#F7B731', description: 'Electrical apprentice' },
     { name: 'General Laborer', code: 'GL', color_code: '#6F42C1', description: 'General construction laborer' },
     { name: 'Temp', code: 'TM', color_code: '#E52822', description: 'Temporary worker' }
-  ];
+  ]
 
   for (const position of positions) {
     await query(`
       INSERT INTO positions (name, code, color_code, description)
       VALUES ($1, $2, $3, $4)
       ON CONFLICT (name) DO NOTHING
-    `, [position.name, position.code, position.color_code, position.description]);
+    `, [position.name, position.code, position.color_code, position.description])
   }
 
-  logger.info('Positions seeded successfully');
-};
+  logger.info('Positions seeded successfully')
+}
 
 /**
  * Seed users data
  */
 const seedUsers = async () => {
-  logger.info('Seeding users...');
+  logger.info('Seeding users...')
 
-  const saltRounds = 12;
-  const defaultPassword = await bcrypt.hash('MetroPower2025!', saltRounds);
+  const saltRounds = 12
+  const defaultPassword = await bcrypt.hash('MetroPower2025!', saltRounds)
 
   const users = [
     {
@@ -76,28 +76,28 @@ const seedUsers = async () => {
       last_name: 'User',
       role: 'HR'
     }
-  ];
+  ]
 
   for (const user of users) {
     await query(`
       INSERT INTO users (username, email, password_hash, first_name, last_name, role)
       VALUES ($1, $2, $3, $4, $5, $6)
       ON CONFLICT (email) DO NOTHING
-    `, [user.username, user.email, user.password_hash, user.first_name, user.last_name, user.role]);
+    `, [user.username, user.email, user.password_hash, user.first_name, user.last_name, user.role])
   }
 
-  logger.info('Users seeded successfully');
-};
+  logger.info('Users seeded successfully')
+}
 
 /**
  * Seed projects data
  */
 const seedProjects = async () => {
-  logger.info('Seeding projects...');
+  logger.info('Seeding projects...')
 
   // Get Antione Harrell's user ID
-  const antioneResult = await query('SELECT user_id FROM users WHERE username = $1', ['antione.harrell']);
-  const antioneId = antioneResult.rows[0]?.user_id;
+  const antioneResult = await query('SELECT user_id FROM users WHERE username = $1', ['antione.harrell'])
+  const antioneId = antioneResult.rows[0]?.user_id
 
   const projects = [
     {
@@ -144,7 +144,7 @@ const seedProjects = async () => {
       manager_id: antioneId,
       description: 'Industrial electrical system installation'
     }
-  ];
+  ]
 
   for (const project of projects) {
     await query(`
@@ -154,24 +154,24 @@ const seedProjects = async () => {
     `, [
       project.project_id, project.name, project.number, project.status,
       project.start_date, project.end_date, project.location, project.manager_id, project.description
-    ]);
+    ])
   }
 
-  logger.info('Projects seeded successfully');
-};
+  logger.info('Projects seeded successfully')
+}
 
 /**
  * Seed employees data
  */
 const seedEmployees = async () => {
-  logger.info('Seeding employees...');
+  logger.info('Seeding employees...')
 
   // Get position IDs
-  const positionsResult = await query('SELECT position_id, name FROM positions');
-  const positions = {};
+  const positionsResult = await query('SELECT position_id, name FROM positions')
+  const positions = {}
   positionsResult.rows.forEach(row => {
-    positions[row.name] = row.position_id;
-  });
+    positions[row.name] = row.position_id
+  })
 
   const employees = [
     // Field Supervisors
@@ -207,10 +207,10 @@ const seedEmployees = async () => {
     { employee_id: 'TEMP001', name: 'Alex Thompson', position: 'Temp', employee_number: 'TEMP001', status: 'Active' },
     { employee_id: 'TEMP002', name: 'Sam Williams', position: 'Temp', employee_number: 'TEMP002', status: 'Active' },
     { employee_id: 'TEMP003', name: 'Jordan Miller', position: 'Temp', employee_number: 'TEMP003', status: 'Active' }
-  ];
+  ]
 
   for (const employee of employees) {
-    const positionId = positions[employee.position];
+    const positionId = positions[employee.position]
     if (positionId) {
       await query(`
         INSERT INTO employees (employee_id, name, position_id, status, employee_number, hire_date)
@@ -223,33 +223,33 @@ const seedEmployees = async () => {
         employee.status,
         employee.employee_number,
         '2024-01-01' // Default hire date
-      ]);
+      ])
     }
   }
 
-  logger.info('Employees seeded successfully');
-};
+  logger.info('Employees seeded successfully')
+}
 
 /**
  * Seed sample assignments for current week
  */
 const seedAssignments = async () => {
-  logger.info('Seeding sample assignments...');
+  logger.info('Seeding sample assignments...')
 
   // Get current week Monday
-  const today = new Date();
-  const dayOfWeek = today.getDay();
-  const daysToMonday = dayOfWeek === 0 ? -6 : 1 - dayOfWeek;
-  const monday = new Date(today);
-  monday.setDate(today.getDate() + daysToMonday);
+  const today = new Date()
+  const dayOfWeek = today.getDay()
+  const daysToMonday = dayOfWeek === 0 ? -6 : 1 - dayOfWeek
+  const monday = new Date(today)
+  monday.setDate(today.getDate() + daysToMonday)
 
   // Get admin user ID for created_by
-  const adminResult = await query('SELECT user_id FROM users WHERE username = $1', ['admin']);
-  const adminId = adminResult.rows[0]?.user_id;
+  const adminResult = await query('SELECT user_id FROM users WHERE username = $1', ['admin'])
+  const adminId = adminResult.rows[0]?.user_id
 
   if (!adminId) {
-    logger.warn('Admin user not found, skipping assignment seeding');
-    return;
+    logger.warn('Admin user not found, skipping assignment seeding')
+    return
   }
 
   // Sample assignments for the week (Monday to Friday)
@@ -288,54 +288,53 @@ const seedAssignments = async () => {
     { employee_id: '301010', project_id: 'PROJ-A-12345', day_offset: 4 },
     { employee_id: '300823', project_id: 'PROJ-A-12345', day_offset: 4 },
     { employee_id: '300959', project_id: 'PROJ-A-12345', day_offset: 4 }
-  ];
+  ]
 
   for (const assignment of assignments) {
-    const assignmentDate = new Date(monday);
-    assignmentDate.setDate(monday.getDate() + assignment.day_offset);
-    const dateStr = assignmentDate.toISOString().split('T')[0];
+    const assignmentDate = new Date(monday)
+    assignmentDate.setDate(monday.getDate() + assignment.day_offset)
+    const dateStr = assignmentDate.toISOString().split('T')[0]
 
     await query(`
       INSERT INTO assignments (employee_id, project_id, assignment_date, created_by)
       VALUES ($1, $2, $3, $4)
       ON CONFLICT (employee_id, assignment_date) DO NOTHING
-    `, [assignment.employee_id, assignment.project_id, dateStr, adminId]);
+    `, [assignment.employee_id, assignment.project_id, dateStr, adminId])
   }
 
-  logger.info('Sample assignments seeded successfully');
-};
+  logger.info('Sample assignments seeded successfully')
+}
 
 /**
  * Main seeding function
  */
 const seedDatabase = async () => {
   try {
-    logger.info('Starting database seeding...');
+    logger.info('Starting database seeding...')
 
     // Connect to database
-    await connectDatabase();
+    await connectDatabase()
 
     // Run seeders in order
-    await seedPositions();
-    await seedUsers();
-    await seedProjects();
-    await seedEmployees();
-    await seedAssignments();
+    await seedPositions()
+    await seedUsers()
+    await seedProjects()
+    await seedEmployees()
+    await seedAssignments()
 
-    logger.info('Database seeding completed successfully!');
-    logger.info('Default login credentials:');
-    logger.info('  Admin: admin@metropower.com / MetroPower2025!');
-    logger.info('  Antione Harrell: antione.harrell@metropower.com / MetroPower2025!');
-
+    logger.info('Database seeding completed successfully!')
+    logger.info('Default login credentials:')
+    logger.info('  Admin: admin@metropower.com / MetroPower2025!')
+    logger.info('  Antione Harrell: antione.harrell@metropower.com / MetroPower2025!')
   } catch (error) {
-    logger.error('Database seeding failed:', error);
-    process.exit(1);
+    logger.error('Database seeding failed:', error)
+    process.exit(1)
   }
-};
+}
 
 // Run seeder if called directly
 if (require.main === module) {
-  seedDatabase();
+  seedDatabase()
 }
 
 module.exports = {
@@ -345,4 +344,4 @@ module.exports = {
   seedProjects,
   seedEmployees,
   seedAssignments
-};
+}
