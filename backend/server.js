@@ -193,6 +193,15 @@ app.use(errorHandler);
 // Initialize database connection for serverless
 const initializeApp = async () => {
   try {
+    // Initialize demo mode from configuration
+    global.isDemoMode = config.demo.enabled;
+    
+    if (global.isDemoMode) {
+      logger.info('Demo mode enabled via configuration - skipping database connection');
+      require('./src/services/demoService');
+      return false;
+    }
+    
     // Connect to database
     await connectDatabase();
     logger.info('Database connected successfully');

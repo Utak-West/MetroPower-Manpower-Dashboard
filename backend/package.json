@@ -9,7 +9,7 @@
     "test": "jest --coverage",
     "test:watch": "jest --watch",
     "migrate": "node src/migrations/migrate.js",
-    "seed": "node src/seeds/seed.js",
+    "seed": "node src/seeders/seed.js",
     "lint": "eslint src/ --ext .js",
     "lint:fix": "eslint src/ --ext .js --fix",
     "format": "prettier --write src/**/*.js",
