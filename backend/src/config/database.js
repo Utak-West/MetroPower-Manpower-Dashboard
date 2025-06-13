@@ -7,11 +7,11 @@
  * Copyright 2025 The HigherSelf Network
  */
 
-const { Pool } = require('pg');
-const config = require('./app');
-const logger = require('../utils/logger');
+const { Pool } = require('pg')
+const config = require('./app')
+const logger = require('../utils/logger')
 
-let pool = null;
+let pool = null
 
 /**
  * Create and configure database connection pool
@@ -32,28 +32,28 @@ const createPool = () => {
     statement_timeout: 30000,
     query_timeout: 30000,
     application_name: 'MetroPower Dashboard'
-  };
+  }
 
-  pool = new Pool(dbConfig);
+  pool = new Pool(dbConfig)
 
   // Handle pool errors
   pool.on('error', (err) => {
-    logger.error('Unexpected error on idle client:', err);
+    logger.error('Unexpected error on idle client:', err)
     // Don't exit the process, just log the error
-  });
+  })
 
   // Handle pool connection
   pool.on('connect', (client) => {
-    logger.debug('New client connected to database');
-  });
+    logger.debug('New client connected to database')
+  })
 
   // Handle pool removal
   pool.on('remove', (client) => {
-    logger.debug('Client removed from pool');
-  });
+    logger.debug('Client removed from pool')
+  })
 
-  return pool;
-};
+  return pool
+}
 
 /**
  * Connect to the database and test the connection
@@ -61,109 +61,109 @@ const createPool = () => {
 const connectDatabase = async () => {
   try {
     if (!pool) {
-      createPool();
+      createPool()
     }
 
     // Test the connection with retry logic
-    let retries = 3;
-    let lastError;
+    let retries = 3
+    let lastError
 
     while (retries > 0) {
       try {
-        const client = await pool.connect();
-        const result = await client.query('SELECT NOW() as current_time, version() as version');
-        client.release();
+        const client = await pool.connect()
+        const result = await client.query('SELECT NOW() as current_time, version() as version')
+        client.release()
 
-        logger.info('Database connection established successfully');
-        logger.info(`Database time: ${result.rows[0].current_time}`);
-        logger.debug(`PostgreSQL version: ${result.rows[0].version}`);
+        logger.info('Database connection established successfully')
+        logger.info(`Database time: ${result.rows[0].current_time}`)
+        logger.debug(`PostgreSQL version: ${result.rows[0].version}`)
 
-        global.isDemoMode = false;
-        return pool;
+        global.isDemoMode = false
+        return pool
       } catch (error) {
-        lastError = error;
-        retries--;
+        lastError = error
+        retries--
         if (retries > 0) {
-          logger.warn(`Database connection failed, retrying... (${retries} attempts left)`);
-          await new Promise(resolve => setTimeout(resolve, 2000));
+          logger.warn(`Database connection failed, retrying... (${retries} attempts left)`)
+          await new Promise(resolve => setTimeout(resolve, 2000))
         }
       }
     }
 
-    throw lastError;
+    throw lastError
   } catch (error) {
-    logger.error('Failed to connect to database after all retries:', error);
-    logger.warn('Switching to demo mode with in-memory data');
-    global.isDemoMode = true;
+    logger.error('Failed to connect to database after all retries:', error)
+    logger.warn('Switching to demo mode with in-memory data')
+    global.isDemoMode = true
 
     // Initialize demo service
-    require('../services/demoService');
+    require('../services/demoService')
 
-    throw error;
+    throw error
   }
-};
+}
 
 /**
  * Execute a database query with error handling
  */
 const query = async (text, params = []) => {
   if (global.isDemoMode) {
-    throw new Error('Database operations not available in demo mode');
+    throw new Error('Database operations not available in demo mode')
   }
 
   if (!pool) {
-    throw new Error('Database pool not initialized');
+    throw new Error('Database pool not initialized')
   }
 
-  const start = Date.now();
+  const start = Date.now()
   try {
-    const result = await pool.query(text, params);
-    const duration = Date.now() - start;
+    const result = await pool.query(text, params)
+    const duration = Date.now() - start
 
     logger.debug('Executed query', {
       text: text.substring(0, 100) + (text.length > 100 ? '...' : ''),
       duration: `${duration}ms`,
       rows: result.rowCount
-    });
+    })
 
-    return result;
+    return result
   } catch (error) {
-    const duration = Date.now() - start;
+    const duration = Date.now() - start
     logger.error('Query error', {
       text: text.substring(0, 100) + (text.length > 100 ? '...' : ''),
       duration: `${duration}ms`,
       error: error.message
-    });
-    throw error;
+    })
+    throw error
   }
-};
+}
 
 /**
  * Execute a transaction with automatic rollback on error
  */
 const transaction = async (callback) => {
   if (global.isDemoMode) {
-    throw new Error('Transactions not available in demo mode');
+    throw new Error('Transactions not available in demo mode')
   }
 
   if (!pool) {
-    throw new Error('Database pool not initialized');
+    throw new Error('Database pool not initialized')
   }
 
-  const client = await pool.connect();
+  const client = await pool.connect()
 
   try {
-    await client.query('BEGIN');
-    const result = await callback(client);
-    await client.query('COMMIT');
-    return result;
+    await client.query('BEGIN')
+    const result = await callback(client)
+    await client.query('COMMIT')
+    return result
   } catch (error) {
-    await client.query('ROLLBACK');
-    throw error;
+    await client.query('ROLLBACK')
+    throw error
   } finally {
-    client.release();
+    client.release()
   }
-};
+}
 
 /**
  * Get database connection status
@@ -175,7 +175,7 @@ const getConnectionStatus = () => {
       totalCount: 0,
       idleCount: 0,
       waitingCount: 0
-    };
+    }
   }
 
   if (!pool) {
@@ -184,7 +184,7 @@ const getConnectionStatus = () => {
       totalCount: 0,
       idleCount: 0,
       waitingCount: 0
-    };
+    }
   }
 
   return {
@@ -192,8 +192,8 @@ const getConnectionStatus = () => {
     totalCount: pool.totalCount,
     idleCount: pool.idleCount,
     waitingCount: pool.waitingCount
-  };
-};
+  }
+}
 
 /**
  * Close database connection pool
@@ -201,15 +201,15 @@ const getConnectionStatus = () => {
 const closeDatabase = async () => {
   if (pool) {
     try {
-      await pool.end();
-      logger.info('Database connection pool closed');
+      await pool.end()
+      logger.info('Database connection pool closed')
     } catch (error) {
-      logger.error('Error closing database pool:', error);
+      logger.error('Error closing database pool:', error)
     } finally {
-      pool = null;
+      pool = null
     }
   }
-};
+}
 
 /**
  * Health check for database
@@ -220,32 +220,32 @@ const healthCheck = async () => {
       status: 'demo',
       message: 'Running in demo mode',
       timestamp: new Date().toISOString()
-    };
+    }
   }
 
   try {
     if (!pool) {
-      throw new Error('Database pool not initialized');
+      throw new Error('Database pool not initialized')
     }
 
-    const client = await pool.connect();
-    const result = await client.query('SELECT 1 as health_check');
-    client.release();
+    const client = await pool.connect()
+    await client.query('SELECT 1 as health_check')
+    client.release()
 
     return {
       status: 'healthy',
       message: 'Database connection is working',
       timestamp: new Date().toISOString(),
       connectionCount: pool.totalCount
-    };
+    }
   } catch (error) {
     return {
       status: 'unhealthy',
       message: error.message,
       timestamp: new Date().toISOString()
-    };
+    }
   }
-};
+}
 
 module.exports = {
   connectDatabase,
@@ -255,4 +255,4 @@ module.exports = {
   closeDatabase,
   healthCheck,
   getPool: () => pool
-};
+}
