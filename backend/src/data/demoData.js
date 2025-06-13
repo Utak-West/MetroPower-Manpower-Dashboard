@@ -1,6 +1,6 @@
 /**
  * Demo Data for MetroPower Dashboard
- * 
+ *
  * This file contains mock data for demonstration purposes when no database is available.
  * Perfect for demos, development, and testing.
  */
@@ -29,7 +29,7 @@ const demoUsers = [
     created_at: '2024-01-01T08:00:00Z',
     is_active: true
   }
-];
+]
 
 // Demo Employees (Electricians)
 const demoEmployees = [
@@ -108,7 +108,7 @@ const demoEmployees = [
     is_active: true,
     created_at: '2024-01-15T08:00:00Z'
   }
-];
+]
 
 // Demo Projects
 const demoProjects = [
@@ -157,7 +157,7 @@ const demoProjects = [
     project_manager_id: 1,
     created_at: '2024-06-01T08:00:00Z'
   }
-];
+]
 
 // Demo Assignments
 const demoAssignments = [
@@ -231,7 +231,7 @@ const demoAssignments = [
     created_at: '2024-06-10T15:00:00Z',
     created_by: 1
   }
-];
+]
 
 // Demo Notifications
 const demoNotifications = [
@@ -256,7 +256,7 @@ const demoNotifications = [
     sent_at: '2024-06-11T06:00:00Z',
     created_at: '2024-06-11T06:00:00Z'
   }
-];
+]
 
 module.exports = {
   demoUsers,
@@ -264,4 +264,4 @@ module.exports = {
   demoProjects,
   demoAssignments,
   demoNotifications
-};
+}

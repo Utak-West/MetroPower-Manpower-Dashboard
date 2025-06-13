@@ -7,11 +7,10 @@
  * Copyright 2025 The HigherSelf Network
  */
 
-const config = require('../config/app');
-const logger = require('../utils/logger');
+const logger = require('../utils/logger')
 
 // In-memory demo data
-let demoData = {
+const demoData = {
   users: [
     {
       user_id: 1,
@@ -166,18 +165,18 @@ let demoData = {
       status: 'Assigned'
     }
   ]
-};
+}
 
 class DemoService {
   /**
    * Initialize demo service
    */
-  static initialize() {
-    logger.info('Demo service initialized with in-memory data');
-    logger.info(`Demo users: ${demoData.users.length}`);
-    logger.info(`Demo employees: ${demoData.employees.length}`);
-    logger.info(`Demo projects: ${demoData.projects.length}`);
-    logger.info(`Demo assignments: ${demoData.assignments.length}`);
+  static initialize () {
+    logger.info('Demo service initialized with in-memory data')
+    logger.info(`Demo users: ${demoData.users.length}`)
+    logger.info(`Demo employees: ${demoData.employees.length}`)
+    logger.info(`Demo projects: ${demoData.projects.length}`)
+    logger.info(`Demo assignments: ${demoData.assignments.length}`)
   }
 
   /**
@@ -185,9 +184,9 @@ class DemoService {
    * @param {number} userId - User ID
    * @returns {Promise<Object|null>} User data or null
    */
-  static async findUserById(userId) {
-    const user = demoData.users.find(u => u.user_id === userId);
-    return user ? { ...user } : null;
+  static async findUserById (userId) {
+    const user = demoData.users.find(u => u.user_id === userId)
+    return user ? { ...user } : null
   }
 
   /**
@@ -195,19 +194,19 @@ class DemoService {
    * @param {string} identifier - Username or email
    * @returns {Promise<Object|null>} User data or null
    */
-  static async findUserByIdentifier(identifier) {
+  static async findUserByIdentifier (identifier) {
     const user = demoData.users.find(u =>
       u.username === identifier || u.email === identifier
-    );
-    return user ? { ...user } : null;
+    )
+    return user ? { ...user } : null
   }
 
   /**
    * Get all employees
    * @returns {Promise<Array>} Array of employees
    */
-  static async getEmployees() {
-    return [...demoData.employees];
+  static async getEmployees () {
+    return [...demoData.employees]
   }
 
   /**
@@ -215,30 +214,30 @@ class DemoService {
    * @param {string} date - Date in YYYY-MM-DD format
    * @returns {Promise<Array>} Array of unassigned employees
    */
-  static async getUnassignedEmployees(date) {
+  static async getUnassignedEmployees (date) {
     const assignedEmployeeIds = demoData.assignments
       .filter(a => a.assignment_date === date)
-      .map(a => a.employee_id);
+      .map(a => a.employee_id)
 
     return demoData.employees.filter(e =>
       e.is_active && !assignedEmployeeIds.includes(e.employee_id)
-    );
+    )
   }
 
   /**
    * Get all projects
    * @returns {Promise<Array>} Array of projects
    */
-  static async getProjects() {
-    return [...demoData.projects];
+  static async getProjects () {
+    return [...demoData.projects]
   }
 
   /**
    * Get active projects
    * @returns {Promise<Array>} Array of active projects
    */
-  static async getActiveProjects() {
-    return demoData.projects.filter(p => p.status === 'Active');
+  static async getActiveProjects () {
+    return demoData.projects.filter(p => p.status === 'Active')
   }
 
   /**
@@ -246,51 +245,51 @@ class DemoService {
    * @param {string} weekStart - Week start date in YYYY-MM-DD format
    * @returns {Promise<Object>} Assignments grouped by date and project
    */
-  static async getWeekAssignments(weekStart) {
-    const weekDates = [];
-    const startDate = new Date(weekStart);
+  static async getWeekAssignments (weekStart) {
+    const weekDates = []
+    const startDate = new Date(weekStart)
 
     // Generate 7 days from start date
     for (let i = 0; i < 7; i++) {
-      const date = new Date(startDate);
-      date.setDate(startDate.getDate() + i);
-      weekDates.push(date.toISOString().split('T')[0]);
+      const date = new Date(startDate)
+      date.setDate(startDate.getDate() + i)
+      weekDates.push(date.toISOString().split('T')[0])
     }
 
-    const assignments = {};
+    const assignments = {}
 
     weekDates.forEach(date => {
-      assignments[date] = {};
+      assignments[date] = {}
 
       demoData.projects.forEach(project => {
         assignments[date][project.project_id] = demoData.assignments
           .filter(a => a.assignment_date === date && a.project_id === project.project_id)
           .map(a => {
-            const employee = demoData.employees.find(e => e.employee_id === a.employee_id);
+            const employee = demoData.employees.find(e => e.employee_id === a.employee_id)
             return {
               ...a,
               employee
-            };
-          });
-      });
-    });
+            }
+          })
+      })
+    })
 
-    return assignments;
+    return assignments
   }
 
   /**
    * Get dashboard metrics
    * @returns {Promise<Object>} Dashboard metrics
    */
-  static async getDashboardMetrics() {
-    const today = new Date().toISOString().split('T')[0];
+  static async getDashboardMetrics () {
+    const today = new Date().toISOString().split('T')[0]
 
     return {
       totalEmployees: demoData.employees.filter(e => e.is_active).length,
       activeProjects: demoData.projects.filter(p => p.status === 'Active').length,
       todayAssignments: demoData.assignments.filter(a => a.assignment_date === today).length,
       unassignedToday: await this.getUnassignedEmployees(today)
-    };
+    }
   }
 
   /**
@@ -298,22 +297,22 @@ class DemoService {
    * @param {Object} assignmentData - Assignment data
    * @returns {Promise<Object>} Created assignment
    */
-  static async createAssignment(assignmentData) {
+  static async createAssignment (assignmentData) {
     const newAssignment = {
       assignment_id: Math.max(...demoData.assignments.map(a => a.assignment_id)) + 1,
       ...assignmentData,
       status: 'Assigned'
-    };
+    }
 
-    demoData.assignments.push(newAssignment);
+    demoData.assignments.push(newAssignment)
 
     logger.info('Demo assignment created', {
       assignmentId: newAssignment.assignment_id,
       employeeId: newAssignment.employee_id,
       projectId: newAssignment.project_id
-    });
+    })
 
-    return newAssignment;
+    return newAssignment
   }
 
   /**
@@ -322,24 +321,24 @@ class DemoService {
    * @param {Object} updateData - Update data
    * @returns {Promise<Object>} Updated assignment
    */
-  static async updateAssignment(assignmentId, updateData) {
-    const index = demoData.assignments.findIndex(a => a.assignment_id === assignmentId);
+  static async updateAssignment (assignmentId, updateData) {
+    const index = demoData.assignments.findIndex(a => a.assignment_id === assignmentId)
 
     if (index === -1) {
-      throw new Error('Assignment not found');
+      throw new Error('Assignment not found')
     }
 
     demoData.assignments[index] = {
       ...demoData.assignments[index],
       ...updateData
-    };
+    }
 
     logger.info('Demo assignment updated', {
       assignmentId,
       updateData
-    });
+    })
 
-    return demoData.assignments[index];
+    return demoData.assignments[index]
   }
 
   /**
@@ -347,24 +346,24 @@ class DemoService {
    * @param {number} assignmentId - Assignment ID
    * @returns {Promise<boolean>} Success status
    */
-  static async deleteAssignment(assignmentId) {
-    const index = demoData.assignments.findIndex(a => a.assignment_id === assignmentId);
+  static async deleteAssignment (assignmentId) {
+    const index = demoData.assignments.findIndex(a => a.assignment_id === assignmentId)
 
     if (index === -1) {
-      throw new Error('Assignment not found');
+      throw new Error('Assignment not found')
     }
 
-    demoData.assignments.splice(index, 1);
+    demoData.assignments.splice(index, 1)
 
     logger.info('Demo assignment deleted', {
       assignmentId
-    });
+    })
 
-    return true;
+    return true
   }
 }
 
 // Initialize demo service when module is loaded
-DemoService.initialize();
+DemoService.initialize()
 
-module.exports = DemoService;
+module.exports = DemoService
