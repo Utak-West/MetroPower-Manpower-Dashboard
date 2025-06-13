@@ -78,7 +78,9 @@ const connectDatabase = async () => {
         logger.info(`Database time: ${result.rows[0].current_time}`)
         logger.debug(`PostgreSQL version: ${result.rows[0].version}`)
 
-        global.isDemoMode = false
+        if (!global.isDemoMode) {
+          global.isDemoMode = false
+        }
         return pool
       } catch (error) {
         lastError = error
