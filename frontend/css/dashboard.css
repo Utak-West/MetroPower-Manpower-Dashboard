@@ -2,14 +2,15 @@
  * MetroPower Dashboard Styles
  *
  * Main stylesheet for the MetroPower Dashboard
- * Following HigherSelf Network brand guidelines
+ * Following MetroPower brand guidelines
  *
- * Copyright 2025 The HigherSelf Network
+ * Copyright 2025 MetroPower
  */
 
-/* CSS Variables - HigherSelf Brand Colors */
+/* CSS Variables - MetroPower Brand Colors */
 :root {
-    --primary-blue: #31B2E0;
+    --primary-red: #E52822;
+    --primary-blue: #E52822; /* Changed from blue to MetroPower red */
     --white: #FFFFFF;
     --black: #000000;
     --light-gray: #F8F9FA;

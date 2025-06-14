@@ -2,9 +2,9 @@
  * UI Components Styles
  *
  * Reusable component styles for the MetroPower Dashboard
- * Following HigherSelf Network brand guidelines
+ * Following MetroPower brand guidelines
  *
- * Copyright 2025 The HigherSelf Network
+ * Copyright 2025 MetroPower
  */
 
 /* Modal styles */
@@ -120,7 +120,7 @@
 .form-group textarea:focus {
     outline: none;
     border-color: var(--primary-blue);
-    box-shadow: 0 0 0 3px rgba(49, 178, 224, 0.1);
+    box-shadow: 0 0 0 3px rgba(229, 40, 34, 0.1);
 }
 
 .form-group input::placeholder,
