@@ -18,32 +18,40 @@ require('module').Module._initPaths();
 require('dotenv').config({ path: path.join(__dirname, '..', '.env') });
 
 async function runBuild() {
+  const buildStartTime = Date.now();
   console.log('🚀 Starting Vercel build process...');
+  console.log(`📅 Build started at: ${new Date().toISOString()}`);
 
   try {
     // Check if we have database configuration
     if (!process.env.DB_HOST) {
       console.log('⚠️  No database configuration found. Skipping database setup.');
       console.log('   Make sure to set up your database environment variables in Vercel.');
+      console.log('   Build will continue without database initialization.');
       return;
     }
 
-    // console.log('📦 Backend dependencies should already be installed by Vercel via workspaces.');
-    // const { execSync } = require('child_process');
-    //
-    // // Install backend dependencies - This is likely redundant if using npm workspaces correctly
-    // execSync('npm install', {
-    //   cwd: path.join(__dirname, '..', 'backend'),
-    //   stdio: 'inherit'
-    // });
+    console.log('�️  Setting up database connection...');
 
-    console.log('🗄️  Setting up database connection...');
+    // Import database utilities with error handling
+    let connectDatabase, query;
+    try {
+      const dbModule = require('../backend/src/config/database');
+      connectDatabase = dbModule.connectDatabase;
+      query = dbModule.query;
+    } catch (importError) {
+      console.error('❌ Failed to import database utilities:', importError.message);
+      throw new Error(`Database module import failed: ${importError.message}`);
+    }
 
-    // Import database utilities
-    const { connectDatabase, query } = require('../backend/src/config/database');
+    // Test database connection with timeout
+    console.log('� Attempting database connection...');
+    const connectionTimeout = setTimeout(() => {
+      throw new Error('Database connection timeout after 30 seconds');
+    }, 30000);
 
-    // Test database connection
     await connectDatabase();
+    clearTimeout(connectionTimeout);
     console.log('✅ Database connection established');
 
     // Check if tables exist
