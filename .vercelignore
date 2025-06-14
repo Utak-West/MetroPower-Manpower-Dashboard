@@ -1,0 +1,53 @@
+# Dependencies
+node_modules/
+backend/node_modules/
+
+# Development files
+.env.local
+.env.development
+.env.test
+
+# Docker files
+Dockerfile
+docker-compose.yml
+nginx.conf
+deploy.sh
+
+# Documentation (keep essential docs)
+docs/
+backend/docs/
+backend/README.md
+
+# Logs
+logs/
+*.log
+backend/logs/
+
+# Test files
+backend/src/**/*.test.js
+backend/src/**/*.spec.js
+backend/tests/
+
+# Development tools
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Temporary files
+tmp/
+temp/
+uploads/
+exports/
+
+# Git
+.git/
+.gitignore
+
+# Backup files
+*.backup
+*.bak

@@ -1,0 +1,141 @@
+version: '3.8'
+
+services:
+  # PostgreSQL Database
+  postgres:
+    image: postgres:15-alpine
+    container_name: metropower-db
+    environment:
+      POSTGRES_DB: metropower_dashboard
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: metropower123
+      POSTGRES_INITDB_ARGS: "--encoding=UTF-8"
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./backend/src/migrations:/docker-entrypoint-initdb.d
+    networks:
+      - metropower-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Backend API
+  api:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: metropower-api
+    environment:
+      NODE_ENV: development
+      PORT: 3001
+      HOST: 0.0.0.0
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_NAME: metropower_dashboard
+      DB_USER: postgres
+      DB_PASSWORD: metropower123
+      DB_SSL: false
+      JWT_SECRET: metropower_jwt_secret_development_only
+      JWT_EXPIRES_IN: 24h
+      JWT_REFRESH_SECRET: metropower_refresh_secret_development_only
+      JWT_REFRESH_EXPIRES_IN: 7d
+      SMTP_HOST: smtp.gmail.com
+      SMTP_PORT: 587
+      SMTP_SECURE: false
+      SMTP_USER: ""
+      SMTP_PASS: ""
+      FROM_EMAIL: noreply@metropower.com
+      FROM_NAME: MetroPower Dashboard
+      UPLOAD_PATH: ./uploads
+      EXPORT_PATH: ./exports
+      MAX_FILE_SIZE: 10485760
+      ALLOWED_FILE_TYPES: xlsx,xls,csv,pdf
+      EXPORT_RETENTION_DAYS: 30
+      RATE_LIMIT_WINDOW_MS: 900000
+      RATE_LIMIT_MAX_REQUESTS: 100
+      CORS_ORIGIN: http://localhost:3000,http://localhost:8080,https://oxwdifao.manus.space
+      LOG_LEVEL: info
+      LOG_FILE: ./logs/app.log
+      WEBSOCKET_CORS_ORIGIN: http://localhost:3000
+      APP_NAME: MetroPower Manpower Dashboard
+      APP_VERSION: 1.0.0
+      COMPANY_NAME: MetroPower
+      BRANCH_NAME: Tucker Branch
+      BACKUP_ENABLED: true
+      BACKUP_SCHEDULE: "0 2 * * *"
+      BACKUP_RETENTION_DAYS: 90
+    ports:
+      - "3001:3001"
+    volumes:
+      - api_uploads:/app/uploads
+      - api_exports:/app/exports
+      - api_logs:/app/logs
+    networks:
+      - metropower-network
+    depends_on:
+      postgres:
+        condition: service_healthy
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "node", "-e", "require('http').get('http://localhost:3001/health', (res) => { process.exit(res.statusCode === 200 ? 0 : 1) })"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  # Frontend (Nginx serving static files)
+  frontend:
+    image: nginx:alpine
+    container_name: metropower-frontend
+    ports:
+      - "8080:80"
+    volumes:
+      - ./frontend:/usr/share/nginx/html:ro
+      - ./nginx.conf:/etc/nginx/nginx.conf:ro
+    networks:
+      - metropower-network
+    depends_on:
+      - api
+    restart: unless-stopped
+
+  # Redis (for future caching and session management)
+  redis:
+    image: redis:7-alpine
+    container_name: metropower-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - metropower-network
+    restart: unless-stopped
+    command: redis-server --appendonly yes
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+
+volumes:
+  postgres_data:
+    driver: local
+  api_uploads:
+    driver: local
+  api_exports:
+    driver: local
+  api_logs:
+    driver: local
+  redis_data:
+    driver: local
+
+networks:
+  metropower-network:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.20.0.0/16
