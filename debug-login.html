@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MetroPower Login Debug</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .test-section { margin: 20px 0; padding: 15px; border: 1px solid #ccc; }
+        .result { margin: 10px 0; padding: 10px; background: #f5f5f5; }
+        .success { background: #d4edda; color: #155724; }
+        .error { background: #f8d7da; color: #721c24; }
+        button { padding: 10px 20px; margin: 5px; }
+        input { padding: 8px; margin: 5px; width: 200px; }
+    </style>
+</head>
+<body>
+    <h1>MetroPower Dashboard - Login Debug Tool</h1>
+    
+    <div class="test-section">
+        <h3>1. Test API Connectivity</h3>
+        <button onclick="testAPI()">Test API Connection</button>
+        <div id="apiResult" class="result"></div>
+    </div>
+
+    <div class="test-section">
+        <h3>2. Test Login Endpoint</h3>
+        <input type="text" id="testEmail" placeholder="Email" value="admin@metropower.com">
+        <input type="password" id="testPassword" placeholder="Password" value="MetroPower2025!">
+        <button onclick="testLogin()">Test Login</button>
+        <div id="loginResult" class="result"></div>
+    </div>
+
+    <div class="test-section">
+        <h3>3. Test Demo User</h3>
+        <button onclick="testDemoUser()">Test Antione Harrell Login</button>
+        <div id="demoResult" class="result"></div>
+    </div>
+
+    <div class="test-section">
+        <h3>4. Debug Information</h3>
+        <button onclick="getDebugInfo()">Get Debug Info</button>
+        <div id="debugResult" class="result"></div>
+    </div>
+
+    <script>
+        const API_BASE = window.location.origin;
+
+        async function testAPI() {
+            const result = document.getElementById('apiResult');
+            result.innerHTML = 'Testing API connection...';
+            
+            try {
+                const response = await fetch(`${API_BASE}/api/debug/status`);
+                const data = await response.json();
+                
+                if (response.ok) {
+                    result.innerHTML = `<div class="success">✅ API Connected: ${JSON.stringify(data, null, 2)}</div>`;
+                } else {
+                    result.innerHTML = `<div class="error">❌ API Error: ${response.status} - ${JSON.stringify(data, null, 2)}</div>`;
+                }
+            } catch (error) {
+                result.innerHTML = `<div class="error">❌ Connection Error: ${error.message}</div>`;
+            }
+        }
+
+        async function testLogin() {
+            const result = document.getElementById('loginResult');
+            const email = document.getElementById('testEmail').value;
+            const password = document.getElementById('testPassword').value;
+            
+            result.innerHTML = 'Testing login...';
+            
+            try {
+                const response = await fetch(`${API_BASE}/api/auth/login`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        identifier: email,
+                        password: password
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok && data.success) {
+                    result.innerHTML = `<div class="success">✅ Login Successful!<br>User: ${data.user.username}<br>Role: ${data.user.role}<br>Token: ${data.accessToken.substring(0, 50)}...</div>`;
+                } else {
+                    result.innerHTML = `<div class="error">❌ Login Failed: ${data.message || 'Unknown error'}<br>Details: ${JSON.stringify(data, null, 2)}</div>`;
+                }
+            } catch (error) {
+                result.innerHTML = `<div class="error">❌ Login Error: ${error.message}</div>`;
+            }
+        }
+
+        async function testDemoUser() {
+            const result = document.getElementById('demoResult');
+            result.innerHTML = 'Testing Antione Harrell login...';
+            
+            try {
+                const response = await fetch(`${API_BASE}/api/auth/login`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        identifier: 'antione.harrell@metropower.com',
+                        password: 'password123'
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok && data.success) {
+                    result.innerHTML = `<div class="success">✅ Demo User Login Successful!<br>User: ${data.user.first_name} ${data.user.last_name}<br>Email: ${data.user.email}<br>Role: ${data.user.role}</div>`;
+                } else {
+                    result.innerHTML = `<div class="error">❌ Demo User Login Failed: ${data.message || 'Unknown error'}<br>Details: ${JSON.stringify(data, null, 2)}</div>`;
+                }
+            } catch (error) {
+                result.innerHTML = `<div class="error">❌ Demo User Error: ${error.message}</div>`;
+            }
+        }
+
+        async function getDebugInfo() {
+            const result = document.getElementById('debugResult');
+            result.innerHTML = 'Getting debug information...';
+            
+            const info = {
+                currentURL: window.location.href,
+                apiBase: API_BASE,
+                userAgent: navigator.userAgent,
+                timestamp: new Date().toISOString()
+            };
+
+            try {
+                // Test multiple endpoints
+                const tests = await Promise.allSettled([
+                    fetch(`${API_BASE}/api/debug/status`),
+                    fetch(`${API_BASE}/api/debug/demo-enabled`),
+                    fetch(`${API_BASE}/health`)
+                ]);
+
+                info.endpointTests = tests.map((test, index) => ({
+                    endpoint: ['status', 'demo-enabled', 'health'][index],
+                    status: test.status,
+                    value: test.status === 'fulfilled' ? test.value.status : test.reason.message
+                }));
+
+            } catch (error) {
+                info.testError = error.message;
+            }
+
+            result.innerHTML = `<pre>${JSON.stringify(info, null, 2)}</pre>`;
+        }
+
+        // Auto-run API test on page load
+        window.addEventListener('load', testAPI);
+    </script>
+</body>
+</html>

@@ -19,11 +19,27 @@
       }
     },
     {
+      "src": "api/test.js",
+      "use": "@vercel/node"
+    },
+    {
+      "src": "api/simple-manager.js",
+      "use": "@vercel/node"
+    },
+    {
       "src": "frontend/**",
       "use": "@vercel/static"
     }
   ],
   "routes": [
+    {
+      "src": "/api/test",
+      "dest": "/api/test.js"
+    },
+    {
+      "src": "/api/manager/(.*)",
+      "dest": "/api/simple-manager.js"
+    },
     {
       "src": "/api/debug/(.*)",
       "dest": "/api/debug.js"
@@ -78,7 +94,7 @@
     },
     {
       "src": "/",
-      "dest": "/frontend/index.html"
+      "dest": "/frontend/simple-login.html"
     },
     {
       "src": "/(.*)",

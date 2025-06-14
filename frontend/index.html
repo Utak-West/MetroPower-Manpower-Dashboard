@@ -237,15 +237,9 @@
                         </div>
                     `;
                     
-                    // Redirect to dashboard (for now, just show success)
+                    // Redirect to manager dashboard
                     setTimeout(() => {
-                        alertContainer.innerHTML = `
-                            <div class="alert alert-info">
-                                <strong>Dashboard loading...</strong><br>
-                                User: ${result.user.username} (${result.user.role})<br>
-                                Token: ${result.accessToken.substring(0, 50)}...
-                            </div>
-                        `;
+                        window.location.href = '/simple-login.html';
                     }, 1500);
                     
                 } else {

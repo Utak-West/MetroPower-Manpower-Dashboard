@@ -25,6 +25,7 @@ const { errorHandler, notFoundHandler } = require('./src/middleware/errorHandler
 
 // Import routes
 const authRoutes = require('./src/routes/auth');
+const managerRoutes = require('./src/routes/manager');
 const dashboardRoutes = require('./src/routes/dashboard');
 const employeeRoutes = require('./src/routes/employees');
 const projectRoutes = require('./src/routes/projects');
@@ -121,6 +122,7 @@ app.get('/health', (req, res) => {
 
 // API Routes
 app.use('/api/auth', authRoutes);
+app.use('/api', managerRoutes);  // Simple manager routes
 app.use('/api/dashboard', dashboardRoutes);
 app.use('/api/employees', employeeRoutes);
 app.use('/api/projects', projectRoutes);

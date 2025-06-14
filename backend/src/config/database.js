@@ -161,6 +161,75 @@ async function initializeMemoryDB() {
     }
   ];
 
+  // Sample employees data
+  memoryDB.employees = [
+    {
+      employee_id: 'EMP001',
+      name: 'John Smith',
+      position_id: 1,
+      status: 'Active',
+      employee_number: '12345',
+      hire_date: '2024-01-15',
+      phone: '555-0101',
+      email: 'john.smith@metropower.com',
+      notes: 'Experienced electrician',
+      created_at: new Date(),
+      updated_at: new Date()
+    },
+    {
+      employee_id: 'EMP002',
+      name: 'Mike Johnson',
+      position_id: 2,
+      status: 'Active',
+      employee_number: '12346',
+      hire_date: '2023-08-20',
+      phone: '555-0102',
+      email: 'mike.johnson@metropower.com',
+      notes: 'Field supervisor with 10 years experience',
+      created_at: new Date(),
+      updated_at: new Date()
+    },
+    {
+      employee_id: 'EMP003',
+      name: 'Sarah Davis',
+      position_id: 3,
+      status: 'Active',
+      employee_number: '12347',
+      hire_date: '2024-03-01',
+      phone: '555-0103',
+      email: 'sarah.davis@metropower.com',
+      notes: 'Second year apprentice',
+      created_at: new Date(),
+      updated_at: new Date()
+    },
+    {
+      employee_id: 'EMP004',
+      name: 'Robert Wilson',
+      position_id: 1,
+      status: 'PTO',
+      employee_number: '12348',
+      hire_date: '2023-11-10',
+      phone: '555-0104',
+      email: 'robert.wilson@metropower.com',
+      notes: 'On vacation until next week',
+      created_at: new Date(),
+      updated_at: new Date()
+    },
+    {
+      employee_id: 'EMP005',
+      name: 'Lisa Brown',
+      position_id: 4,
+      status: 'Active',
+      employee_number: '12349',
+      hire_date: '2024-02-14',
+      phone: '555-0105',
+      email: 'lisa.brown@metropower.com',
+      notes: 'General laborer, reliable worker',
+      created_at: new Date(),
+      updated_at: new Date()
+    }
+  ];
+
   memoryDB.positions = [
     { position_id: 1, name: 'Electrician', code: 'ELEC', color_code: '#007bff', created_at: new Date() },
     { position_id: 2, name: 'Field Supervisor', code: 'FSUP', color_code: '#28a745', created_at: new Date() },
@@ -171,16 +240,93 @@ async function initializeMemoryDB() {
 
   memoryDB.projects = [
     {
-      project_id: 'DEMO-001',
-      name: 'Tucker Branch Demo Project',
+      project_id: 'PROJ-001',
+      name: 'Downtown Office Building',
       number: 'TB-2025-001',
       status: 'Active',
       start_date: new Date('2025-01-01'),
-      end_date: new Date('2025-12-31'),
-      location: 'Tucker Branch',
+      end_date: new Date('2025-06-30'),
+      location: '123 Main St, Atlanta, GA',
       manager_id: 2,
-      description: 'Demo project for MetroPower Dashboard',
-      budget: 100000.00,
+      description: 'Electrical installation for new office building',
+      budget: 250000.00,
+      created_at: new Date(),
+      updated_at: new Date()
+    },
+    {
+      project_id: 'PROJ-002',
+      name: 'Warehouse Renovation',
+      number: 'TB-2025-002',
+      status: 'Active',
+      start_date: new Date('2025-02-01'),
+      end_date: new Date('2025-08-15'),
+      location: '456 Industrial Blvd, Atlanta, GA',
+      manager_id: 2,
+      description: 'Complete electrical system upgrade for warehouse facility',
+      budget: 180000.00,
+      created_at: new Date(),
+      updated_at: new Date()
+    },
+    {
+      project_id: 'PROJ-003',
+      name: 'Retail Store Chain',
+      number: 'TB-2025-003',
+      status: 'Active',
+      start_date: new Date('2025-03-01'),
+      end_date: new Date('2025-09-30'),
+      location: 'Multiple locations, Atlanta Metro',
+      manager_id: 2,
+      description: 'Electrical work for 5 new retail store locations',
+      budget: 320000.00,
+      created_at: new Date(),
+      updated_at: new Date()
+    }
+  ];
+
+  // Sample assignments data (current week)
+  const today = new Date();
+  const monday = new Date(today);
+  monday.setDate(today.getDate() - today.getDay() + 1); // Get Monday of current week
+
+  memoryDB.assignments = [
+    // Monday assignments
+    {
+      assignment_id: 1,
+      employee_id: 'EMP001',
+      project_id: 'PROJ-001',
+      assignment_date: new Date(monday),
+      created_by: 2,
+      notes: 'Working on main electrical panel installation',
+      created_at: new Date(),
+      updated_at: new Date()
+    },
+    {
+      assignment_id: 2,
+      employee_id: 'EMP002',
+      project_id: 'PROJ-001',
+      assignment_date: new Date(monday),
+      created_by: 2,
+      notes: 'Supervising electrical team',
+      created_at: new Date(),
+      updated_at: new Date()
+    },
+    {
+      assignment_id: 3,
+      employee_id: 'EMP003',
+      project_id: 'PROJ-002',
+      assignment_date: new Date(monday),
+      created_by: 2,
+      notes: 'Assisting with conduit installation',
+      created_at: new Date(),
+      updated_at: new Date()
+    },
+    {
+      assignment_id: 4,
+      employee_id: 'EMP005',
+      project_id: 'PROJ-002',
+      assignment_date: new Date(monday),
+      created_by: 2,
+      notes: 'Material handling and site cleanup',
       created_at: new Date(),
       updated_at: new Date()
     }
@@ -324,6 +470,86 @@ async function executeMemoryQuery(text, params = []) {
     return {
       rows: memoryDB.projects,
       rowCount: memoryDB.projects.length
+    };
+  }
+
+  // Handle employee queries
+  if (queryLower.includes('select') && queryLower.includes('employees')) {
+    return {
+      rows: memoryDB.employees,
+      rowCount: memoryDB.employees.length
+    };
+  }
+
+  // Handle assignment queries
+  if (queryLower.includes('select') && queryLower.includes('assignments')) {
+    return {
+      rows: memoryDB.assignments,
+      rowCount: memoryDB.assignments.length
+    };
+  }
+
+  // Handle employee creation
+  if (queryLower.includes('insert') && queryLower.includes('employees')) {
+    const newEmployee = {
+      employee_id: params[0],
+      name: params[1],
+      position_id: params[2],
+      status: params[3] || 'Active',
+      employee_number: params[4],
+      hire_date: params[5],
+      phone: params[6],
+      email: params[7],
+      notes: params[8],
+      created_at: new Date(),
+      updated_at: new Date()
+    };
+    memoryDB.employees.push(newEmployee);
+    return {
+      rows: [newEmployee],
+      rowCount: 1
+    };
+  }
+
+  // Handle project creation
+  if (queryLower.includes('insert') && queryLower.includes('projects')) {
+    const newProject = {
+      project_id: params[0],
+      name: params[1],
+      number: params[2],
+      status: params[3] || 'Active',
+      start_date: params[4],
+      end_date: params[5],
+      location: params[6],
+      manager_id: params[7],
+      description: params[8],
+      budget: params[9],
+      created_at: new Date(),
+      updated_at: new Date()
+    };
+    memoryDB.projects.push(newProject);
+    return {
+      rows: [newProject],
+      rowCount: 1
+    };
+  }
+
+  // Handle assignment creation
+  if (queryLower.includes('insert') && queryLower.includes('assignments')) {
+    const newAssignment = {
+      assignment_id: memoryDB.assignments.length + 1,
+      employee_id: params[0],
+      project_id: params[1],
+      assignment_date: params[2],
+      created_by: params[3],
+      notes: params[4],
+      created_at: new Date(),
+      updated_at: new Date()
+    };
+    memoryDB.assignments.push(newAssignment);
+    return {
+      rows: [newAssignment],
+      rowCount: 1
     };
   }
 
