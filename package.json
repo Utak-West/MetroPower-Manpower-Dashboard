@@ -7,13 +7,13 @@
     "dev": "npm run dev --prefix backend",
     "start": "npm start --prefix backend",
     "build": "node scripts/vercel-build.js",
-    "test": "npm test --prefix backend",
     "migrate": "npm run migrate --prefix backend",
     "seed": "npm run seed --prefix backend",
     "test-db": "node scripts/test-db-connection.js",
     "vercel-build": "node scripts/vercel-build.js",
-    "postinstall": "npm install --prefix backend",
+    "postinstall": "npm run build --prefix frontend", // Example: if frontend needs a build step after install
     "lint": "npm run lint --prefix backend",
+    "test": "npm test --prefix backend",
     "lint:fix": "npm run lint:fix --prefix backend",
     "format": "npm run format --prefix backend",
     "validate": "npm run validate --prefix backend"
