@@ -51,7 +51,7 @@ return { user: userForReturn, ...tokens };
 - Multiple consecutive login attempts work correctly
 - Both demo users authenticate successfully:
   - `admin@metropower.com` / `MetroPower2025!`
-  - `antoine.harrell@metropower.com` / `password123`
+  - `antione.harrell@metropower.com` / `password123`
 - JWT tokens generated correctly with proper expiration
 - Server logs show successful authentication flow
 
@@ -75,7 +75,7 @@ return { user: userForReturn, ...tokens };
 
 ## Demo Credentials for Testing
 - **Admin User**: admin@metropower.com / MetroPower2025!
-- **Project Manager**: antoine.harrell@metropower.com / password123
+- **Project Manager**: antione.harrell@metropower.com / password123
 
 ---
 *Fix completed on: June 14, 2025*

@@ -148,10 +148,10 @@ async function initializeMemoryDB() {
     },
     {
       user_id: 2,
-      username: 'antoine.harrell',
-      email: 'antoine.harrell@metropower.com',
+      username: 'antione.harrell',
+      email: 'antione.harrell@metropower.com',
       password_hash: await bcrypt.hash('password123', 12),
-      first_name: 'Antoine',
+      first_name: 'Antione',
       last_name: 'Harrell',
       role: 'Project Manager',
       is_active: true,
