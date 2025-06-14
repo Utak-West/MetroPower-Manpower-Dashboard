@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MetroPower Manpower Dashboard</title>
+    
+    <!-- Favicon -->
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ccircle cx='50' cy='50' r='45' fill='%23dc2626'/%3E%3Ctext x='50' y='35' font-family='Arial,sans-serif' font-size='16' font-weight='bold' fill='white' text-anchor='middle'%3EMP%3C/text%3E%3Ctext x='50' y='70' font-family='Arial,sans-serif' font-size='10' fill='white' text-anchor='middle'%3EPOWER%3C/text%3E%3C/svg%3E">
+    
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    
+    <!-- Custom CSS -->
+    <style>
+        :root {
+            --mp-primary: #dc2626;
+            --mp-primary-dark: #b91c1c;
+            --mp-primary-light: #ef4444;
+            --mp-secondary: #6c757d;
+            --mp-success: #16a34a;
+            --mp-danger: #dc2626;
+            --mp-warning: #eab308;
+            --mp-info: #0891b2;
+            --mp-light: #f8f9fa;
+            --mp-dark: #1f2937;
+            --mp-gray: #374151;
+        }
+
+        body {
+            background: linear-gradient(135deg, var(--mp-primary) 0%, var(--mp-primary-dark) 100%);
+            min-height: 100vh;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        .login-container {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .login-card {
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+            max-width: 400px;
+            width: 100%;
+        }
+
+        .login-header {
+            background: var(--mp-primary);
+            color: white;
+            padding: 30px 20px;
+            text-align: center;
+        }
+
+        .login-header h1 {
+            font-size: 1.8rem;
+            font-weight: 700;
+            margin: 0;
+            letter-spacing: 1px;
+        }
+
+        .login-header .subtitle {
+            font-size: 0.9rem;
+            opacity: 0.9;
+            margin-top: 5px;
+        }
+
+        .login-body {
+            padding: 30px;
+        }
+
+        .form-control {
+            border-radius: 8px;
+            border: 2px solid #e9ecef;
+            padding: 12px 15px;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+        }
+
+        .form-control:focus {
+            border-color: var(--mp-primary);
+            box-shadow: 0 0 0 0.2rem rgba(220, 38, 38, 0.25);
+        }
+
+        .btn-login {
+            background: var(--mp-primary);
+            border: none;
+            border-radius: 8px;
+            padding: 12px;
+            font-weight: 600;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+            width: 100%;
+        }
+
+        .btn-login:hover {
+            background: var(--mp-primary-dark);
+            transform: translateY(-1px);
+        }
+
+        .alert {
+            border-radius: 8px;
+            border: none;
+        }
+
+        .form-label {
+            font-weight: 600;
+            color: var(--mp-dark);
+            margin-bottom: 8px;
+        }
+
+        .login-footer {
+            text-align: center;
+            padding: 20px;
+            background: var(--mp-light);
+            font-size: 0.9rem;
+            color: var(--mp-secondary);
+        }
+
+        .spinner-border-sm {
+            width: 1rem;
+            height: 1rem;
+        }
+
+        .loading {
+            opacity: 0.7;
+            pointer-events: none;
+        }
+
+        @media (max-width: 576px) {
+            .login-card {
+                margin: 10px;
+            }
+            
+            .login-header {
+                padding: 20px 15px;
+            }
+            
+            .login-body {
+                padding: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="login-container">
+        <div class="login-card">
+            <div class="login-header">
+                <h1>METROPOWER</h1>
+                <div class="subtitle">Manpower Dashboard</div>
+                <div class="subtitle">Tucker Branch</div>
+            </div>
+            
+            <div class="login-body">
+                <form id="loginForm">
+                    <div class="mb-3">
+                        <label for="identifier" class="form-label">Username or Email</label>
+                        <input type="text" class="form-control" id="identifier" name="identifier" 
+                               placeholder="Enter your username or email" required>
+                    </div>
+                    
+                    <div class="mb-4">
+                        <label for="password" class="form-label">Password</label>
+                        <input type="password" class="form-control" id="password" name="password" 
+                               placeholder="Enter your password" required>
+                    </div>
+                    
+                    <div id="alertContainer"></div>
+                    
+                    <button type="submit" class="btn btn-primary btn-login" id="loginBtn">
+                        <span class="btn-text">Login</span>
+                        <span class="spinner-border spinner-border-sm d-none" role="status"></span>
+                    </button>
+                </form>
+            </div>
+            
+            <div class="login-footer">
+                <div>Demo Credentials:</div>
+                <div><strong>admin@metropower.com</strong> / <strong>MetroPower2025!</strong></div>
+                <div><strong>antoine.harrell@metropower.com</strong> / <strong>password123</strong></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <!-- Custom JavaScript -->
+    <script>
+        const API_BASE = 'http://localhost:3001/api';
+        
+        document.getElementById('loginForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const loginBtn = document.getElementById('loginBtn');
+            const btnText = loginBtn.querySelector('.btn-text');
+            const spinner = loginBtn.querySelector('.spinner-border');
+            const alertContainer = document.getElementById('alertContainer');
+            
+            // Show loading state
+            loginBtn.classList.add('loading');
+            btnText.textContent = 'Logging in...';
+            spinner.classList.remove('d-none');
+            alertContainer.innerHTML = '';
+            
+            const formData = new FormData(this);
+            const loginData = {
+                identifier: formData.get('identifier'),
+                password: formData.get('password')
+            };
+            
+            try {
+                const response = await fetch(`${API_BASE}/auth/login`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(loginData)
+                });
+                
+                const result = await response.json();
+                
+                if (response.ok && result.success) {
+                    // Store token
+                    localStorage.setItem('accessToken', result.accessToken);
+                    localStorage.setItem('user', JSON.stringify(result.user));
+                    
+                    // Show success message
+                    alertContainer.innerHTML = `
+                        <div class="alert alert-success">
+                            <strong>Login successful!</strong> Welcome back, ${result.user.first_name}!
+                        </div>
+                    `;
+                    
+                    // Redirect to dashboard (for now, just show success)
+                    setTimeout(() => {
+                        alertContainer.innerHTML = `
+                            <div class="alert alert-info">
+                                <strong>Dashboard loading...</strong><br>
+                                User: ${result.user.username} (${result.user.role})<br>
+                                Token: ${result.accessToken.substring(0, 50)}...
+                            </div>
+                        `;
+                    }, 1500);
+                    
+                } else {
+                    // Show error message
+                    alertContainer.innerHTML = `
+                        <div class="alert alert-danger">
+                            <strong>Login failed!</strong> ${result.message || 'Invalid credentials'}
+                        </div>
+                    `;
+                }
+                
+            } catch (error) {
+                console.error('Login error:', error);
+                alertContainer.innerHTML = `
+                    <div class="alert alert-danger">
+                        <strong>Connection error!</strong> Please check if the server is running.
+                    </div>
+                `;
+            } finally {
+                // Reset loading state
+                loginBtn.classList.remove('loading');
+                btnText.textContent = 'Login';
+                spinner.classList.add('d-none');
+            }
+        });
+        
+        // Check server status on page load
+        window.addEventListener('load', async function() {
+            try {
+                const response = await fetch(`${API_BASE}/../health`);
+                const result = await response.json();
+                
+                if (result.status === 'OK') {
+                    console.log('Server is running:', result);
+                }
+            } catch (error) {
+                console.warn('Server health check failed:', error);
+                document.getElementById('alertContainer').innerHTML = `
+                    <div class="alert alert-warning">
+                        <strong>Server offline!</strong> Please start the backend server.
+                    </div>
+                `;
+            }
+        });
+    </script>
+</body>
+</html>
