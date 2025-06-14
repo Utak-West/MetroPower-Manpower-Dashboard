@@ -237,9 +237,9 @@
                         </div>
                     `;
                     
-                    // Redirect to manager dashboard
+                    // Redirect to standalone manager dashboard
                     setTimeout(() => {
-                        window.location.href = '/simple-login.html';
+                        window.location.href = 'standalone-manager.html';
                     }, 1500);
                     
                 } else {
@@ -279,9 +279,15 @@
                 console.warn('Server health check failed:', error);
                 document.getElementById('alertContainer').innerHTML = `
                     <div class="alert alert-warning">
-                        <strong>Server offline!</strong> Please start the backend server.
+                        <strong>Server offline!</strong> Redirecting to standalone manager...
+                        <br><a href="standalone-manager.html" class="btn btn-sm btn-outline-primary mt-2">Go to Standalone Manager</a>
                     </div>
                 `;
+
+                // Auto-redirect to standalone manager after 3 seconds if server is offline
+                setTimeout(() => {
+                    window.location.href = 'standalone-manager.html';
+                }, 3000);
             }
         });
     </script>

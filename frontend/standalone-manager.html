@@ -1,0 +1,504 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MetroPower Manager Dashboard</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background-color: #f5f5f5;
+            color: #333;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #dc3545, #c82333);
+            color: white;
+            padding: 1rem 2rem;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .header h1 {
+            font-size: 1.5rem;
+            font-weight: 600;
+        }
+
+        .header p {
+            opacity: 0.9;
+            margin-top: 0.25rem;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 2rem auto;
+            padding: 0 1rem;
+        }
+
+        .tabs {
+            display: flex;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            margin-bottom: 2rem;
+            overflow: hidden;
+        }
+
+        .tab {
+            flex: 1;
+            padding: 1rem;
+            text-align: center;
+            background: white;
+            border: none;
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: 500;
+            color: #666;
+            transition: all 0.3s ease;
+        }
+
+        .tab.active {
+            background: #dc3545;
+            color: white;
+        }
+
+        .tab:hover:not(.active) {
+            background: #f8f9fa;
+        }
+
+        .tab-content {
+            display: none;
+            background: white;
+            border-radius: 8px;
+            padding: 2rem;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+            color: #333;
+        }
+
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            width: 100%;
+            padding: 0.75rem;
+            border: 2px solid #e9ecef;
+            border-radius: 6px;
+            font-size: 1rem;
+            transition: border-color 0.3s ease;
+        }
+
+        .form-group input:focus,
+        .form-group select:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: #dc3545;
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+        }
+
+        .btn {
+            background: #dc3545;
+            color: white;
+            border: none;
+            padding: 0.75rem 1.5rem;
+            border-radius: 6px;
+            font-size: 1rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+            margin-right: 1rem;
+        }
+
+        .btn:hover {
+            background: #c82333;
+        }
+
+        .btn-secondary {
+            background: #6c757d;
+        }
+
+        .btn-secondary:hover {
+            background: #5a6268;
+        }
+
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 1rem;
+        }
+
+        .data-table th,
+        .data-table td {
+            padding: 0.75rem;
+            text-align: left;
+            border-bottom: 1px solid #e9ecef;
+        }
+
+        .data-table th {
+            background: #f8f9fa;
+            font-weight: 600;
+            color: #495057;
+        }
+
+        .data-table tr:hover {
+            background: #f8f9fa;
+        }
+
+        .status-badge {
+            padding: 0.25rem 0.5rem;
+            border-radius: 4px;
+            font-size: 0.875rem;
+            font-weight: 500;
+        }
+
+        .status-active {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .status-pto {
+            background: #fff3cd;
+            color: #856404;
+        }
+
+        .export-section {
+            margin-top: 2rem;
+            padding: 1.5rem;
+            background: #f8f9fa;
+            border-radius: 6px;
+        }
+
+        .export-buttons {
+            display: flex;
+            gap: 1rem;
+            margin-top: 1rem;
+            flex-wrap: wrap;
+        }
+
+        .alert {
+            padding: 1rem;
+            border-radius: 6px;
+            margin-bottom: 1rem;
+        }
+
+        .alert-success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .alert-error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+
+        .login-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.8);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+        }
+
+        .login-form {
+            background: white;
+            padding: 2rem;
+            border-radius: 8px;
+            max-width: 400px;
+            width: 90%;
+        }
+
+        .login-form h2 {
+            color: #dc3545;
+            margin-bottom: 1rem;
+            text-align: center;
+        }
+
+        .demo-info {
+            background: #e9ecef;
+            padding: 1rem;
+            border-radius: 6px;
+            margin-top: 1rem;
+            font-size: 0.875rem;
+        }
+
+        @media (max-width: 768px) {
+            .form-row {
+                grid-template-columns: 1fr;
+            }
+            
+            .tabs {
+                flex-direction: column;
+            }
+            
+            .export-buttons {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Login Overlay -->
+    <div id="loginOverlay" class="login-overlay">
+        <div class="login-form">
+            <h2>MetroPower Manager Access</h2>
+            <form id="loginForm">
+                <div class="form-group">
+                    <label for="loginEmail">Email</label>
+                    <input type="email" id="loginEmail" value="antione.harrell@metropower.com" required>
+                </div>
+                <div class="form-group">
+                    <label for="loginPassword">Password</label>
+                    <input type="password" id="loginPassword" value="password123" required>
+                </div>
+                <button type="submit" class="btn" style="width: 100%;">Login</button>
+            </form>
+            <div class="demo-info">
+                <strong>Demo Credentials:</strong><br>
+                Email: antione.harrell@metropower.com<br>
+                Password: password123<br><br>
+                <strong>Or Admin:</strong><br>
+                Email: admin@metropower.com<br>
+                Password: MetroPower2025!
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Dashboard -->
+    <div class="header">
+        <h1>MetroPower Manager Dashboard</h1>
+        <p>Tucker Branch - Employee & Project Management</p>
+    </div>
+
+    <div class="container">
+        <div class="tabs">
+            <button class="tab active" onclick="showTab('employees')">Employees</button>
+            <button class="tab" onclick="showTab('projects')">Projects</button>
+            <button class="tab" onclick="showTab('assignments')">Daily Assignments</button>
+            <button class="tab" onclick="showTab('export')">Export Data</button>
+        </div>
+
+        <!-- Employees Tab -->
+        <div id="employees" class="tab-content active">
+            <h2>Employee Management</h2>
+            
+            <form id="employeeForm">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="empId">Employee ID</label>
+                        <input type="text" id="empId" name="employee_id" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="empName">Full Name</label>
+                        <input type="text" id="empName" name="name" required>
+                    </div>
+                </div>
+                
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="empPosition">Position</label>
+                        <select id="empPosition" name="position" required>
+                            <option value="">Select Position</option>
+                            <option value="Electrician">Electrician</option>
+                            <option value="Field Supervisor">Field Supervisor</option>
+                            <option value="Apprentice">Apprentice</option>
+                            <option value="General Laborer">General Laborer</option>
+                            <option value="Temp">Temp</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="empStatus">Status</label>
+                        <select id="empStatus" name="status" required>
+                            <option value="Active">Active</option>
+                            <option value="PTO">PTO</option>
+                            <option value="Leave">Leave</option>
+                            <option value="Military">Military</option>
+                            <option value="Terminated">Terminated</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="empNumber">Employee Number</label>
+                        <input type="text" id="empNumber" name="employee_number">
+                    </div>
+                    <div class="form-group">
+                        <label for="empPhone">Phone</label>
+                        <input type="tel" id="empPhone" name="phone">
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="empEmail">Email</label>
+                    <input type="email" id="empEmail" name="email">
+                </div>
+                
+                <div class="form-group">
+                    <label for="empNotes">Notes</label>
+                    <textarea id="empNotes" name="notes" rows="3"></textarea>
+                </div>
+                
+                <button type="submit" class="btn">Add Employee</button>
+                <button type="button" class="btn btn-secondary" onclick="clearForm('employeeForm')">Clear</button>
+            </form>
+
+            <div id="employeesList">
+                <!-- Employee list will be loaded here -->
+            </div>
+        </div>
+
+        <!-- Projects Tab -->
+        <div id="projects" class="tab-content">
+            <h2>Project Management</h2>
+            
+            <form id="projectForm">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="projId">Project ID</label>
+                        <input type="text" id="projId" name="project_id" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="projName">Project Name</label>
+                        <input type="text" id="projName" name="name" required>
+                    </div>
+                </div>
+                
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="projNumber">Project Number</label>
+                        <input type="text" id="projNumber" name="number" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="projStatus">Status</label>
+                        <select id="projStatus" name="status" required>
+                            <option value="Active">Active</option>
+                            <option value="Completed">Completed</option>
+                            <option value="On Hold">On Hold</option>
+                            <option value="Planned">Planned</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="projStart">Start Date</label>
+                        <input type="date" id="projStart" name="start_date">
+                    </div>
+                    <div class="form-group">
+                        <label for="projEnd">End Date</label>
+                        <input type="date" id="projEnd" name="end_date">
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="projLocation">Location</label>
+                    <input type="text" id="projLocation" name="location">
+                </div>
+                
+                <div class="form-group">
+                    <label for="projDescription">Description</label>
+                    <textarea id="projDescription" name="description" rows="3"></textarea>
+                </div>
+                
+                <div class="form-group">
+                    <label for="projBudget">Budget ($)</label>
+                    <input type="number" id="projBudget" name="budget" step="0.01">
+                </div>
+                
+                <button type="submit" class="btn">Add Project</button>
+                <button type="button" class="btn btn-secondary" onclick="clearForm('projectForm')">Clear</button>
+            </form>
+
+            <div id="projectsList">
+                <!-- Project list will be loaded here -->
+            </div>
+        </div>
+
+        <!-- Assignments Tab -->
+        <div id="assignments" class="tab-content">
+            <h2>Daily Assignments</h2>
+            
+            <form id="assignmentForm">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="assignEmployee">Employee</label>
+                        <select id="assignEmployee" name="employee_id" required>
+                            <option value="">Select Employee</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="assignProject">Project</label>
+                        <select id="assignProject" name="project_id" required>
+                            <option value="">Select Project</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="assignDate">Assignment Date</label>
+                    <input type="date" id="assignDate" name="assignment_date" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="assignNotes">Notes</label>
+                    <textarea id="assignNotes" name="notes" rows="2"></textarea>
+                </div>
+                
+                <button type="submit" class="btn">Create Assignment</button>
+                <button type="button" class="btn btn-secondary" onclick="clearForm('assignmentForm')">Clear</button>
+            </form>
+
+            <div id="assignmentsList">
+                <!-- Assignment list will be loaded here -->
+            </div>
+        </div>
+
+        <!-- Export Tab -->
+        <div id="export" class="tab-content">
+            <h2>Export Data</h2>
+            <p>Download your data in CSV format for Excel import.</p>
+            
+            <div class="export-section">
+                <h3>Available Exports</h3>
+                <div class="export-buttons">
+                    <button class="btn" onclick="exportData('employees')">Export Employees (CSV)</button>
+                    <button class="btn" onclick="exportData('projects')">Export Projects (CSV)</button>
+                    <button class="btn" onclick="exportData('assignments')">Export Assignments (CSV)</button>
+                    <button class="btn" onclick="exportData('all')">Export All Data (CSV)</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="js/standalone-manager.js"></script>
+</body>
+</html>
