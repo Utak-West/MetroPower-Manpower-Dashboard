@@ -16,7 +16,7 @@ const demoData = {
       user_id: 1,
       username: 'antione.harrell',
       email: 'antione.harrell@metropower.com',
-      password_hash: '$2a$12$demo.hash.for.antione.harrell', // Demo hash
+      password_hash: '$2a$12$cEgWLRNksZ/iqU7ITn2Duub0UNXXQZIykrDkn.2T4p2MKJkMRzepu', // bcrypt hash for "password"
       first_name: 'Antione',
       last_name: 'Harrell',
       role: 'Project Manager',
@@ -29,7 +29,7 @@ const demoData = {
       user_id: 2,
       username: 'demo.user',
       email: 'demo@metropower.com',
-      password_hash: '$2a$12$demo.hash.for.demo.user', // Demo hash
+      password_hash: '$2a$12$hKm4NLl1VP5z5xvLG/zSweI60yePOujZHEf6L1yPdkxWi5OZRpxEO', // bcrypt hash for "password123"
       first_name: 'Demo',
       last_name: 'User',
       role: 'View Only',
