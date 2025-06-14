@@ -53,10 +53,10 @@ const seedUsers = async () => {
       role: 'Admin'
     },
     {
-      username: 'antoine.harrell',
-      email: 'antoine.harrell@metropower.com',
+      username: 'antione.harrell',
+      email: 'antione.harrell@metropower.com',
       password_hash: defaultPassword,
-      first_name: 'Antoine',
+      first_name: 'Antione',
       last_name: 'Harrell',
       role: 'Project Manager'
     },
@@ -95,9 +95,9 @@ const seedUsers = async () => {
 const seedProjects = async () => {
   logger.info('Seeding projects...');
 
-  // Get Antoine Harrell's user ID
-  const antoineResult = await query('SELECT user_id FROM users WHERE username = $1', ['antoine.harrell']);
-  const antoineId = antoineResult.rows[0]?.user_id;
+  // Get Antione Harrell's user ID
+  const antioneResult = await query('SELECT user_id FROM users WHERE username = $1', ['antione.harrell']);
+  const antioneId = antioneResult.rows[0]?.user_id;
 
   const projects = [
     {
@@ -108,7 +108,7 @@ const seedProjects = async () => {
       start_date: '2025-01-01',
       end_date: '2025-06-30',
       location: 'Tucker Industrial Park',
-      manager_id: antoineId,
+      manager_id: antioneId,
       description: 'Electrical installation for new warehouse facility'
     },
     {
@@ -119,7 +119,7 @@ const seedProjects = async () => {
       start_date: '2025-02-01',
       end_date: '2025-08-31',
       location: 'Downtown Office Complex',
-      manager_id: antoineId,
+      manager_id: antioneId,
       description: 'Office building electrical upgrade'
     },
     {
@@ -130,7 +130,7 @@ const seedProjects = async () => {
       start_date: '2025-03-01',
       end_date: '2025-09-30',
       location: 'Residential Development',
-      manager_id: antoineId,
+      manager_id: antioneId,
       description: 'New residential community electrical infrastructure'
     },
     {
@@ -141,7 +141,7 @@ const seedProjects = async () => {
       start_date: '2025-04-01',
       end_date: '2025-10-31',
       location: 'Manufacturing Plant',
-      manager_id: antoineId,
+      manager_id: antioneId,
       description: 'Industrial electrical system installation'
     }
   ];
@@ -325,7 +325,7 @@ const seedDatabase = async () => {
     logger.info('Database seeding completed successfully!');
     logger.info('Default login credentials:');
     logger.info('  Admin: admin@metropower.com / MetroPower2025!');
-    logger.info('  Antoine Harrell: antoine.harrell@metropower.com / MetroPower2025!');
+    logger.info('  Antione Harrell: antione.harrell@metropower.com / MetroPower2025!');
 
   } catch (error) {
     logger.error('Database seeding failed:', error);

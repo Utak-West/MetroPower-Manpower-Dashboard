@@ -45,8 +45,8 @@ Updated the dashboard to use MetroPower's official red-based branding:
    - Password: `MetroPower2025!`
    - Role: Admin
 
-2. **Antoine Harrell (Project Manager)**
-   - Email: `antoine.harrell@metropower.com`
+2. **Antione Harrell (Project Manager)**
+   - Email: `antione.harrell@metropower.com`
    - Password: `password123`
    - Role: Project Manager
 
@@ -106,7 +106,7 @@ USE_MEMORY_DB=true LOG_LEVEL=info node server.js
 1. Open the frontend in your browser
 2. Use either demo account:
    - `admin@metropower.com` / `MetroPower2025!`
-   - `antoine.harrell@metropower.com` / `password123`
+   - `antione.harrell@metropower.com` / `password123`
 3. Successful login will display user information and JWT token
 
 ## 📁 Project Structure
@@ -152,7 +152,7 @@ JWT_SECRET=metropower_jwt_secret    # JWT signing secret
 
 ### Manual Testing
 1. **Server Health**: `curl http://localhost:3001/health`
-2. **Valid Login**: `curl -X POST http://localhost:3001/api/auth/login -H "Content-Type: application/json" -d '{"identifier": "antoine.harrell@metropower.com", "password": "password123"}'`
+2. **Valid Login**: `curl -X POST http://localhost:3001/api/auth/login -H "Content-Type: application/json" -d '{"identifier": "antione.harrell@metropower.com", "password": "password123"}'`
 3. **Invalid Login**: `curl -X POST http://localhost:3001/api/auth/login -H "Content-Type: application/json" -d '{"identifier": "test@test.com", "password": "wrong"}'`
 
 ### Expected Results
