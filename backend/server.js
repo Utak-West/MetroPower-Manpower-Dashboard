@@ -17,6 +17,7 @@ const rateLimit = require('express-rate-limit');
 const cookieParser = require('cookie-parser');
 const { createServer } = require('http');
 const { Server } = require('socket.io');
+const path = require('path');
 
 // Import configurations and utilities
 const config = require('./src/config/app');
@@ -154,6 +155,15 @@ app.get('/api-docs', (req, res) => {
 app.use('/uploads', express.static('uploads'));
 app.use('/exports', express.static('exports'));
 
+// Serve frontend static files
+const frontendPath = path.join(__dirname, '..', 'frontend');
+app.use(express.static(frontendPath));
+
+// Serve frontend assets with proper paths
+app.use('/css', express.static(path.join(frontendPath, 'css')));
+app.use('/js', express.static(path.join(frontendPath, 'js')));
+app.use('/assets', express.static(path.join(frontendPath, 'assets')));
+
 // API Routes
 app.use('/api/auth', authRoutes);
 app.use('/api/employees', authMiddleware, employeeRoutes);
@@ -183,6 +193,22 @@ io.on('connection', (socket) => {
 
 // Make io available to routes
 app.set('io', io);
+
+// Serve frontend HTML for all non-API routes (SPA fallback)
+app.get('*', (req, res, next) => {
+  // Skip API routes and static files
+  if (req.path.startsWith('/api/') ||
+      req.path.startsWith('/uploads/') ||
+      req.path.startsWith('/exports/') ||
+      req.path.startsWith('/health') ||
+      req.path.startsWith('/socket.io/') ||
+      req.path.includes('.')) {
+    return next();
+  }
+
+  // Serve the main HTML file for frontend routes
+  res.sendFile(path.join(frontendPath, 'index.html'));
+});
 
 // 404 handler
 app.use(notFoundHandler);
