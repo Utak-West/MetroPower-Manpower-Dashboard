@@ -43,8 +43,8 @@ router.post('/login', [
 
   const { identifier, password } = req.body
 
-  // Handle demo mode
-  if (global.isDemoMode) {
+  // Handle demo mode - check both global variable and environment variable
+  if (global.isDemoMode || process.env.DEMO_MODE_ENABLED === 'true') {
     const demoService = require('../services/demoService')
 
     try {
@@ -163,8 +163,8 @@ router.post('/logout', asyncHandler(async (req, res) => {
  */
 router.get('/verify', asyncHandler(async (req, res) => {
   try {
-    // Handle demo mode
-    if (global.isDemoMode) {
+    // Handle demo mode - check both global variable and environment variable
+    if (global.isDemoMode || process.env.DEMO_MODE_ENABLED === 'true') {
       const demoService = require('../services/demoService')
       const demoUser = await demoService.findUserById(1)
 
@@ -241,8 +241,8 @@ router.get('/verify', asyncHandler(async (req, res) => {
  */
 router.post('/refresh', asyncHandler(async (req, res) => {
   try {
-    // Handle demo mode
-    if (global.isDemoMode) {
+    // Handle demo mode - check both global variable and environment variable
+    if (global.isDemoMode || process.env.DEMO_MODE_ENABLED === 'true') {
       return res.json({
         message: 'Token refreshed (demo mode)',
         accessToken: 'demo-token-' + Date.now(),
