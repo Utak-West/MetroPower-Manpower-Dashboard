@@ -265,7 +265,7 @@ function updateUnassignedEmployees(unassignedEmployees) {
         <div class="employee-card" data-employee-id="${employee.employee_id}">
             <div class="employee-info">
                 <h4>${employee.first_name} ${employee.last_name}</h4>
-                <p class="employee-trade">${employee.trade} - ${employee.level}</p>
+                <p class="employee-trade">${employee.trade}</p>
                 <p class="employee-rate">$${employee.hourly_rate}/hr</p>
             </div>
         </div>
