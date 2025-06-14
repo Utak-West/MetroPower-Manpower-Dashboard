@@ -25,10 +25,10 @@ async function runBuild() {
   try {
     // Check if we have database configuration
     if (!process.env.DB_HOST) {
-      console.log('⚠️  No database configuration found. Skipping database setup.');
-      console.log('   Make sure to set up your database environment variables in Vercel.');
-      console.log('   Build will continue without database initialization.');
-      return;
+      console.error('❌ No database configuration found in environment variables.');
+      console.error('   Required environment variables: DB_HOST, DB_PORT, DB_NAME, DB_USER, DB_PASSWORD');
+      console.error('   Please set up your database environment variables in Vercel.');
+      process.exit(1);
     }
 
     console.log('�️  Setting up database connection...');
@@ -83,10 +83,11 @@ async function runBuild() {
   } catch (error) {
     console.error('❌ Build process failed:', error.message);
 
-    // Don't fail the build for database issues in case it's a temporary problem
+    // Always fail the build for database issues since we've removed demo mode
     if (error.message.includes('database') || error.message.includes('connection')) {
-      console.log('⚠️  Database setup failed, but continuing with build...');
-      console.log('   Please check your database configuration and run migrations manually.');
+      console.error('❌ Database connection failed. A working database connection is required.');
+      console.error('   Please verify your database configuration in Vercel environment variables.');
+      process.exit(1);
     } else {
       process.exit(1);
     }

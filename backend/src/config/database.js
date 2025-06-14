@@ -2,7 +2,7 @@
  * Database Configuration
  *
  * PostgreSQL connection configuration with connection pooling,
- * error handling, and demo mode fallback for the MetroPower Dashboard.
+ * and error handling for the MetroPower Dashboard.
  *
  * Copyright 2025 The HigherSelf Network
  */
@@ -17,6 +17,24 @@ let pool = null
  * Create and configure database connection pool
  */
 const createPool = () => {
+  // Check if Vercel Postgres environment variables are available
+  if (process.env.POSTGRES_URL) {
+    logger.info('Using Vercel Postgres connection string')
+    return new Pool({
+      connectionString: process.env.POSTGRES_URL,
+      ssl: { rejectUnauthorized: false },
+      min: config.database.pool.min,
+      max: config.database.pool.max,
+      acquireTimeoutMillis: config.database.pool.acquire,
+      idleTimeoutMillis: config.database.pool.idle,
+      connectionTimeoutMillis: 10000,
+      statement_timeout: 30000,
+      query_timeout: 30000,
+      application_name: 'MetroPower Dashboard'
+    })
+  }
+  
+  // Fall back to standard database configuration
   const dbConfig = {
     host: config.database.host,
     port: config.database.port,
@@ -78,9 +96,6 @@ const connectDatabase = async () => {
         logger.info(`Database time: ${result.rows[0].current_time}`)
         logger.debug(`PostgreSQL version: ${result.rows[0].version}`)
 
-        if (!global.isDemoMode) {
-          global.isDemoMode = false
-        }
         return pool
       } catch (error) {
         lastError = error
@@ -95,12 +110,6 @@ const connectDatabase = async () => {
     throw lastError
   } catch (error) {
     logger.error('Failed to connect to database after all retries:', error)
-    logger.warn('Switching to demo mode with in-memory data')
-    global.isDemoMode = true
-
-    // Initialize demo service
-    require('../services/demoService')
-
     throw error
   }
 }
@@ -109,10 +118,6 @@ const connectDatabase = async () => {
  * Execute a database query with error handling
  */
 const query = async (text, params = []) => {
-  if (global.isDemoMode) {
-    throw new Error('Database operations not available in demo mode')
-  }
-
   if (!pool) {
     throw new Error('Database pool not initialized')
   }
@@ -144,10 +149,6 @@ const query = async (text, params = []) => {
  * Execute a transaction with automatic rollback on error
  */
 const transaction = async (callback) => {
-  if (global.isDemoMode) {
-    throw new Error('Transactions not available in demo mode')
-  }
-
   if (!pool) {
     throw new Error('Database pool not initialized')
   }
@@ -171,15 +172,6 @@ const transaction = async (callback) => {
  * Get database connection status
  */
 const getConnectionStatus = () => {
-  if (global.isDemoMode) {
-    return {
-      status: 'demo',
-      totalCount: 0,
-      idleCount: 0,
-      waitingCount: 0
-    }
-  }
-
   if (!pool) {
     return {
       status: 'disconnected',
@@ -217,14 +209,6 @@ const closeDatabase = async () => {
  * Health check for database
  */
 const healthCheck = async () => {
-  if (global.isDemoMode) {
-    return {
-      status: 'demo',
-      message: 'Running in demo mode',
-      timestamp: new Date().toISOString()
-    }
-  }
-
   try {
     if (!pool) {
       throw new Error('Database pool not initialized')

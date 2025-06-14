@@ -109,7 +109,6 @@
     "LOG_LEVEL": "info",
     "BACKUP_ENABLED": "false",
     "BACKUP_RETENTION_DAYS": "90",
-    "DEMO_MODE_ENABLED": "true",
     "DISABLE_FILE_LOGGING": "true",
     "VERCEL": "1"
   },
