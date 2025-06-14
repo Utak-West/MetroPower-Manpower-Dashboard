@@ -1,16 +1,28 @@
 {
   "version": 2,
   "name": "metropower-manpower-dashboard",
-  "functions": {
-    "api/index.js": {
-      "maxDuration": 30,
-      "memory": 1024
+  "builds": [
+    {
+      "src": "api/index.js",
+      "use": "@vercel/node",
+      "config": {
+        "maxLambdaSize": "50mb",
+        "includeFiles": "backend/**"
+      }
     },
-    "api/debug.js": {
-      "maxDuration": 30,
-      "memory": 512
+    {
+      "src": "api/debug.js",
+      "use": "@vercel/node",
+      "config": {
+        "maxLambdaSize": "50mb",
+        "includeFiles": "backend/**"
+      }
+    },
+    {
+      "src": "frontend/**",
+      "use": "@vercel/static"
     }
-  },
+  ],
   "routes": [
     {
       "src": "/api/debug/(.*)",
