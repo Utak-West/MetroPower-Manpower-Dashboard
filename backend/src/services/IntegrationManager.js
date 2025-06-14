@@ -4,37 +4,82 @@
  * Central service for managing all MetroPower system integrations.
  * Handles coordination between different integration services and provides
  * unified interface for sync operations.
+ *
+ * NOTE: External integrations are disabled for Vercel deployment to prevent
+ * dependency issues. This manager now operates in demo/stub mode.
  */
 
-const EmployeeSync = require('./EmployeeSync')
-const ProjectSync = require('./ProjectSync')
-const WeatherService = require('./WeatherService')
-const EquipmentSync = require('./EquipmentSync')
-const SafetySync = require('./SafetySync')
-const { query } = require('../config/database')
 const logger = require('../utils/logger')
+
+// Stub services for demo mode - prevents import errors
+class StubService {
+  async testConnection() {
+    return { connected: false, message: 'Service disabled for demo deployment' }
+  }
+
+  async syncEmployees() {
+    return { recordsProcessed: 0, message: 'Demo mode - no sync performed' }
+  }
+
+  async syncProjects() {
+    return { recordsProcessed: 0, message: 'Demo mode - no sync performed' }
+  }
+
+  async syncEquipment() {
+    return { recordsProcessed: 0, message: 'Demo mode - no sync performed' }
+  }
+
+  async syncSafetyData() {
+    return { recordsProcessed: 0, message: 'Demo mode - no sync performed' }
+  }
+
+  async updateWeatherData() {
+    return { recordsProcessed: 0, message: 'Demo mode - no sync performed' }
+  }
+}
 
 class IntegrationManager {
   constructor () {
+    // Use stub services for demo deployment
     this.services = {
-      employee: new EmployeeSync(),
-      project: new ProjectSync(),
-      weather: new WeatherService(),
-      equipment: new EquipmentSync(),
-      safety: new SafetySync()
+      employee: new StubService(),
+      project: new StubService(),
+      weather: new StubService(),
+      equipment: new StubService(),
+      safety: new StubService()
     }
 
     this.syncStatus = new Map()
+    this.demoMode = true
+
+    logger.info('IntegrationManager initialized in demo mode - external integrations disabled')
   }
 
   /**
-   * Initialize all integrations
+   * Initialize all integrations (demo mode)
    */
   async initialize () {
     try {
-      logger.info('Initializing integration services...')
+      logger.info('Initializing integration services in demo mode...')
 
-      // Test all connections
+      if (this.demoMode) {
+        // Set all services as disconnected for demo mode
+        const serviceNames = Object.keys(this.services)
+        serviceNames.forEach(serviceName => {
+          this.syncStatus.set(serviceName, {
+            connected: false,
+            lastCheck: new Date(),
+            demoMode: true,
+            message: 'Service disabled for demo deployment'
+          })
+          logger.info(`${serviceName} integration: Demo mode (disabled)`)
+        })
+
+        logger.info('Integration initialization completed in demo mode')
+        return
+      }
+
+      // Original initialization code (not used in demo mode)
       const connectionTests = await Promise.allSettled([
         this.services.employee.testConnection(),
         this.services.project.testConnection(),
@@ -59,12 +104,17 @@ class IntegrationManager {
       logger.info('Integration initialization completed')
     } catch (error) {
       logger.error('Integration initialization failed:', error)
+      // Don't throw error in demo mode
+      if (this.demoMode) {
+        logger.warn('Continuing in demo mode despite initialization error')
+        return
+      }
       throw error
     }
   }
 
   /**
-   * Perform full synchronization of all systems
+   * Perform full synchronization of all systems (demo mode)
    */
   async performFullSync () {
     const syncResults = {
@@ -72,14 +122,36 @@ class IntegrationManager {
       results: {},
       completed: null,
       totalRecords: 0,
-      errors: []
+      errors: [],
+      demoMode: this.demoMode
     }
 
     try {
+      if (this.demoMode) {
+        logger.info('Starting demo system synchronization (no actual sync performed)...')
+
+        // Simulate sync results for demo
+        syncResults.results = {
+          employees: { success: true, recordsProcessed: 0, message: 'Demo mode - no sync performed' },
+          projects: { success: true, recordsProcessed: 0, message: 'Demo mode - no sync performed' },
+          equipment: { success: true, recordsProcessed: 0, message: 'Demo mode - no sync performed' },
+          safety: { success: true, recordsProcessed: 0, message: 'Demo mode - no sync performed' },
+          weather: { success: true, recordsProcessed: 0, message: 'Demo mode - no sync performed' }
+        }
+
+        syncResults.completed = new Date()
+        logger.info('Demo sync completed successfully')
+        return syncResults
+      }
+
       logger.info('Starting full system synchronization...')
 
-      // Log sync start
-      await this.logSyncActivity('full_sync', 'started', {})
+      // Log sync start (only if database is available)
+      try {
+        await this.logSyncActivity('full_sync', 'started', {})
+      } catch (dbError) {
+        logger.warn('Could not log sync activity - continuing without logging')
+      }
 
       // Sync employees first (dependencies for other syncs)
       syncResults.results.employees = await this.syncWithRetry('employee', 'syncEmployees')
@@ -103,7 +175,11 @@ class IntegrationManager {
       syncResults.completed = new Date()
 
       // Log successful completion
-      await this.logSyncActivity('full_sync', 'completed', syncResults)
+      try {
+        await this.logSyncActivity('full_sync', 'completed', syncResults)
+      } catch (dbError) {
+        logger.warn('Could not log sync completion - continuing')
+      }
 
       logger.info(`Full sync completed: ${syncResults.totalRecords} records processed`)
 
@@ -112,10 +188,20 @@ class IntegrationManager {
       syncResults.errors.push(error.message)
       syncResults.completed = new Date()
 
-      // Log error
-      await this.logSyncActivity('full_sync', 'failed', syncResults)
+      // Log error (if possible)
+      try {
+        await this.logSyncActivity('full_sync', 'failed', syncResults)
+      } catch (dbError) {
+        logger.warn('Could not log sync error - continuing')
+      }
 
       logger.error('Full sync failed:', error)
+
+      // Don't throw error in demo mode
+      if (this.demoMode) {
+        logger.warn('Sync failed but continuing in demo mode')
+        return syncResults
+      }
       throw error
     }
   }
@@ -171,12 +257,13 @@ class IntegrationManager {
   }
 
   /**
-   * Get health status of all integrations
+   * Get health status of all integrations (demo mode safe)
    */
   async getHealthStatus () {
     const status = {
       timestamp: new Date().toISOString(),
-      overall: 'healthy',
+      overall: this.demoMode ? 'demo' : 'healthy',
+      demoMode: this.demoMode,
       services: {}
     }
 
@@ -186,61 +273,112 @@ class IntegrationManager {
         connected: serviceStatus.connected,
         lastSync: serviceStatus.lastSync,
         lastCheck: serviceStatus.lastCheck,
-        error: serviceStatus.error || null
+        error: serviceStatus.error || null,
+        demoMode: serviceStatus.demoMode || false
       }
 
-      // If any service is down, mark overall as degraded
-      if (!serviceStatus.connected) {
+      // If any service is down and not in demo mode, mark overall as degraded
+      if (!serviceStatus.connected && !this.demoMode) {
         status.overall = 'degraded'
       }
     }
 
-    // Check recent sync activity
-    const recentSyncs = await query(`
-      SELECT integration_name, status, completed_at 
-      FROM integration_logs 
-      WHERE started_at > NOW() - INTERVAL '1 hour'
-      ORDER BY started_at DESC
-    `)
-
-    status.recentActivity = recentSyncs.rows
+    // Check recent sync activity (skip in demo mode)
+    if (!this.demoMode && !global.isDemoMode) {
+      try {
+        const { query } = require('../config/database')
+        const recentSyncs = await query(`
+          SELECT integration_name, status, completed_at
+          FROM integration_logs
+          WHERE started_at > NOW() - INTERVAL '1 hour'
+          ORDER BY started_at DESC
+        `)
+        status.recentActivity = recentSyncs.rows
+      } catch (error) {
+        logger.warn('Could not fetch recent sync activity:', error.message)
+        status.recentActivity = []
+      }
+    } else {
+      status.recentActivity = []
+    }
 
     return status
   }
 
   /**
-   * Get sync statistics
+   * Get sync statistics (demo mode safe)
    */
   async getSyncStatistics (days = 7) {
-    const stats = await query(`
-      SELECT 
-        integration_name,
-        COUNT(*) as total_syncs,
-        COUNT(CASE WHEN status = 'completed' THEN 1 END) as successful_syncs,
-        COUNT(CASE WHEN status = 'failed' THEN 1 END) as failed_syncs,
-        AVG(EXTRACT(EPOCH FROM (completed_at - started_at))) as avg_duration,
-        SUM(records_processed) as total_records
-      FROM integration_logs 
-      WHERE started_at > NOW() - INTERVAL '${days} days'
-      GROUP BY integration_name
-    `)
+    if (this.demoMode || global.isDemoMode) {
+      // Return demo statistics
+      return [
+        {
+          integration: 'employee',
+          totalSyncs: 0,
+          successfulSyncs: 0,
+          failedSyncs: 0,
+          successRate: '0.00',
+          avgDuration: '0.00',
+          totalRecords: 0,
+          demoMode: true
+        },
+        {
+          integration: 'project',
+          totalSyncs: 0,
+          successfulSyncs: 0,
+          failedSyncs: 0,
+          successRate: '0.00',
+          avgDuration: '0.00',
+          totalRecords: 0,
+          demoMode: true
+        }
+      ]
+    }
 
-    return stats.rows.map(row => ({
-      integration: row.integration_name,
-      totalSyncs: parseInt(row.total_syncs),
-      successfulSyncs: parseInt(row.successful_syncs),
-      failedSyncs: parseInt(row.failed_syncs),
-      successRate: (parseInt(row.successful_syncs) / parseInt(row.total_syncs) * 100).toFixed(2),
-      avgDuration: parseFloat(row.avg_duration).toFixed(2),
-      totalRecords: parseInt(row.total_records) || 0
-    }))
+    try {
+      const { query } = require('../config/database')
+      const stats = await query(`
+        SELECT
+          integration_name,
+          COUNT(*) as total_syncs,
+          COUNT(CASE WHEN status = 'completed' THEN 1 END) as successful_syncs,
+          COUNT(CASE WHEN status = 'failed' THEN 1 END) as failed_syncs,
+          AVG(EXTRACT(EPOCH FROM (completed_at - started_at))) as avg_duration,
+          SUM(records_processed) as total_records
+        FROM integration_logs
+        WHERE started_at > NOW() - INTERVAL '${days} days'
+        GROUP BY integration_name
+      `)
+
+      return stats.rows.map(row => ({
+        integration: row.integration_name,
+        totalSyncs: parseInt(row.total_syncs),
+        successfulSyncs: parseInt(row.successful_syncs),
+        failedSyncs: parseInt(row.failed_syncs),
+        successRate: (parseInt(row.successful_syncs) / parseInt(row.total_syncs) * 100).toFixed(2),
+        avgDuration: parseFloat(row.avg_duration).toFixed(2),
+        totalRecords: parseInt(row.total_records) || 0
+      }))
+    } catch (error) {
+      logger.warn('Could not fetch sync statistics:', error.message)
+      return []
+    }
   }
 
   /**
-   * Log sync activity to database
+   * Log sync activity to database (demo mode safe)
    */
   async logSyncActivity (integrationName, status, data = {}) {
     try {
+      // Skip database logging in demo mode or if database is unavailable
+      if (this.demoMode || global.isDemoMode) {
+        logger.info(`Demo mode: Would log sync activity - ${integrationName}: ${status}`)
+        return
+      }
+
+      // Try to import query function dynamically to avoid errors
+      const { query } = require('../config/database')
+
       await query(`
         INSERT INTO integration_logs (integration_name, sync_type, status, records_processed, error_message)
         VALUES ($1, $2, $3, $4, $5)
@@ -252,15 +390,20 @@ class IntegrationManager {
         data.error || null
       ])
     } catch (error) {
-      logger.error('Failed to log sync activity:', error)
+      logger.warn('Failed to log sync activity (continuing in demo mode):', error.message)
     }
   }
 
   /**
-   * Emergency stop all sync operations
+   * Emergency stop all sync operations (demo mode safe)
    */
   async emergencyStop () {
     logger.warn('Emergency stop initiated for all integrations')
+
+    if (this.demoMode || global.isDemoMode) {
+      logger.info('Demo mode: Emergency stop simulated (no actual operations to stop)')
+      return
+    }
 
     // Stop all running sync operations
     for (const [serviceName, service] of Object.entries(this.services)) {
@@ -274,30 +417,46 @@ class IntegrationManager {
       }
     }
 
-    // Update sync status
-    await query(`
-      UPDATE sync_status 
-      SET is_enabled = false, 
-          last_sync_time = CURRENT_TIMESTAMP 
-      WHERE integration_name IN ('employee_sync', 'project_sync', 'equipment_sync', 'safety_sync')
-    `)
+    // Update sync status (if database is available)
+    try {
+      const { query } = require('../config/database')
+      await query(`
+        UPDATE sync_status
+        SET is_enabled = false,
+            last_sync_time = CURRENT_TIMESTAMP
+        WHERE integration_name IN ('employee_sync', 'project_sync', 'equipment_sync', 'safety_sync')
+      `)
+    } catch (error) {
+      logger.warn('Could not update sync status in database:', error.message)
+    }
 
     logger.warn('All integrations stopped')
   }
 
   /**
-   * Resume all sync operations
+   * Resume all sync operations (demo mode safe)
    */
   async resumeOperations () {
     logger.info('Resuming integration operations')
 
-    // Re-enable sync operations
-    await query(`
-      UPDATE sync_status 
-      SET is_enabled = true, 
-          last_sync_time = CURRENT_TIMESTAMP 
-      WHERE integration_name IN ('employee_sync', 'project_sync', 'equipment_sync', 'safety_sync')
-    `)
+    if (this.demoMode || global.isDemoMode) {
+      logger.info('Demo mode: Resume operations simulated')
+      await this.initialize()
+      return
+    }
+
+    // Re-enable sync operations (if database is available)
+    try {
+      const { query } = require('../config/database')
+      await query(`
+        UPDATE sync_status
+        SET is_enabled = true,
+            last_sync_time = CURRENT_TIMESTAMP
+        WHERE integration_name IN ('employee_sync', 'project_sync', 'equipment_sync', 'safety_sync')
+      `)
+    } catch (error) {
+      logger.warn('Could not update sync status in database:', error.message)
+    }
 
     // Reinitialize connections
     await this.initialize()
