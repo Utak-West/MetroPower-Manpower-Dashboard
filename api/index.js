@@ -23,16 +23,19 @@ if (process.env.VERCEL) {
 }
 
 let app;
+let initializationPromise = null;
 
 try {
   // Import the main server application
   const serverModule = require('../backend/server');
   app = serverModule.app;
 
-  // Initialize the app for serverless
+  // Initialize the app for serverless (with proper error handling)
   if (serverModule.initializeApp) {
-    serverModule.initializeApp().catch(error => {
+    initializationPromise = serverModule.initializeApp().catch(error => {
       console.error('Failed to initialize app:', error);
+      // Don't throw here, let requests handle the error
+      return { error: error.message };
     });
   }
 } catch (error) {
@@ -42,13 +45,52 @@ try {
   const express = require('express');
   app = express();
 
-  app.use((req, res) => {
+  // Add basic middleware
+  app.use(express.json());
+  app.use(express.urlencoded({ extended: true }));
+
+  app.use(async (req, res) => {
     res.status(500).json({
       error: 'Server initialization failed',
       message: 'Please check your environment variables and database configuration',
-      details: error.message
+      details: error.message,
+      timestamp: new Date().toISOString(),
+      path: req.originalUrl
     });
   });
+}
+
+// Add initialization check middleware for the main app
+if (initializationPromise) {
+  const originalApp = app;
+  const express = require('express');
+  const wrappedApp = express();
+
+  wrappedApp.use(async (req, res, next) => {
+    try {
+      // Wait for initialization to complete
+      const initResult = await initializationPromise;
+      if (initResult && initResult.error) {
+        return res.status(500).json({
+          error: 'Application initialization failed',
+          message: initResult.error,
+          timestamp: new Date().toISOString(),
+          path: req.originalUrl
+        });
+      }
+      // Forward to the original app
+      originalApp(req, res, next);
+    } catch (error) {
+      res.status(500).json({
+        error: 'Application initialization error',
+        message: error.message,
+        timestamp: new Date().toISOString(),
+        path: req.originalUrl
+      });
+    }
+  });
+
+  app = wrappedApp;
 }
 
 // Export the Express app as a Vercel serverless function

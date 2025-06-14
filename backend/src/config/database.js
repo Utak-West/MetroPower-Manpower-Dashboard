@@ -296,6 +296,21 @@ async function executeMemoryQuery(text, params = []) {
     };
   }
 
+  // Handle user last_login update
+  if (queryLower.includes('update') && queryLower.includes('users') && queryLower.includes('last_login')) {
+    const userId = params[0];
+    const userIndex = memoryDB.users.findIndex(u => u.user_id === parseInt(userId));
+    if (userIndex !== -1) {
+      memoryDB.users[userIndex].last_login = new Date();
+      memoryDB.users[userIndex].updated_at = new Date();
+      logger.debug('Updated user last_login', { userId });
+    }
+    return {
+      rows: [],
+      rowCount: userIndex !== -1 ? 1 : 0
+    };
+  }
+
   // Handle position queries
   if (queryLower.includes('select') && queryLower.includes('positions')) {
     return {
