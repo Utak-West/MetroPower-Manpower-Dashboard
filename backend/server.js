@@ -129,18 +129,16 @@ app.use('/api/exports', exportRoutes);
 app.use('/api/archives', archiveRoutes);
 app.use('/api/notifications', notificationRoutes);
 
-// Serve static files in production
-if (config.app.environment === 'production') {
-  const frontendPath = path.join(__dirname, '..', 'frontend');
-  app.use(express.static(frontendPath));
-  
-  // Serve index.html for all non-API routes (SPA support)
-  app.get('*', (req, res) => {
-    if (!req.path.startsWith('/api/')) {
-      res.sendFile(path.join(frontendPath, 'index.html'));
-    }
-  });
-}
+// Serve static files
+const frontendPath = path.join(__dirname, '..', 'frontend');
+app.use(express.static(frontendPath));
+
+// Serve index.html for all non-API routes (SPA support)
+app.get('*', (req, res) => {
+  if (!req.path.startsWith('/api/') && !req.path.startsWith('/health')) {
+    res.sendFile(path.join(frontendPath, 'index.html'));
+  }
+});
 
 // 404 handler for API routes
 app.use('/api/*', notFoundHandler);
