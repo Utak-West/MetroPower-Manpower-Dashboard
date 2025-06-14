@@ -74,8 +74,9 @@ class User {
       // Generate tokens
       const tokens = User.generateTokens(user);
 
-      // Remove password hash from user object
-      delete user.password_hash;
+      // Create a copy of user object without password hash for return
+      const userForReturn = { ...user };
+      delete userForReturn.password_hash;
 
       logger.info('User authenticated successfully', {
         userId: user.user_id,
@@ -85,7 +86,7 @@ class User {
       });
 
       return {
-        user,
+        user: userForReturn,
         ...tokens
       };
 
