@@ -25,13 +25,13 @@ if (process.env.VERCEL) {
 let app;
 
 try {
-  // Initialize demo mode immediately from environment variable
-  const config = require('../backend/src/config/app');
-  global.isDemoMode = config.demo.enabled;
-  
   // Import the main server application
   const serverModule = require('../backend/server');
   app = serverModule.app;
+  
+  // Initialize demo mode immediately from environment variable
+  const config = require('../backend/src/config/app');
+  global.isDemoMode = config.demo.enabled;
 
   // Initialize the app for serverless
   if (serverModule.initializeApp) {
