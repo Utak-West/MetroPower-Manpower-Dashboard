@@ -1,13 +1,26 @@
 /**
  * Archive Routes
- * Placeholder for archive endpoints
+ *
+ * Handles archive management endpoints for the MetroPower Dashboard API
+ *
+ * Copyright 2025 The HigherSelf Network
  */
 
-const express = require('express');
-const router = express.Router();
+const express = require('express')
+const { asyncHandler } = require('../middleware/errorHandler')
 
-router.get('/', (req, res) => {
-  res.json({ message: 'Archives endpoint - coming soon' });
-});
+const router = express.Router()
 
-module.exports = router;
+/**
+ * @route   GET /api/archives
+ * @desc    Get archived data
+ * @access  Private
+ */
+router.get('/', asyncHandler(async (req, res) => {
+  res.status(501).json({
+    error: 'Not implemented',
+    message: 'Archive functionality not yet implemented'
+  })
+}))
+
+module.exports = router

@@ -1,236 +1,285 @@
 /**
  * Authentication Routes
- * 
- * Handles user authentication, login, logout, and token management
- * for the MetroPower Dashboard application.
+ *
+ * Handles user authentication, registration, and token management
+ * for the MetroPower Dashboard API with comprehensive error handling.
+ *
+ * Copyright 2025 The HigherSelf Network
  */
 
-const express = require('express');
-const { body, validationResult } = require('express-validator');
-const User = require('../models/User');
-const { authRateLimit } = require('../middleware/auth');
-const { asyncHandler, ValidationError } = require('../middleware/errorHandler');
-const logger = require('../utils/logger');
+const express = require('express')
+const { body, validationResult } = require('express-validator')
+const User = require('../models/User')
+const { asyncHandler, ValidationError } = require('../middleware/errorHandler')
+const { authRateLimit } = require('../middleware/auth')
+const logger = require('../utils/logger')
 
-const router = express.Router();
+const router = express.Router()
+
+// Apply rate limiting to all auth routes
+router.use(authRateLimit)
 
 /**
- * POST /api/auth/login
- * Authenticate user and return JWT tokens
+ * @route   POST /api/auth/login
+ * @desc    Authenticate user and return JWT token
+ * @access  Public
  */
-router.post('/login', 
-  authRateLimit,
-  [
-    body('identifier')
-      .notEmpty()
-      .withMessage('Email or username is required')
-      .trim(),
-    body('password')
-      .notEmpty()
-      .withMessage('Password is required')
-  ],
-  asyncHandler(async (req, res) => {
-    // Check validation errors
-    const errors = validationResult(req);
-    if (!errors.isEmpty()) {
-      throw new ValidationError('Validation failed', errors.array());
+router.post('/login', [
+  body('identifier')
+    .notEmpty()
+    .withMessage('Username or email is required')
+    .trim()
+    .escape(),
+  body('password')
+    .isLength({ min: 1 })
+    .withMessage('Password is required')
+], asyncHandler(async (req, res) => {
+  // Check for validation errors
+  const errors = validationResult(req)
+  if (!errors.isEmpty()) {
+    logger.warn('Login validation failed', { errors: errors.array() })
+    throw new ValidationError('Invalid input data', errors.array())
+  }
+
+  const { identifier, password } = req.body
+
+  // Handle demo mode
+  if (global.isDemoMode) {
+    const demoService = require('../services/demoService')
+
+    try {
+      // In demo mode, accept any credentials and return demo user
+      const demoUser = await demoService.findUserById(1) // Antione Harrell
+
+      logger.info('Demo mode: Login successful with demo user', {
+        identifier,
+        userId: demoUser.user_id
+      })
+
+      return res.json({
+        message: 'Demo login successful',
+        user: {
+          user_id: demoUser.user_id,
+          username: demoUser.username,
+          email: demoUser.email,
+          first_name: demoUser.first_name,
+          last_name: demoUser.last_name,
+          role: demoUser.role,
+          last_login: new Date().toISOString()
+        },
+        accessToken: 'demo-token-' + Date.now(), // Simple demo token
+        isDemoMode: true
+      })
+    } catch (error) {
+      logger.error('Demo mode login error:', error)
+      return res.status(500).json({
+        error: 'Demo mode error',
+        message: 'Failed to authenticate in demo mode'
+      })
     }
+  }
 
-    const { identifier, password } = req.body;
-
-    // Attempt authentication
-    const authResult = await User.authenticate(identifier, password);
+  try {
+    // Authenticate user
+    const authResult = await User.authenticate(identifier, password)
 
     if (!authResult) {
-      logger.warn('Login attempt failed', {
-        identifier,
-        ip: req.ip,
-        userAgent: req.get('User-Agent')
-      });
-      
+      logger.warn('Authentication failed', { identifier })
       return res.status(401).json({
         error: 'Authentication failed',
-        message: 'Invalid credentials'
-      });
+        message: 'Invalid credentials or inactive account'
+      })
     }
 
+    const { user, tokens } = authResult
+
     // Set refresh token as httpOnly cookie
-    res.cookie('refreshToken', authResult.refreshToken, {
+    res.cookie('refreshToken', tokens.refreshToken, {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
       sameSite: 'strict',
       maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days
-    });
+    })
 
-    logger.info('User logged in successfully', {
-      userId: authResult.user.user_id,
-      username: authResult.user.username,
-      email: authResult.user.email,
-      role: authResult.user.role,
-      ip: req.ip
-    });
+    logger.info('User login successful', {
+      userId: user.user_id,
+      username: user.username,
+      role: user.role
+    })
 
-    // Return user data and access token
     res.json({
-      success: true,
       message: 'Login successful',
-      user: authResult.user,
-      accessToken: authResult.accessToken,
-      expiresIn: authResult.expiresIn
-    });
-  })
-);
+      user: {
+        user_id: user.user_id,
+        username: user.username,
+        email: user.email,
+        first_name: user.first_name,
+        last_name: user.last_name,
+        role: user.role,
+        last_login: user.last_login
+      },
+      accessToken: tokens.accessToken
+    })
+  } catch (error) {
+    logger.error('Login error:', error)
+    res.status(500).json({
+      error: 'Authentication error',
+      message: 'An error occurred during authentication'
+    })
+  }
+}))
 
 /**
- * POST /api/auth/logout
- * Logout user and clear refresh token
+ * @route   POST /api/auth/logout
+ * @desc    Logout user and clear refresh token
+ * @access  Private
  */
-router.post('/logout', (req, res) => {
-  // Clear refresh token cookie
-  res.clearCookie('refreshToken');
-  
-  logger.info('User logged out', {
-    ip: req.ip,
-    userAgent: req.get('User-Agent')
-  });
+router.post('/logout', asyncHandler(async (req, res) => {
+  try {
+    // Clear refresh token cookie
+    res.clearCookie('refreshToken')
 
-  res.json({
-    success: true,
-    message: 'Logout successful'
-  });
-});
+    // In a full implementation, you might want to blacklist the token
+    // For now, we'll just clear the cookie
+
+    logger.info('User logout successful')
+
+    res.json({
+      message: 'Logout successful'
+    })
+  } catch (error) {
+    logger.error('Logout error:', error)
+    res.status(500).json({
+      error: 'Logout error',
+      message: 'An error occurred during logout'
+    })
+  }
+}))
 
 /**
- * POST /api/auth/refresh
- * Refresh access token using refresh token
+ * @route   GET /api/auth/verify
+ * @desc    Verify JWT token and return user data
+ * @access  Private
  */
-router.post('/refresh', 
-  asyncHandler(async (req, res) => {
-    const refreshToken = req.cookies.refreshToken || req.body.refreshToken;
+router.get('/verify', asyncHandler(async (req, res) => {
+  try {
+    // Handle demo mode
+    if (global.isDemoMode) {
+      const demoService = require('../services/demoService')
+      const demoUser = await demoService.findUserById(1)
+
+      return res.json({
+        message: 'Token verified (demo mode)',
+        user: {
+          user_id: demoUser.user_id,
+          username: demoUser.username,
+          email: demoUser.email,
+          first_name: demoUser.first_name,
+          last_name: demoUser.last_name,
+          role: demoUser.role
+        },
+        isDemoMode: true
+      })
+    }
+
+    // Get token from Authorization header
+    const authHeader = req.headers.authorization
+
+    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+      return res.status(401).json({
+        error: 'Authentication required',
+        message: 'Please provide a valid authorization token'
+      })
+    }
+
+    const token = authHeader.substring(7) // Remove 'Bearer ' prefix
+
+    // Verify token
+    const decoded = await User.verifyAccessToken(token)
+
+    if (!decoded) {
+      return res.status(401).json({
+        error: 'Invalid token',
+        message: 'The provided token is invalid or expired'
+      })
+    }
+
+    // Get fresh user data
+    const user = await User.findById(decoded.user_id)
+
+    if (!user || !user.is_active) {
+      return res.status(401).json({
+        error: 'User not found',
+        message: 'User account not found or inactive'
+      })
+    }
+
+    res.json({
+      message: 'Token verified',
+      user: {
+        user_id: user.user_id,
+        username: user.username,
+        email: user.email,
+        first_name: user.first_name,
+        last_name: user.last_name,
+        role: user.role
+      }
+    })
+  } catch (error) {
+    logger.error('Token verification error:', error)
+    res.status(401).json({
+      error: 'Token verification failed',
+      message: 'Unable to verify authentication token'
+    })
+  }
+}))
+
+/**
+ * @route   POST /api/auth/refresh
+ * @desc    Refresh access token using refresh token
+ * @access  Public
+ */
+router.post('/refresh', asyncHandler(async (req, res) => {
+  try {
+    // Handle demo mode
+    if (global.isDemoMode) {
+      return res.json({
+        message: 'Token refreshed (demo mode)',
+        accessToken: 'demo-token-' + Date.now(),
+        isDemoMode: true
+      })
+    }
+
+    const refreshToken = req.cookies.refreshToken
 
     if (!refreshToken) {
       return res.status(401).json({
         error: 'Refresh token required',
         message: 'No refresh token provided'
-      });
+      })
     }
 
-    try {
-      const authResult = await User.refreshToken(refreshToken);
+    // Verify refresh token and get new access token
+    const result = await User.refreshAccessToken(refreshToken)
 
-      // Set new refresh token as httpOnly cookie
-      res.cookie('refreshToken', authResult.refreshToken, {
-        httpOnly: true,
-        secure: process.env.NODE_ENV === 'production',
-        sameSite: 'strict',
-        maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days
-      });
-
-      logger.info('Token refreshed successfully', {
-        userId: authResult.user.user_id,
-        username: authResult.user.username,
-        ip: req.ip
-      });
-
-      res.json({
-        success: true,
-        message: 'Token refreshed successfully',
-        user: authResult.user,
-        accessToken: authResult.accessToken,
-        expiresIn: authResult.expiresIn
-      });
-
-    } catch (error) {
-      // Clear invalid refresh token
-      res.clearCookie('refreshToken');
-      
-      logger.warn('Token refresh failed', {
-        error: error.message,
-        ip: req.ip
-      });
-
-      res.status(401).json({
-        error: 'Token refresh failed',
-        message: error.message
-      });
-    }
-  })
-);
-
-/**
- * GET /api/auth/me
- * Get current user information
- */
-router.get('/me', 
-  require('../middleware/auth').authenticate,
-  asyncHandler(async (req, res) => {
-    // User is attached to request by auth middleware
-    const user = await User.getById(req.user.user_id);
-
-    if (!user) {
-      return res.status(404).json({
-        error: 'User not found',
-        message: 'User account no longer exists'
-      });
+    if (!result) {
+      return res.status(401).json({
+        error: 'Invalid refresh token',
+        message: 'The refresh token is invalid or expired'
+      })
     }
 
     res.json({
-      success: true,
-      user: user
-    });
-  })
-);
+      message: 'Token refreshed successfully',
+      accessToken: result.accessToken
+    })
+  } catch (error) {
+    logger.error('Token refresh error:', error)
+    res.status(401).json({
+      error: 'Token refresh failed',
+      message: 'Unable to refresh authentication token'
+    })
+  }
+}))
 
-/**
- * POST /api/auth/change-password
- * Change user password
- */
-router.post('/change-password',
-  require('../middleware/auth').authenticate,
-  [
-    body('currentPassword')
-      .notEmpty()
-      .withMessage('Current password is required'),
-    body('newPassword')
-      .isLength({ min: 8 })
-      .withMessage('New password must be at least 8 characters long')
-      .matches(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]/)
-      .withMessage('New password must contain at least one uppercase letter, one lowercase letter, one number, and one special character')
-  ],
-  asyncHandler(async (req, res) => {
-    // Check validation errors
-    const errors = validationResult(req);
-    if (!errors.isEmpty()) {
-      throw new ValidationError('Validation failed', errors.array());
-    }
-
-    const { currentPassword, newPassword } = req.body;
-
-    await User.changePassword(req.user.user_id, currentPassword, newPassword);
-
-    logger.info('Password changed successfully', {
-      userId: req.user.user_id,
-      username: req.user.username,
-      ip: req.ip
-    });
-
-    res.json({
-      success: true,
-      message: 'Password changed successfully'
-    });
-  })
-);
-
-/**
- * GET /api/auth/status
- * Check authentication status
- */
-router.get('/status', (req, res) => {
-  res.json({
-    success: true,
-    authenticated: false,
-    message: 'Authentication status endpoint'
-  });
-});
-
-module.exports = router;
+module.exports = router

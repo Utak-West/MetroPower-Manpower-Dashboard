@@ -188,7 +188,7 @@ After running the seed script, the following users are available:
 | Username | Email | Password | Role |
 |----------|-------|----------|------|
 | admin | admin@metropower.com | MetroPower2025! | Admin |
-| antoine.harrell | antoine.harrell@metropower.com | MetroPower2025! | Project Manager |
+| antione.harrell | antione.harrell@metropower.com | MetroPower2025! | Project Manager |
 | branch.manager | manager@metropower.com | MetroPower2025! | Branch Manager |
 | hr.user | hr@metropower.com | MetroPower2025! | HR |
 

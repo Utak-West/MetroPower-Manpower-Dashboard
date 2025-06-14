@@ -57,7 +57,7 @@ if docker-compose ps | grep -q "Up"; then
     echo ""
     echo "🔐 Default Login Credentials:"
     echo "   Admin: admin@metropower.com / MetroPower2025!"
-    echo "   Project Manager: antoine.harrell@metropower.com / MetroPower2025!"
+    echo "   Project Manager: antione.harrell@metropower.com / MetroPower2025!"
     echo ""
     echo "📊 To view logs:"
     echo "   docker-compose logs -f"

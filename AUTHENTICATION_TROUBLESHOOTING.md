@@ -1,6 +1,6 @@
 # MetroPower Dashboard - Authentication Troubleshooting Guide
 
-## 🚨 Current Issue: HTTP 500 Login Error
+## Current Issue: HTTP 500 Login Error
 
 Based on the screenshot showing "HTTP 500" error during login, here's a comprehensive troubleshooting guide.
 

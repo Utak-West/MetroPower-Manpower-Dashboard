@@ -1,254 +1,270 @@
 /**
  * Error Handling Middleware
- * 
- * Provides centralized error handling for the MetroPower Dashboard API.
- * Includes custom error classes and error response formatting.
+ *
+ * Comprehensive error handling for the MetroPower Dashboard API
+ * with proper logging, sanitization, and user-friendly responses.
+ *
+ * Copyright 2025 The HigherSelf Network
  */
 
-const logger = require('../utils/logger');
+const logger = require('../utils/logger')
 
 /**
  * Custom error classes
  */
-class ValidationError extends Error {
-  constructor(message, details = []) {
-    super(message);
-    this.name = 'ValidationError';
-    this.statusCode = 400;
-    this.details = details;
+class AppError extends Error {
+  constructor (message, statusCode = 500, code = 'INTERNAL_ERROR', isOperational = true) {
+    super(message)
+    this.statusCode = statusCode
+    this.code = code
+    this.isOperational = isOperational
+    this.timestamp = new Date().toISOString()
+
+    Error.captureStackTrace(this, this.constructor)
   }
 }
 
-class NotFoundError extends Error {
-  constructor(message = 'Resource not found') {
-    super(message);
-    this.name = 'NotFoundError';
-    this.statusCode = 404;
+class ValidationError extends AppError {
+  constructor (message, errors = []) {
+    super(message, 400, 'VALIDATION_ERROR')
+    this.errors = errors
   }
 }
 
-class UnauthorizedError extends Error {
-  constructor(message = 'Unauthorized access') {
-    super(message);
-    this.name = 'UnauthorizedError';
-    this.statusCode = 401;
+class AuthenticationError extends AppError {
+  constructor (message = 'Authentication failed') {
+    super(message, 401, 'AUTHENTICATION_ERROR')
   }
 }
 
-class ForbiddenError extends Error {
-  constructor(message = 'Access forbidden') {
-    super(message);
-    this.name = 'ForbiddenError';
-    this.statusCode = 403;
+class AuthorizationError extends AppError {
+  constructor (message = 'Insufficient permissions') {
+    super(message, 403, 'AUTHORIZATION_ERROR')
   }
 }
 
-class ConflictError extends Error {
-  constructor(message = 'Resource conflict') {
-    super(message);
-    this.name = 'ConflictError';
-    this.statusCode = 409;
+class NotFoundError extends AppError {
+  constructor (message = 'Resource not found') {
+    super(message, 404, 'NOT_FOUND_ERROR')
   }
 }
 
-class DatabaseError extends Error {
-  constructor(message = 'Database operation failed') {
-    super(message);
-    this.name = 'DatabaseError';
-    this.statusCode = 500;
+class ConflictError extends AppError {
+  constructor (message = 'Resource conflict') {
+    super(message, 409, 'CONFLICT_ERROR')
+  }
+}
+
+class RateLimitError extends AppError {
+  constructor (message = 'Too many requests') {
+    super(message, 429, 'RATE_LIMIT_ERROR')
   }
 }
 
 /**
  * Async handler wrapper to catch async errors
- * @param {Function} fn - Async function to wrap
- * @returns {Function} Express middleware function
  */
 const asyncHandler = (fn) => {
   return (req, res, next) => {
-    Promise.resolve(fn(req, res, next)).catch(next);
-  };
-};
+    Promise.resolve(fn(req, res, next)).catch(next)
+  }
+}
 
 /**
- * 404 Not Found handler
- * @param {Object} req - Express request object
- * @param {Object} res - Express response object
- * @param {Function} next - Express next function
+ * Handle specific database errors
  */
-const notFoundHandler = (req, res, next) => {
-  const error = new NotFoundError(`Route ${req.originalUrl} not found`);
-  next(error);
-};
+const handleDatabaseError = (err) => {
+  let error
+
+  // PostgreSQL error codes
+  switch (err.code) {
+    case '23505': // Unique violation
+      error = new ConflictError('Resource already exists')
+      break
+    case '23503': // Foreign key violation
+      error = new ValidationError('Referenced resource does not exist')
+      break
+    case '23502': // Not null violation
+      error = new ValidationError('Required field is missing')
+      break
+    case '23514': // Check violation
+      error = new ValidationError('Data validation failed')
+      break
+    case '42P01': // Undefined table
+      error = new AppError('Database table not found', 500, 'DATABASE_ERROR')
+      break
+    case '42703': // Undefined column
+      error = new AppError('Database column not found', 500, 'DATABASE_ERROR')
+      break
+    case '28P01': // Invalid password
+      error = new AppError('Database authentication failed', 500, 'DATABASE_ERROR')
+      break
+    case '3D000': // Invalid database name
+      error = new AppError('Database not found', 500, 'DATABASE_ERROR')
+      break
+    case '08006': // Connection failure
+      error = new AppError('Database connection failed', 500, 'DATABASE_ERROR')
+      break
+    default:
+      error = new AppError('Database operation failed', 500, 'DATABASE_ERROR')
+  }
+
+  error.originalError = err
+  return error
+}
 
 /**
- * Global error handler middleware
- * @param {Error} err - Error object
- * @param {Object} req - Express request object
- * @param {Object} res - Express response object
- * @param {Function} next - Express next function
+ * Handle JWT errors
+ */
+const handleJWTError = (err) => {
+  let error
+
+  switch (err.name) {
+    case 'JsonWebTokenError':
+      error = new AuthenticationError('Invalid authentication token')
+      break
+    case 'TokenExpiredError':
+      error = new AuthenticationError('Authentication token has expired')
+      break
+    case 'NotBeforeError':
+      error = new AuthenticationError('Authentication token not active yet')
+      break
+    default:
+      error = new AuthenticationError('Authentication token error')
+  }
+
+  error.originalError = err
+  return error
+}
+
+/**
+ * Handle validation errors
+ */
+const handleValidationError = (err) => {
+  let errors = []
+
+  if (err.isJoi) {
+    // Joi validation errors
+    errors = err.details.map(detail => ({
+      field: detail.path.join('.'),
+      message: detail.message,
+      value: detail.context?.value
+    }))
+  } else if (err.array && typeof err.array === 'function') {
+    // Express-validator errors
+    errors = err.array().map(error => ({
+      field: error.param || error.path,
+      message: error.msg,
+      value: error.value
+    }))
+  } else if (err.errors) {
+    // Mongoose-style validation errors
+    errors = Object.keys(err.errors).map(key => ({
+      field: key,
+      message: err.errors[key].message,
+      value: err.errors[key].value
+    }))
+  }
+
+  const error = new ValidationError('Validation failed', errors)
+  error.originalError = err
+  return error
+}
+
+/**
+ * Main error handling middleware
  */
 const errorHandler = (err, req, res, next) => {
-  let error = { ...err };
-  error.message = err.message;
+  let error = err
 
-  // Log error details
-  const errorInfo = {
-    name: err.name,
+  // Log the original error
+  logger.error('Error occurred:', {
     message: err.message,
     stack: err.stack,
     url: req.originalUrl,
     method: req.method,
     ip: req.ip,
-    userAgent: req.get('User-Agent')
-  };
+    userAgent: req.get('User-Agent'),
+    userId: req.user?.user_id,
+    timestamp: new Date().toISOString()
+  })
 
-  // Log based on error severity
-  if (err.statusCode >= 500) {
-    logger.error('Server Error:', errorInfo);
-  } else if (err.statusCode >= 400) {
-    logger.warn('Client Error:', errorInfo);
-  } else {
-    logger.info('Request Error:', errorInfo);
+  // Handle different types of errors
+  if (err.name === 'CastError') {
+    error = new ValidationError('Invalid ID format')
+  } else if (err.code && err.code.startsWith('23')) {
+    // PostgreSQL errors
+    error = handleDatabaseError(err)
+  } else if (err.name && err.name.includes('JsonWebToken')) {
+    // JWT errors
+    error = handleJWTError(err)
+  } else if (err.isJoi || (err.array && typeof err.array === 'function')) {
+    // Validation errors
+    error = handleValidationError(err)
+  } else if (!err.isOperational) {
+    // Unknown errors - convert to generic error
+    error = new AppError('Something went wrong', 500, 'INTERNAL_ERROR')
   }
 
-  // Default error response
-  let statusCode = err.statusCode || 500;
-  let message = err.message || 'Internal Server Error';
-  let details = err.details || null;
-
-  // Handle specific error types
-  switch (err.name) {
-    case 'ValidationError':
-      statusCode = 400;
-      message = 'Validation Error';
-      details = err.details || err.errors;
-      break;
-
-    case 'CastError':
-      statusCode = 400;
-      message = 'Invalid ID format';
-      break;
-
-    case 'JsonWebTokenError':
-      statusCode = 401;
-      message = 'Invalid token';
-      break;
-
-    case 'TokenExpiredError':
-      statusCode = 401;
-      message = 'Token expired';
-      break;
-
-    case 'MongoError':
-    case 'DatabaseError':
-      if (err.code === 11000) {
-        statusCode = 409;
-        message = 'Duplicate field value';
-        const field = Object.keys(err.keyValue)[0];
-        details = [`${field} already exists`];
-      } else {
-        statusCode = 500;
-        message = 'Database error';
-      }
-      break;
-
-    case 'MulterError':
-      statusCode = 400;
-      if (err.code === 'LIMIT_FILE_SIZE') {
-        message = 'File too large';
-      } else if (err.code === 'LIMIT_FILE_COUNT') {
-        message = 'Too many files';
-      } else {
-        message = 'File upload error';
-      }
-      break;
-
-    default:
-      if (statusCode === 500) {
-        message = 'Internal Server Error';
-        // Don't expose internal error details in production
-        if (process.env.NODE_ENV === 'production') {
-          details = null;
-        }
-      }
-  }
-
-  // Error response format
+  // Prepare error response
   const errorResponse = {
-    error: err.name || 'Error',
-    message: message,
-    statusCode: statusCode,
-    timestamp: new Date().toISOString(),
-    path: req.originalUrl
-  };
-
-  // Add details if available and not in production
-  if (details && (process.env.NODE_ENV !== 'production' || statusCode < 500)) {
-    errorResponse.details = details;
+    error: error.code || 'INTERNAL_ERROR',
+    message: error.message,
+    timestamp: error.timestamp || new Date().toISOString(),
+    path: req.originalUrl,
+    method: req.method
   }
 
-  // Add stack trace in development
+  // Add request ID if available
+  if (req.id) {
+    errorResponse.requestId = req.id
+  }
+
+  // Add additional error details in development
   if (process.env.NODE_ENV === 'development') {
-    errorResponse.stack = err.stack;
+    errorResponse.stack = error.stack
+    errorResponse.originalError = error.originalError?.message
   }
 
-  res.status(statusCode).json(errorResponse);
-};
-
-/**
- * Handle database connection errors
- * @param {Error} err - Database error
- * @returns {Error} Formatted error
- */
-const handleDatabaseError = (err) => {
-  if (err.code === 'ECONNREFUSED') {
-    return new DatabaseError('Database connection refused');
-  } else if (err.code === 'ENOTFOUND') {
-    return new DatabaseError('Database host not found');
-  } else if (err.code === '28P01') {
-    return new DatabaseError('Database authentication failed');
-  } else if (err.code === '3D000') {
-    return new DatabaseError('Database does not exist');
-  } else if (err.code === '23505') {
-    return new ConflictError('Duplicate entry');
-  } else if (err.code === '23503') {
-    return new ValidationError('Foreign key constraint violation');
-  } else if (err.code === '23502') {
-    return new ValidationError('Required field missing');
+  // Add validation errors if present
+  if (error.errors && error.errors.length > 0) {
+    errorResponse.validationErrors = error.errors
   }
-  
-  return new DatabaseError(err.message);
-};
+
+  // Send error response
+  res.status(error.statusCode || 500).json(errorResponse)
+}
 
 /**
- * Validate required environment variables
- * @param {Array} requiredVars - Array of required environment variable names
- * @throws {Error} If required variables are missing
+ * Handle 404 errors for undefined routes
  */
-const validateEnvironment = (requiredVars) => {
-  const missing = requiredVars.filter(varName => !process.env[varName]);
-  
-  if (missing.length > 0) {
-    throw new Error(`Missing required environment variables: ${missing.join(', ')}`);
-  }
-};
+const notFoundHandler = (req, res, next) => {
+  const error = new NotFoundError(`Route ${req.method} ${req.originalUrl} not found`)
+  next(error)
+}
+
+/**
+ * Handle uncaught exceptions in async routes
+ */
+const handleAsyncErrors = (app) => {
+  app.use((err, req, res, next) => {
+    if (err instanceof Error) {
+      return errorHandler(err, req, res, next)
+    }
+    next()
+  })
+}
 
 module.exports = {
-  // Error classes
+  AppError,
   ValidationError,
+  AuthenticationError,
+  AuthorizationError,
   NotFoundError,
-  UnauthorizedError,
-  ForbiddenError,
   ConflictError,
-  DatabaseError,
-  
-  // Middleware functions
+  RateLimitError,
   asyncHandler,
   errorHandler,
   notFoundHandler,
-  
-  // Utility functions
-  handleDatabaseError,
-  validateEnvironment
-};
+  handleAsyncErrors
+}

@@ -3,293 +3,158 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MetroPower Manpower Dashboard</title>
-    
+    <title>MetroPower Dashboard - Tucker Branch</title>
+    <meta name="description" content="MetroPower workforce management dashboard for Tucker Branch operations">
+    <meta name="author" content="The HigherSelf Network">
+
     <!-- Favicon -->
-    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ccircle cx='50' cy='50' r='45' fill='%23dc2626'/%3E%3Ctext x='50' y='35' font-family='Arial,sans-serif' font-size='16' font-weight='bold' fill='white' text-anchor='middle'%3EMP%3C/text%3E%3Ctext x='50' y='70' font-family='Arial,sans-serif' font-size='10' fill='white' text-anchor='middle'%3EPOWER%3C/text%3E%3C/svg%3E">
-    
-    <!-- Bootstrap CSS -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    
-    <!-- Custom CSS -->
-    <style>
-        :root {
-            --mp-primary: #dc2626;
-            --mp-primary-dark: #b91c1c;
-            --mp-primary-light: #ef4444;
-            --mp-secondary: #6c757d;
-            --mp-success: #16a34a;
-            --mp-danger: #dc2626;
-            --mp-warning: #eab308;
-            --mp-info: #0891b2;
-            --mp-light: #f8f9fa;
-            --mp-dark: #1f2937;
-            --mp-gray: #374151;
-        }
+    <link rel="icon" type="image/svg+xml" href="/assets/images/favicon.svg">
 
-        body {
-            background: linear-gradient(135deg, var(--mp-primary) 0%, var(--mp-primary-dark) 100%);
-            min-height: 100vh;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-        }
+    <!-- Stylesheets -->
+    <link rel="stylesheet" href="/css/dashboard.css">
+    <link rel="stylesheet" href="/css/components.css">
 
-        .login-container {
-            min-height: 100vh;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            padding: 20px;
-        }
-
-        .login-card {
-            background: white;
-            border-radius: 15px;
-            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
-            overflow: hidden;
-            max-width: 400px;
-            width: 100%;
-        }
-
-        .login-header {
-            background: var(--mp-primary);
-            color: white;
-            padding: 30px 20px;
-            text-align: center;
-        }
-
-        .login-header h1 {
-            font-size: 1.8rem;
-            font-weight: 700;
-            margin: 0;
-            letter-spacing: 1px;
-        }
-
-        .login-header .subtitle {
-            font-size: 0.9rem;
-            opacity: 0.9;
-            margin-top: 5px;
-        }
-
-        .login-body {
-            padding: 30px;
-        }
-
-        .form-control {
-            border-radius: 8px;
-            border: 2px solid #e9ecef;
-            padding: 12px 15px;
-            font-size: 1rem;
-            transition: all 0.3s ease;
-        }
-
-        .form-control:focus {
-            border-color: var(--mp-primary);
-            box-shadow: 0 0 0 0.2rem rgba(220, 38, 38, 0.25);
-        }
-
-        .btn-login {
-            background: var(--mp-primary);
-            border: none;
-            border-radius: 8px;
-            padding: 12px;
-            font-weight: 600;
-            font-size: 1rem;
-            transition: all 0.3s ease;
-            width: 100%;
-        }
-
-        .btn-login:hover {
-            background: var(--mp-primary-dark);
-            transform: translateY(-1px);
-        }
-
-        .alert {
-            border-radius: 8px;
-            border: none;
-        }
-
-        .form-label {
-            font-weight: 600;
-            color: var(--mp-dark);
-            margin-bottom: 8px;
-        }
-
-        .login-footer {
-            text-align: center;
-            padding: 20px;
-            background: var(--mp-light);
-            font-size: 0.9rem;
-            color: var(--mp-secondary);
-        }
-
-        .spinner-border-sm {
-            width: 1rem;
-            height: 1rem;
-        }
-
-        .loading {
-            opacity: 0.7;
-            pointer-events: none;
-        }
-
-        @media (max-width: 576px) {
-            .login-card {
-                margin: 10px;
-            }
-            
-            .login-header {
-                padding: 20px 15px;
-            }
-            
-            .login-body {
-                padding: 20px;
-            }
-        }
-    </style>
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 </head>
 <body>
-    <div class="login-container">
-        <div class="login-card">
-            <div class="login-header">
-                <h1>METROPOWER</h1>
-                <div class="subtitle">Manpower Dashboard</div>
-                <div class="subtitle">Tucker Branch</div>
+    <!-- Header -->
+    <header class="header">
+        <div class="header-container">
+            <div class="header-left">
+                <div class="logo">
+                    <h1>MetroPower Dashboard</h1>
+                    <span class="branch-name">Tucker Branch</span>
+                </div>
             </div>
-            
-            <div class="login-body">
+
+            <div class="header-center">
+                <div class="current-date" id="currentDate"></div>
+            </div>
+
+            <div class="header-right">
+                <div class="user-info" id="userInfo" style="display: none;">
+                    <div class="user-details">
+                        <span class="user-name" id="userName">Loading...</span>
+                        <span class="user-role" id="userRole">Loading...</span>
+                    </div>
+                    <button class="logout-btn" id="logoutButton">Logout</button>
+                </div>
+                <button class="login-btn" id="headerLoginButton" style="display: none;">Login</button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <!-- Loading Indicator -->
+        <div class="loading-overlay" id="loadingOverlay" style="display: none;">
+            <div class="loading-spinner"></div>
+            <p>Loading dashboard data...</p>
+        </div>
+
+        <!-- Dashboard Content -->
+        <div class="dashboard-container" id="dashboardContainer">
+            <!-- Statistics Cards -->
+            <section class="stats-section">
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-icon">👥</div>
+                        <div class="stat-content">
+                            <h3 id="totalEmployees">0</h3>
+                            <p>Total Employees</p>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">📋</div>
+                        <div class="stat-content">
+                            <h3 id="activeProjects">0</h3>
+                            <p>Active Projects</p>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">✅</div>
+                        <div class="stat-content">
+                            <h3 id="todayAssignments">0</h3>
+                            <p>Today's Assignments</p>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">⏳</div>
+                        <div class="stat-content">
+                            <h3 id="unassignedCount">0</h3>
+                            <p>Unassigned Today</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Unassigned Employees -->
+            <section class="unassigned-section">
+                <h2>Unassigned Employees - Today</h2>
+                <div class="employee-list" id="unassignedEmployees">
+                    <div class="empty-state">
+                        <p>Loading employees...</p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Weekly Assignment Grid -->
+            <section class="assignment-section">
+                <div class="section-header">
+                    <h2>Weekly Assignments</h2>
+                    <div class="week-navigation">
+                        <button class="week-nav-btn" id="prevWeekBtn">← Previous Week</button>
+                        <span class="current-week" id="currentWeek">Loading...</span>
+                        <button class="week-nav-btn" id="nextWeekBtn">Next Week →</button>
+                    </div>
+                </div>
+
+                <div class="assignment-grid" id="assignmentGrid">
+                    <div class="empty-state">
+                        <p>Loading assignment grid...</p>
+                    </div>
+                </div>
+            </section>
+        </div>
+    </main>
+
+    <!-- Login Modal -->
+    <div class="modal-overlay" id="loginModal" style="display: none;">
+        <div class="modal">
+            <div class="modal-header">
+                <h2>Login to MetroPower Dashboard</h2>
+                <button class="modal-close" id="modalCloseBtn">&times;</button>
+            </div>
+            <div class="modal-body">
                 <form id="loginForm">
-                    <div class="mb-3">
-                        <label for="identifier" class="form-label">Username or Email</label>
-                        <input type="text" class="form-control" id="identifier" name="identifier" 
-                               placeholder="Enter your username or email" required>
+                    <div class="form-group">
+                        <label for="identifier">Username or Email</label>
+                        <input type="text" id="identifier" name="identifier" required>
                     </div>
-                    
-                    <div class="mb-4">
-                        <label for="password" class="form-label">Password</label>
-                        <input type="password" class="form-control" id="password" name="password" 
-                               placeholder="Enter your password" required>
+                    <div class="form-group">
+                        <label for="password">Password</label>
+                        <input type="password" id="password" name="password" required>
                     </div>
-                    
-                    <div id="alertContainer"></div>
-                    
-                    <button type="submit" class="btn btn-primary btn-login" id="loginBtn">
-                        <span class="btn-text">Login</span>
-                        <span class="spinner-border spinner-border-sm d-none" role="status"></span>
-                    </button>
+                    <div class="form-actions">
+                        <button type="submit" class="btn-primary">Login</button>
+                    </div>
                 </form>
-            </div>
-            
-            <div class="login-footer">
-                <div>Demo Credentials:</div>
-                <div><strong>admin@metropower.com</strong> / <strong>MetroPower2025!</strong></div>
-                <div><strong>antione.harrell@metropower.com</strong> / <strong>password123</strong></div>
+                <div class="demo-notice">
+                    <p><strong>Demo Mode:</strong> Use any credentials to access the dashboard</p>
+                </div>
             </div>
         </div>
     </div>
 
-    <!-- Bootstrap JS -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    
-    <!-- Custom JavaScript -->
-    <script>
-        const API_BASE = 'http://localhost:3001/api';
-        
-        document.getElementById('loginForm').addEventListener('submit', async function(e) {
-            e.preventDefault();
-            
-            const loginBtn = document.getElementById('loginBtn');
-            const btnText = loginBtn.querySelector('.btn-text');
-            const spinner = loginBtn.querySelector('.spinner-border');
-            const alertContainer = document.getElementById('alertContainer');
-            
-            // Show loading state
-            loginBtn.classList.add('loading');
-            btnText.textContent = 'Logging in...';
-            spinner.classList.remove('d-none');
-            alertContainer.innerHTML = '';
-            
-            const formData = new FormData(this);
-            const loginData = {
-                identifier: formData.get('identifier'),
-                password: formData.get('password')
-            };
-            
-            try {
-                const response = await fetch(`${API_BASE}/auth/login`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify(loginData)
-                });
-                
-                const result = await response.json();
-                
-                if (response.ok && result.success) {
-                    // Store token
-                    localStorage.setItem('accessToken', result.accessToken);
-                    localStorage.setItem('user', JSON.stringify(result.user));
-                    
-                    // Show success message
-                    alertContainer.innerHTML = `
-                        <div class="alert alert-success">
-                            <strong>Login successful!</strong> Welcome back, ${result.user.first_name}!
-                        </div>
-                    `;
-                    
-                    // Redirect to standalone manager dashboard
-                    setTimeout(() => {
-                        window.location.href = 'standalone-manager.html';
-                    }, 1500);
-                    
-                } else {
-                    // Show error message
-                    alertContainer.innerHTML = `
-                        <div class="alert alert-danger">
-                            <strong>Login failed!</strong> ${result.message || 'Invalid credentials'}
-                        </div>
-                    `;
-                }
-                
-            } catch (error) {
-                console.error('Login error:', error);
-                alertContainer.innerHTML = `
-                    <div class="alert alert-danger">
-                        <strong>Connection error!</strong> Please check if the server is running.
-                    </div>
-                `;
-            } finally {
-                // Reset loading state
-                loginBtn.classList.remove('loading');
-                btnText.textContent = 'Login';
-                spinner.classList.add('d-none');
-            }
-        });
-        
-        // Check server status on page load
-        window.addEventListener('load', async function() {
-            try {
-                const response = await fetch(`${API_BASE}/../health`);
-                const result = await response.json();
-                
-                if (result.status === 'OK') {
-                    console.log('Server is running:', result);
-                }
-            } catch (error) {
-                console.warn('Server health check failed:', error);
-                document.getElementById('alertContainer').innerHTML = `
-                    <div class="alert alert-warning">
-                        <strong>Server offline!</strong> Redirecting to standalone manager...
-                        <br><a href="standalone-manager.html" class="btn btn-sm btn-outline-primary mt-2">Go to Standalone Manager</a>
-                    </div>
-                `;
+    <!-- Notification Container -->
+    <div class="notification-container" id="notificationContainer"></div>
 
-                // Auto-redirect to standalone manager after 3 seconds if server is offline
-                setTimeout(() => {
-                    window.location.href = 'standalone-manager.html';
-                }, 3000);
-            }
-        });
-    </script>
+    <!-- Scripts -->
+    <script src="/js/api.js"></script>
+    <script src="/js/dashboard.js"></script>
+    <script src="/js/components.js"></script>
 </body>
 </html>

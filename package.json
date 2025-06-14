@@ -1,7 +1,7 @@
 {
-  "name": "metropower-manpower-dashboard",
+  "name": "metropower-dashboard",
   "version": "1.0.0",
-  "description": "MetroPower Manpower Dashboard - Full-stack employee tracking and project management system for Tucker Branch",
+  "description": "MetroPower Dashboard - Full-stack employee tracking and project management system for Tucker Branch",
   "private": true,
   "scripts": {
     "dev": "npm run dev --prefix backend",
@@ -12,7 +12,11 @@
     "seed": "npm run seed --prefix backend",
     "test-db": "node scripts/test-db-connection.js",
     "vercel-build": "node scripts/vercel-build.js",
-    "postinstall": "npm install --prefix backend"
+    "postinstall": "npm install --prefix backend",
+    "lint": "npm run lint --prefix backend",
+    "lint:fix": "npm run lint:fix --prefix backend",
+    "format": "npm run format --prefix backend",
+    "validate": "npm run validate --prefix backend"
   },
   "keywords": [
     "workforce-management",
@@ -21,23 +25,21 @@
     "dashboard",
     "construction",
     "metropower",
-    "tucker-branch"
+    "tucker-branch",
+    "higherself-network"
   ],
-  "author": "MetroPower Development Team",
-  "license": "MIT",
+  "author": "The HigherSelf Network",
+  "license": "PROPRIETARY",
   "repository": {
     "type": "git",
-    "url": "https://github.com/Utak-West/MetroPower-Manpower-Dashboard.git"
+    "url": "https://github.com/Utak-West/The-HigherSelf-Network-Server"
   },
-  "bugs": {
-    "url": "https://github.com/Utak-West/MetroPower-Manpower-Dashboard/issues"
-  },
-  "homepage": "https://github.com/Utak-West/MetroPower-Manpower-Dashboard#readme",
   "engines": {
-    "node": ">=16.0.0",
+    "node": ">=18.0.0",
     "npm": ">=8.0.0"
   },
   "workspaces": [
-    "backend"
+    "backend",
+    "frontend"
   ]
 }
