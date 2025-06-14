@@ -43,42 +43,6 @@ router.post('/login', [
 
   const { identifier, password } = req.body
 
-  // Handle demo mode - check both global variable and environment variable
-  if (global.isDemoMode || process.env.DEMO_MODE_ENABLED === 'true') {
-    const demoService = require('../services/demoService')
-
-    try {
-      // In demo mode, accept any credentials and return demo user
-      const demoUser = await demoService.findUserById(1) // Antione Harrell
-
-      logger.info('Demo mode: Login successful with demo user', {
-        identifier,
-        userId: demoUser.user_id
-      })
-
-      return res.json({
-        message: 'Demo login successful',
-        user: {
-          user_id: demoUser.user_id,
-          username: demoUser.username,
-          email: demoUser.email,
-          first_name: demoUser.first_name,
-          last_name: demoUser.last_name,
-          role: demoUser.role,
-          last_login: new Date().toISOString()
-        },
-        accessToken: 'demo-token-' + Date.now(), // Simple demo token
-        isDemoMode: true
-      })
-    } catch (error) {
-      logger.error('Demo mode login error:', error)
-      return res.status(500).json({
-        error: 'Demo mode error',
-        message: 'Failed to authenticate in demo mode'
-      })
-    }
-  }
-
   try {
     // Authenticate user
     const authResult = await User.authenticate(identifier, password)
@@ -163,24 +127,6 @@ router.post('/logout', asyncHandler(async (req, res) => {
  */
 router.get('/verify', asyncHandler(async (req, res) => {
   try {
-    // Handle demo mode - check both global variable and environment variable
-    if (global.isDemoMode || process.env.DEMO_MODE_ENABLED === 'true') {
-      const demoService = require('../services/demoService')
-      const demoUser = await demoService.findUserById(1)
-
-      return res.json({
-        message: 'Token verified (demo mode)',
-        user: {
-          user_id: demoUser.user_id,
-          username: demoUser.username,
-          email: demoUser.email,
-          first_name: demoUser.first_name,
-          last_name: demoUser.last_name,
-          role: demoUser.role
-        },
-        isDemoMode: true
-      })
-    }
 
     // Get token from Authorization header
     const authHeader = req.headers.authorization
@@ -241,14 +187,6 @@ router.get('/verify', asyncHandler(async (req, res) => {
  */
 router.post('/refresh', asyncHandler(async (req, res) => {
   try {
-    // Handle demo mode - check both global variable and environment variable
-    if (global.isDemoMode || process.env.DEMO_MODE_ENABLED === 'true') {
-      return res.json({
-        message: 'Token refreshed (demo mode)',
-        accessToken: 'demo-token-' + Date.now(),
-        isDemoMode: true
-      })
-    }
 
     const refreshToken = req.cookies.refreshToken
 

@@ -170,13 +170,7 @@ async function handleLogin(event) {
 
         showAuthenticatedState(response.user);
         hideLoginModal();
-
-        if (response.isDemoMode) {
-            showNotification('Logged in successfully (Demo Mode)', 'success');
-        } else {
-            showNotification('Logged in successfully', 'success');
-        }
-
+        showNotification('Logged in successfully', 'success');
         await loadDashboardData();
 
     } catch (error) {
@@ -223,10 +217,6 @@ async function loadDashboardData() {
         updateUnassignedEmployees(data.unassignedToday || []);
         updateWeekDisplay();
         updateAssignmentGrid(data.weekAssignments || {});
-
-        if (response.isDemoMode) {
-            showNotification('Dashboard loaded (Demo Mode)', 'info');
-        }
 
     } catch (error) {
         console.error('Error loading dashboard data:', error);

@@ -18,21 +18,6 @@ const config = require('../config/app')
  */
 const authenticate = async (req, res, next) => {
   try {
-    // In demo mode, use demo user
-    if (global.isDemoMode) {
-      const demoService = require('../services/demoService')
-      const demoUser = await demoService.findUserById(1) // Antione Harrell
-
-      req.user = {
-        user_id: demoUser.user_id,
-        username: demoUser.username,
-        email: demoUser.email,
-        role: demoUser.role
-      }
-
-      logger.debug('Demo mode: Using demo user for authentication')
-      return next()
-    }
 
     // Get token from Authorization header
     const authHeader = req.headers.authorization
@@ -145,20 +130,6 @@ const requireHR = authorize(['HR', 'Project Manager', 'Admin', 'Super Admin'])
  */
 const optionalAuth = async (req, res, next) => {
   try {
-    // In demo mode, always attach demo user
-    if (global.isDemoMode) {
-      const demoService = require('../services/demoService')
-      const demoUser = await demoService.findUserById(1)
-
-      req.user = {
-        user_id: demoUser.user_id,
-        username: demoUser.username,
-        email: demoUser.email,
-        role: demoUser.role
-      }
-
-      return next()
-    }
 
     const authHeader = req.headers.authorization
 

@@ -131,31 +131,6 @@ const config = {
     path: process.env.BACKUP_PATH || './backups'
   },
 
-  // Demo mode configuration
-  demo: {
-    enabled: process.env.DEMO_MODE_ENABLED === 'true',
-    users: [
-      {
-        user_id: 1,
-        username: 'antione.harrell',
-        email: 'antione.harrell@metropower.com',
-        first_name: 'Antione',
-        last_name: 'Harrell',
-        role: 'Project Manager',
-        is_active: true
-      },
-      {
-        user_id: 2,
-        username: 'demo.user',
-        email: 'demo@metropower.com',
-        first_name: 'Demo',
-        last_name: 'User',
-        role: 'View Only',
-        is_active: true
-      }
-    ]
-  },
-
   // Feature flags
   features: {
     realTimeUpdates: process.env.FEATURE_REALTIME_UPDATES !== 'false',

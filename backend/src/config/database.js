@@ -79,7 +79,7 @@ const createPool = () => {
 const connectDatabase = async () => {
   try {
     if (!pool) {
-      createPool()
+      pool = createPool()
     }
 
     // Test the connection with retry logic

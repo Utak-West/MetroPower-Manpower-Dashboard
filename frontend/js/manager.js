@@ -266,11 +266,11 @@ async function loadProjectOptions() {
 
 // Form submission handlers
 document.addEventListener('DOMContentLoaded', function() {
-    // For demo purposes, skip authentication check
-    // if (!authToken) {
-    //     window.location.href = '/';
-    //     return;
-    // }
+    // Check authentication
+    if (!authToken) {
+        window.location.href = '/';
+        return;
+    }
 
     // Set today's date as default for assignment form
     document.getElementById('assignDate').valueAsDate = new Date();

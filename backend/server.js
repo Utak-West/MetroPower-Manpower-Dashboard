@@ -126,7 +126,7 @@ app.get('/health', (req, res) => {
     timestamp: new Date().toISOString(),
     version: process.env.npm_package_version || '1.0.0',
     environment: process.env.NODE_ENV || 'development',
-    database: global.isDemoMode ? 'demo' : 'connected'
+    database: 'connected'
   });
 });
 
@@ -219,35 +219,20 @@ app.use(errorHandler);
 // Initialize database connection for serverless
 const initializeApp = async () => {
   try {
-    // Initialize demo mode from configuration
-    global.isDemoMode = config.demo.enabled;
-    
-    if (global.isDemoMode) {
-      logger.info('Demo mode enabled via configuration - skipping database connection');
-      require('./src/services/demoService');
-      return false;
-    }
-    
     // Connect to database
     await connectDatabase();
     logger.info('Database connected successfully');
     return true;
   } catch (error) {
-    logger.error('Failed to initialize app:', error);
-    logger.warn('Server will start without database connection - switching to demo mode');
-    global.isDemoMode = true;
-    return false;
+    logger.error('Failed to initialize database connection:', error.message);
+    throw error;
   }
 };
 
 // Start server (only in non-serverless environments)
 const startServer = async () => {
   try {
-    const dbConnected = await initializeApp();
-
-    if (!dbConnected) {
-      logger.warn('Starting server without database connection');
-    }
+    await initializeApp();
 
     // Start server
     const PORT = process.env.PORT || 3001;
@@ -255,17 +240,11 @@ const startServer = async () => {
 
     server.listen(PORT, HOST, () => {
       logger.info(`MetroPower Dashboard API Server running on http://${HOST}:${PORT}`);
+      logger.info(`Frontend Dashboard available at http://${HOST}:${PORT}`);
       logger.info(`API Documentation available at http://${HOST}:${PORT}/api-docs`);
       logger.info(`Health check available at http://${HOST}:${PORT}/health`);
       logger.info(`Environment: ${process.env.NODE_ENV || 'development'}`);
-
-      if (!dbConnected) {
-        logger.warn('Database not connected - running in DEMO MODE');
-        logger.info('Demo Mode: Using in-memory data for demonstration');
-        logger.info('Demo Login: Use any credentials to access the dashboard');
-      } else {
-        logger.info('Database connected - full functionality available');
-      }
+      logger.info('Database connected - full functionality available');
     });
 
     // Graceful shutdown

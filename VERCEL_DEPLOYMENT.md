@@ -1,6 +1,8 @@
-# MetroPower Manpower Dashboard - Vercel Deployment Guide
+# MetroPower Dashboard - Vercel Deployment Guide
 
-This guide will help you deploy the MetroPower Manpower Dashboard to Vercel for Antione Harrell and the Metro Power team.
+## Overview
+
+This guide will help you deploy the MetroPower Dashboard to Vercel with a PostgreSQL database. Demo mode has been completely removed for a production-ready deployment.
 
 ## Prerequisites
 
