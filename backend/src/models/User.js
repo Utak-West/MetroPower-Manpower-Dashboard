@@ -355,10 +355,15 @@ class User {
       }
 
       // Update last login
-      await query(
-        'UPDATE users SET last_login = NOW() WHERE user_id = $1',
-        [user.user_id]
-      )
+      if (global.isDemoMode) {
+        const demoService = require('../services/demoService')
+        await demoService.updateUserLastLogin(user.user_id)
+      } else {
+        await query(
+          'UPDATE users SET last_login = NOW() WHERE user_id = $1',
+          [user.user_id]
+        )
+      }
 
       // Generate tokens
       const accessToken = this.generateAccessToken(user)
@@ -367,15 +372,17 @@ class User {
       logger.info('User authentication successful', {
         userId: user.user_id,
         username: user.username,
-        role: user.role
+        role: user.role,
+        isDemoMode: global.isDemoMode
       })
 
-      // Remove password hash from user object
-      delete user.password_hash
-      user.last_login = new Date().toISOString()
+      // Create copy to preserve original user object in memory (fixes demo mode bug)
+      const userForReturn = { ...user }
+      delete userForReturn.password_hash
+      userForReturn.last_login = new Date().toISOString()
 
       return {
-        user,
+        user: userForReturn,
         tokens: {
           accessToken,
           refreshToken

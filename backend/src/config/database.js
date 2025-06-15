@@ -78,6 +78,12 @@ const createPool = () => {
  */
 const connectDatabase = async () => {
   try {
+    // Check if demo mode is enabled
+    if (process.env.USE_MEMORY_DB === 'true' || process.env.DEMO_MODE_ENABLED === 'true') {
+      logger.info('Demo mode enabled - skipping database connection')
+      return null
+    }
+
     if (!pool) {
       pool = createPool()
     }
@@ -118,6 +124,11 @@ const connectDatabase = async () => {
  * Execute a database query with error handling
  */
 const query = async (text, params = []) => {
+  // Handle demo mode queries
+  if (global.isDemoMode || process.env.USE_MEMORY_DB === 'true') {
+    return executeMemoryQuery(text, params)
+  }
+
   if (!pool) {
     throw new Error('Database pool not initialized')
   }
@@ -143,6 +154,32 @@ const query = async (text, params = []) => {
     })
     throw error
   }
+}
+
+/**
+ * Execute query in memory for demo mode
+ */
+const executeMemoryQuery = async (text, params = []) => {
+  logger.debug('Executing memory query', {
+    text: text.substring(0, 100) + (text.length > 100 ? '...' : ''),
+    params: params.length
+  })
+
+  // Handle UPDATE queries for last_login
+  if (text.includes('UPDATE users SET last_login')) {
+    return { rowCount: 1, rows: [] }
+  }
+
+  // Handle other common queries
+  if (text.includes('SELECT NOW()')) {
+    return {
+      rowCount: 1,
+      rows: [{ current_time: new Date(), version: 'Demo Mode PostgreSQL Compatible' }]
+    }
+  }
+
+  // Default response for unhandled queries
+  return { rowCount: 0, rows: [] }
 }
 
 /**
