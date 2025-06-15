@@ -155,6 +155,19 @@ class APIClient {
     }
 
     /**
+     * Demo bypass login - automatically login as admin
+     */
+    async demoBypass() {
+        const response = await this.get('/auth/demo-bypass');
+
+        if (response.accessToken) {
+            this.setToken(response.accessToken);
+        }
+
+        return response;
+    }
+
+    /**
      * Logout user
      */
     async logout() {

@@ -77,83 +77,17 @@ const createPool = () => {
  * Connect to the database and test the connection
  */
 const connectDatabase = async () => {
-  try {
-    // Check if demo mode is enabled
-    if (process.env.USE_MEMORY_DB === 'true' || process.env.DEMO_MODE_ENABLED === 'true') {
-      logger.info('Demo mode enabled - skipping database connection')
-      return null
-    }
-
-    if (!pool) {
-      pool = createPool()
-    }
-
-    // Test the connection with retry logic
-    let retries = 3
-    let lastError
-
-    while (retries > 0) {
-      try {
-        const client = await pool.connect()
-        const result = await client.query('SELECT NOW() as current_time, version() as version')
-        client.release()
-
-        logger.info('Database connection established successfully')
-        logger.info(`Database time: ${result.rows[0].current_time}`)
-        logger.debug(`PostgreSQL version: ${result.rows[0].version}`)
-
-        return pool
-      } catch (error) {
-        lastError = error
-        retries--
-        if (retries > 0) {
-          logger.warn(`Database connection failed, retrying... (${retries} attempts left)`)
-          await new Promise(resolve => setTimeout(resolve, 2000))
-        }
-      }
-    }
-
-    throw lastError
-  } catch (error) {
-    logger.error('Failed to connect to database after all retries:', error)
-    throw error
-  }
+  // Always use in-memory database for simplicity
+  logger.info('Using in-memory database - no connection needed')
+  return null
 }
 
 /**
  * Execute a database query with error handling
  */
 const query = async (text, params = []) => {
-  // Handle demo mode queries
-  if (global.isDemoMode || process.env.USE_MEMORY_DB === 'true') {
-    return executeMemoryQuery(text, params)
-  }
-
-  if (!pool) {
-    throw new Error('Database pool not initialized')
-  }
-
-  const start = Date.now()
-  try {
-    const result = await pool.query(text, params)
-    const duration = Date.now() - start
-
-    logger.debug('Executed query', {
-      text: text.substring(0, 100) + (text.length > 100 ? '...' : ''),
-      duration: `${duration}ms`,
-      rows: result.rowCount
-    })
-
-    return result
-  } catch (error) {
-    const duration = Date.now() - start
-    logger.error('Query error', {
-      text: text.substring(0, 100) + (text.length > 100 ? '...' : ''),
-      duration: `${duration}ms`,
-      error: error.message
-    })
-    throw error
-  }
+  // Always use in-memory queries
+  return executeMemoryQuery(text, params)
 }
 
 /**

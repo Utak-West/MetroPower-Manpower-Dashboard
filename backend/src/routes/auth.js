@@ -16,8 +16,7 @@ const logger = require('../utils/logger')
 
 const router = express.Router()
 
-// Apply rate limiting to all auth routes
-router.use(authRateLimit)
+// No rate limiting for simplicity
 
 /**
  * @route   POST /api/auth/login

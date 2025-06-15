@@ -22,17 +22,8 @@ class User {
    */
   static async findById (userId) {
     try {
-      if (global.isDemoMode) {
-        const demoService = require('../services/demoService')
-        return await demoService.findUserById(userId)
-      }
-
-      const result = await query(
-        'SELECT user_id, username, email, first_name, last_name, role, is_active, created_at, updated_at, last_login FROM users WHERE user_id = $1',
-        [userId]
-      )
-
-      return result.rows[0] || null
+      const demoService = require('../services/demoService')
+      return await demoService.findUserById(userId)
     } catch (error) {
       logger.error('Error finding user by ID:', error)
       throw error
@@ -46,17 +37,8 @@ class User {
    */
   static async getByIdentifier (identifier) {
     try {
-      if (global.isDemoMode) {
-        const demoService = require('../services/demoService')
-        return await demoService.findUserByIdentifier(identifier)
-      }
-
-      const result = await query(
-        'SELECT user_id, username, email, password_hash, first_name, last_name, role, is_active, created_at, updated_at, last_login FROM users WHERE username = $1 OR email = $1',
-        [identifier]
-      )
-
-      return result.rows[0] || null
+      const demoService = require('../services/demoService')
+      return await demoService.findUserByIdentifier(identifier)
     } catch (error) {
       logger.error('Error finding user by identifier:', error)
       throw error
@@ -355,15 +337,8 @@ class User {
       }
 
       // Update last login
-      if (global.isDemoMode) {
-        const demoService = require('../services/demoService')
-        await demoService.updateUserLastLogin(user.user_id)
-      } else {
-        await query(
-          'UPDATE users SET last_login = NOW() WHERE user_id = $1',
-          [user.user_id]
-        )
-      }
+      const demoService = require('../services/demoService')
+      await demoService.updateUserLastLogin(user.user_id)
 
       // Generate tokens
       const accessToken = this.generateAccessToken(user)
@@ -372,11 +347,10 @@ class User {
       logger.info('User authentication successful', {
         userId: user.user_id,
         username: user.username,
-        role: user.role,
-        isDemoMode: global.isDemoMode
+        role: user.role
       })
 
-      // Create copy to preserve original user object in memory (fixes demo mode bug)
+      // Create copy to preserve original user object in memory
       const userForReturn = { ...user }
       delete userForReturn.password_hash
       userForReturn.last_login = new Date().toISOString()

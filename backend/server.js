@@ -219,33 +219,17 @@ app.use(errorHandler);
 // Initialize database connection for serverless
 const initializeApp = async () => {
   try {
-    // Check if demo mode is enabled
-    if (process.env.USE_MEMORY_DB === 'true' || process.env.DEMO_MODE_ENABLED === 'true') {
-      logger.info('Demo mode enabled - using in-memory database');
-      global.isDemoMode = true;
+    // Always use in-memory database for simplicity
+    logger.info('Using in-memory database');
 
-      // Initialize demo service data
-      const demoService = require('./src/services/demoService');
-      await demoService.initializeDemoData();
-
-      return true;
-    }
-
-    // Connect to database
-    await connectDatabase();
-    logger.info('Database connected successfully');
-    global.isDemoMode = false;
-    return true;
-  } catch (error) {
-    logger.error('Failed to initialize database connection:', error.message);
-    logger.info('Falling back to demo mode with in-memory database');
-    global.isDemoMode = true;
-
-    // Initialize demo service data for fallback mode
+    // Initialize demo service data
     const demoService = require('./src/services/demoService');
     await demoService.initializeDemoData();
 
     return true;
+  } catch (error) {
+    logger.error('Failed to initialize application:', error.message);
+    throw error;
   }
 };
 
