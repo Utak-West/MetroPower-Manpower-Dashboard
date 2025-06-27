@@ -165,9 +165,43 @@ class Assignment {
    */
   static async create (assignmentData, createdBy) {
     try {
-      const { employee_id, project_id, assignment_date, notes } = assignmentData
+      // Validate input data
+      const validationErrors = this.validateAssignmentData(assignmentData)
+      if (validationErrors.length > 0) {
+        throw new Error('Validation error: ' + validationErrors.join(', '))
+      }
+
+      const { employee_id, project_id, assignment_date, notes, location, task_description } = assignmentData
 
       return await transaction(async (client) => {
+        // Verify employee exists and is active
+        const employeeCheck = await client.query(
+          'SELECT employee_id, status FROM employees WHERE employee_id = $1',
+          [employee_id]
+        )
+
+        if (employeeCheck.rows.length === 0) {
+          throw new Error(`Employee with ID ${employee_id} not found`)
+        }
+
+        if (employeeCheck.rows[0].status === 'Terminated') {
+          throw new Error(`Cannot assign terminated employee (ID: ${employee_id})`)
+        }
+
+        // Verify project exists and is active
+        const projectCheck = await client.query(
+          'SELECT project_id, status FROM projects WHERE project_id = $1',
+          [project_id]
+        )
+
+        if (projectCheck.rows.length === 0) {
+          throw new Error(`Project with ID ${project_id} not found`)
+        }
+
+        if (projectCheck.rows[0].status === 'Completed' || projectCheck.rows[0].status === 'Cancelled') {
+          throw new Error(`Cannot assign to completed or cancelled project (ID: ${project_id})`)
+        }
+
         // Check for conflicts (double-booking)
         const conflictCheck = await client.query(
           'SELECT assignment_id FROM assignments WHERE employee_id = $1 AND assignment_date = $2',
@@ -180,13 +214,13 @@ class Assignment {
 
         // Create the assignment
         const insertQuery = `
-          INSERT INTO assignments (employee_id, project_id, assignment_date, notes, created_by)
-          VALUES ($1, $2, $3, $4, $5)
+          INSERT INTO assignments (employee_id, project_id, assignment_date, notes, location, task_description, created_by)
+          VALUES ($1, $2, $3, $4, $5, $6, $7)
           RETURNING *
         `
 
         const result = await client.query(insertQuery, [
-          employee_id, project_id, assignment_date, notes, createdBy
+          employee_id, project_id, assignment_date, notes || null, location || null, task_description || null, createdBy
         ])
 
         const newAssignment = result.rows[0]
@@ -227,6 +261,12 @@ class Assignment {
    */
   static async update (assignmentId, updateData, updatedBy) {
     try {
+      // Validate input data (only validate provided fields)
+      const validationErrors = this.validateAssignmentData(updateData, true)
+      if (validationErrors.length > 0) {
+        throw new Error('Validation error: ' + validationErrors.join(', '))
+      }
+
       return await transaction(async (client) => {
         // Get current assignment data
         const currentResult = await client.query(
@@ -239,7 +279,39 @@ class Assignment {
         }
 
         const currentAssignment = currentResult.rows[0]
-        const { employee_id, assignment_date } = updateData
+        const { employee_id, project_id, assignment_date } = updateData
+
+        // Verify employee exists and is active if employee is being changed
+        if (employee_id && employee_id !== currentAssignment.employee_id) {
+          const employeeCheck = await client.query(
+            'SELECT employee_id, status FROM employees WHERE employee_id = $1',
+            [employee_id]
+          )
+
+          if (employeeCheck.rows.length === 0) {
+            throw new Error(`Employee with ID ${employee_id} not found`)
+          }
+
+          if (employeeCheck.rows[0].status === 'Terminated') {
+            throw new Error(`Cannot assign terminated employee (ID: ${employee_id})`)
+          }
+        }
+
+        // Verify project exists and is active if project is being changed
+        if (project_id && project_id !== currentAssignment.project_id) {
+          const projectCheck = await client.query(
+            'SELECT project_id, status FROM projects WHERE project_id = $1',
+            [project_id]
+          )
+
+          if (projectCheck.rows.length === 0) {
+            throw new Error(`Project with ID ${project_id} not found`)
+          }
+
+          if (projectCheck.rows[0].status === 'Completed' || projectCheck.rows[0].status === 'Cancelled') {
+            throw new Error(`Cannot assign to completed or cancelled project (ID: ${project_id})`)
+          }
+        }
 
         // Check for conflicts if employee or date is changing
         if ((employee_id && employee_id !== currentAssignment.employee_id) ||
@@ -458,6 +530,76 @@ class Assignment {
       logger.error(`Error getting conflicts for date range ${startDate} to ${endDate}:`, error)
       throw error
     }
+  }
+
+  /**
+   * Validate assignment data
+   * @param {Object} assignmentData - Assignment data to validate
+   * @param {boolean} isPartial - Whether this is partial validation (for updates)
+   * @returns {Array} Array of validation error messages
+   */
+  static validateAssignmentData(assignmentData, isPartial = false) {
+    const errors = []
+
+    // Required fields (only check if not partial validation or if field is provided)
+    if (!isPartial || assignmentData.hasOwnProperty('employee_id')) {
+      if (!assignmentData.employee_id) {
+        errors.push('Employee ID is required')
+      } else if (!Number.isInteger(assignmentData.employee_id) || assignmentData.employee_id <= 0) {
+        errors.push('Employee ID must be a positive integer')
+      }
+    }
+
+    if (!isPartial || assignmentData.hasOwnProperty('project_id')) {
+      if (!assignmentData.project_id) {
+        errors.push('Project ID is required')
+      } else if (!Number.isInteger(assignmentData.project_id) || assignmentData.project_id <= 0) {
+        errors.push('Project ID must be a positive integer')
+      }
+    }
+
+    if (!isPartial || assignmentData.hasOwnProperty('assignment_date')) {
+      if (!assignmentData.assignment_date) {
+        errors.push('Assignment date is required')
+      } else {
+        // Validate date format and range
+        const assignmentDate = new Date(assignmentData.assignment_date)
+
+        if (isNaN(assignmentDate.getTime())) {
+          errors.push('Invalid assignment date format')
+        } else {
+          // Check date range (not more than 1 year in past or future)
+          const today = new Date()
+          const oneYearAgo = new Date()
+          oneYearAgo.setFullYear(oneYearAgo.getFullYear() - 1)
+          const oneYearFromNow = new Date()
+          oneYearFromNow.setFullYear(oneYearFromNow.getFullYear() + 1)
+
+          if (assignmentDate < oneYearAgo) {
+            errors.push('Assignment date cannot be more than 1 year in the past')
+          }
+
+          if (assignmentDate > oneYearFromNow) {
+            errors.push('Assignment date cannot be more than 1 year in the future')
+          }
+        }
+      }
+    }
+
+    // Optional field length validation
+    if (assignmentData.location && assignmentData.location.length > 255) {
+      errors.push('Location must be less than 255 characters')
+    }
+
+    if (assignmentData.task_description && assignmentData.task_description.length > 1000) {
+      errors.push('Task description must be less than 1000 characters')
+    }
+
+    if (assignmentData.notes && assignmentData.notes.length > 1000) {
+      errors.push('Notes must be less than 1000 characters')
+    }
+
+    return errors
   }
 }
 

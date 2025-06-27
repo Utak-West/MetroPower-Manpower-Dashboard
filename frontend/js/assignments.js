@@ -198,6 +198,19 @@ function setupFormHandler() {
 }
 
 /**
+ * Set up edit form submission handler
+ */
+function setupEditFormHandler() {
+    const editForm = document.getElementById('editAssignmentForm');
+    if (editForm) {
+        editForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            await updateAssignment();
+        });
+    }
+}
+
+/**
  * Create new assignment
  */
 async function createAssignment() {
@@ -205,28 +218,43 @@ async function createAssignment() {
         employee_id: parseInt(document.getElementById('employee_id').value),
         project_id: parseInt(document.getElementById('project_id').value),
         assignment_date: document.getElementById('assignment_date').value,
-        task_description: document.getElementById('task_description').value,
-        location: document.getElementById('location').value,
-        notes: document.getElementById('notes').value
+        task_description: document.getElementById('task_description').value.trim(),
+        location: document.getElementById('location').value.trim(),
+        notes: document.getElementById('notes').value.trim()
     };
-    
+
     try {
         clearMessages();
-        
+
+        // Validate form data
+        const validationErrors = validateAssignmentData(formData, false);
+        if (validationErrors.length > 0) {
+            showError('Validation errors: ' + validationErrors.join(', '));
+            return;
+        }
+
         const response = await api.post('/assignments', formData);
-        
+
         showSuccess('Assignment created successfully!');
-        
+
         // Reset form
         document.getElementById('assignmentForm').reset();
         document.getElementById('assignment_date').value = new Date().toISOString().split('T')[0];
-        
+
         // Refresh assignments list
         await loadAssignments();
-        
+
     } catch (error) {
         console.error('Failed to create assignment:', error);
-        showError('Failed to create assignment: ' + error.message);
+
+        // Handle specific error types
+        if (error.message.includes('already assigned')) {
+            showError('Conflict: Employee is already assigned to another project on this date');
+        } else if (error.message.includes('Validation error')) {
+            showError('Validation error: ' + error.message);
+        } else {
+            showError('Failed to create assignment: ' + error.message);
+        }
     }
 }
 
@@ -308,21 +336,90 @@ function closeEditModal() {
 }
 
 /**
+ * Validate assignment form data
+ */
+function validateAssignmentData(formData, isEdit = false) {
+    const errors = [];
+
+    // Required field validation
+    if (!formData.employee_id) {
+        errors.push('Employee is required');
+    }
+
+    if (!formData.project_id) {
+        errors.push('Project is required');
+    }
+
+    if (!formData.assignment_date) {
+        errors.push('Assignment date is required');
+    }
+
+    // Date validation
+    if (formData.assignment_date) {
+        const assignmentDate = new Date(formData.assignment_date);
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+
+        if (isNaN(assignmentDate.getTime())) {
+            errors.push('Invalid assignment date format');
+        } else {
+            // Check if date is too far in the past (more than 1 year)
+            const oneYearAgo = new Date();
+            oneYearAgo.setFullYear(oneYearAgo.getFullYear() - 1);
+
+            if (assignmentDate < oneYearAgo) {
+                errors.push('Assignment date cannot be more than 1 year in the past');
+            }
+
+            // Check if date is too far in the future (more than 1 year)
+            const oneYearFromNow = new Date();
+            oneYearFromNow.setFullYear(oneYearFromNow.getFullYear() + 1);
+
+            if (assignmentDate > oneYearFromNow) {
+                errors.push('Assignment date cannot be more than 1 year in the future');
+            }
+        }
+    }
+
+    // Text field length validation
+    if (formData.location && formData.location.length > 255) {
+        errors.push('Location must be less than 255 characters');
+    }
+
+    if (formData.task_description && formData.task_description.length > 1000) {
+        errors.push('Task description must be less than 1000 characters');
+    }
+
+    if (formData.notes && formData.notes.length > 1000) {
+        errors.push('Notes must be less than 1000 characters');
+    }
+
+    return errors;
+}
+
+/**
  * Update assignment
  */
 async function updateAssignment() {
     const assignmentId = document.getElementById('edit_assignment_id').value;
     const formData = {
-        employee_id: document.getElementById('edit_employee_id').value,
-        project_id: document.getElementById('edit_project_id').value,
+        employee_id: parseInt(document.getElementById('edit_employee_id').value),
+        project_id: parseInt(document.getElementById('edit_project_id').value),
         assignment_date: document.getElementById('edit_assignment_date').value,
-        location: document.getElementById('edit_location').value,
-        task_description: document.getElementById('edit_task_description').value,
-        notes: document.getElementById('edit_notes').value
+        location: document.getElementById('edit_location').value.trim(),
+        task_description: document.getElementById('edit_task_description').value.trim(),
+        notes: document.getElementById('edit_notes').value.trim()
     };
 
     try {
         clearEditMessages();
+
+        // Validate form data
+        const validationErrors = validateAssignmentData(formData, true);
+        if (validationErrors.length > 0) {
+            showEditError('Validation errors: ' + validationErrors.join(', '));
+            return;
+        }
 
         const response = await api.put(`/assignments/${assignmentId}`, formData);
 
@@ -338,7 +435,17 @@ async function updateAssignment() {
 
     } catch (error) {
         console.error('Failed to update assignment:', error);
-        showEditError('Failed to update assignment: ' + error.message);
+
+        // Handle specific error types
+        if (error.message.includes('already assigned')) {
+            showEditError('Conflict: Employee is already assigned to another project on this date');
+        } else if (error.message.includes('not found')) {
+            showEditError('Assignment not found. It may have been deleted by another user.');
+        } else if (error.message.includes('Validation error')) {
+            showEditError('Validation error: ' + error.message);
+        } else {
+            showEditError('Failed to update assignment: ' + error.message);
+        }
     }
 }
 
@@ -400,6 +507,30 @@ async function exportAssignments(format) {
         console.error('Export failed:', error);
         showError('Export failed: ' + error.message);
     }
+}
+
+/**
+ * Show success message in edit modal
+ */
+function showEditSuccess(message) {
+    const messageEl = document.getElementById('editFormMessage');
+    messageEl.innerHTML = `<div class="success">${message}</div>`;
+}
+
+/**
+ * Show error message in edit modal
+ */
+function showEditError(message) {
+    const messageEl = document.getElementById('editFormMessage');
+    messageEl.innerHTML = `<div class="error">${message}</div>`;
+}
+
+/**
+ * Clear edit modal messages
+ */
+function clearEditMessages() {
+    const messageEl = document.getElementById('editFormMessage');
+    messageEl.innerHTML = '';
 }
 
 /**
