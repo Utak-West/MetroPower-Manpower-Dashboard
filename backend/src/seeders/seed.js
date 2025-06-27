@@ -53,8 +53,8 @@ const seedUsers = async () => {
       role: 'Admin'
     },
     {
-      username: 'antoine.harrell',
-      email: 'antoine.harrell@metropower.com',
+      username: 'antione.harrell',
+      email: 'antione.harrell@metropower.com',
       password_hash: defaultPassword,
       first_name: 'Antione',
       last_name: 'Harrell',
@@ -96,7 +96,7 @@ const seedProjects = async () => {
   logger.info('Seeding projects...')
 
   // Get Antione Harrell's user ID
-  const antoineResult = await query('SELECT user_id FROM users WHERE username = $1', ['antoine.harrell'])
+  const antioneResult = await query('SELECT user_id FROM users WHERE username = $1', ['antione.harrell'])
   const antioneId = antioneResult.rows[0]?.user_id
 
   const projects = [
@@ -325,7 +325,7 @@ const seedDatabase = async () => {
     logger.info('Database seeding completed successfully!')
     logger.info('Default login credentials:')
     logger.info('  Admin: admin@metropower.com / MetroPower2025!')
-    logger.info('  Antoine Harrell: antoine.harrell@metropower.com / MetroPower2025!')
+    logger.info('  Antione Harrell: antione.harrell@metropower.com / MetroPower2025!')
   } catch (error) {
     logger.error('Database seeding failed:', error)
     process.exit(1)

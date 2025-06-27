@@ -18,7 +18,7 @@ const DEMO_USERS = [
     expectedRole: 'Admin'
   },
   {
-    identifier: 'antoine.harrell@metropower.com',
+    identifier: 'antione.harrell@metropower.com',
     password: 'password123',
     expectedRole: 'Project Manager'
   }

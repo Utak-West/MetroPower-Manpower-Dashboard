@@ -83,8 +83,8 @@ VALUES (
 -- Password hash generated with bcrypt rounds=12
 INSERT INTO users (username, email, password_hash, first_name, last_name, role) 
 VALUES (
-    'antoine.harrell',
-    'antoine.harrell@metropower.com',
+    'antione.harrell',
+    'antione.harrell@metropower.com',
     '$2a$12$cEgWLRNksZ/iqU7ITn2Duub0UNXXQZIykrDkn.2T4p2MKJkMRzepu',
     'Antione',
     'Harrell',

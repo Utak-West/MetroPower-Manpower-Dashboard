@@ -38,7 +38,7 @@ Once deployed, use these credentials to access the dashboard:
 - **Role**: Administrator
 
 ### Project Manager Account (Antoine Harrell)
-- **Email**: `antoine.harrell@metropower.com`
+- **Email**: `antione.harrell@metropower.com`
 - **Password**: `password123`
 - **Role**: Project Manager
 

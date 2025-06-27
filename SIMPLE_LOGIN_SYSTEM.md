@@ -12,7 +12,7 @@ The MetroPower Dashboard now has a **simple, working login system** with no conf
 - Role: Administrator
 
 **Project Manager Account:**
-- Email: `antoine.harrell@metropower.com`
+- Email: `antione.harrell@metropower.com`
 - Password: `password123`
 - Role: Project Manager
 
