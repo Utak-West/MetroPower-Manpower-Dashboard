@@ -219,6 +219,9 @@ app.use(errorHandler);
 // Initialize database connection for serverless
 const initializeApp = async () => {
   try {
+    // Set demo mode flag
+    global.isDemoMode = true;
+
     // Always use in-memory database for simplicity
     logger.info('Using in-memory database');
 

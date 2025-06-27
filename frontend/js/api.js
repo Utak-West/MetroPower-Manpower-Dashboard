@@ -267,6 +267,27 @@ class APIClient {
     async getHealthStatus() {
         return this.get('/dashboard/health');
     }
+
+    /**
+     * Get all assignments
+     */
+    async getAssignments() {
+        return this.get('/assignments');
+    }
+
+    /**
+     * Get all employees
+     */
+    async getEmployees() {
+        return this.get('/employees');
+    }
+
+    /**
+     * Get all projects
+     */
+    async getProjects() {
+        return this.get('/projects');
+    }
 }
 
 // Create global API client instance

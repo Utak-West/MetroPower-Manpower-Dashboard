@@ -15,6 +15,38 @@ const logger = require('../utils/logger')
 const router = express.Router()
 
 /**
+ * @route   GET /api/assignments
+ * @desc    Get all assignments
+ * @access  Private
+ */
+router.get('/', asyncHandler(async (req, res) => {
+  try {
+    if (global.isDemoMode) {
+      const demoService = require('../services/demoService')
+      const assignments = await demoService.getAssignments()
+
+      return res.json({
+        success: true,
+        data: assignments,
+        isDemoMode: true
+      })
+    }
+
+    // Database mode implementation would go here
+    res.status(501).json({
+      error: 'Not implemented',
+      message: 'Assignment retrieval not yet implemented for database mode'
+    })
+  } catch (error) {
+    logger.error('Error fetching assignments:', error)
+    res.status(500).json({
+      error: 'Assignment fetch error',
+      message: 'Failed to fetch assignments'
+    })
+  }
+}))
+
+/**
  * @route   POST /api/assignments
  * @desc    Create new assignment
  * @access  Private (Manager+)
@@ -23,14 +55,23 @@ router.post('/', requireManager, asyncHandler(async (req, res) => {
   try {
     const assignmentData = req.body
 
-    // Basic validation
-    const requiredFields = ['employee_id', 'project_id', 'assignment_date', 'hours_assigned']
+    // Basic validation for MVP fields
+    const requiredFields = ['employee_id', 'project_id', 'assignment_date']
     const missingFields = requiredFields.filter(field => !assignmentData[field])
 
     if (missingFields.length > 0) {
       return res.status(400).json({
         error: 'Validation error',
         message: `Missing required fields: ${missingFields.join(', ')}`
+      })
+    }
+
+    // Validate date format
+    const dateRegex = /^\d{4}-\d{2}-\d{2}$/
+    if (!dateRegex.test(assignmentData.assignment_date)) {
+      return res.status(400).json({
+        error: 'Validation error',
+        message: 'assignment_date must be in YYYY-MM-DD format'
       })
     }
 

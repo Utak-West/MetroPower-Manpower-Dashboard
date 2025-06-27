@@ -19,6 +19,48 @@ let demoProjects = [];
 let demoAssignments = [];
 
 /**
+ * Load parsed Excel data
+ */
+const loadParsedExcelData = () => {
+  try {
+    const fs = require('fs');
+    const path = require('path');
+    const dataPath = path.join(__dirname, '..', '..', '..', 'parsed-excel-data.json');
+
+    if (fs.existsSync(dataPath)) {
+      const rawData = fs.readFileSync(dataPath, 'utf8');
+      const parsedData = JSON.parse(rawData);
+      console.log('Loaded parsed Excel data:', {
+        employees: parsedData.employees?.length || 0,
+        projects: parsedData.projects?.length || 0,
+        assignments: parsedData.assignments?.length || 0
+      });
+      return parsedData;
+    }
+  } catch (error) {
+    console.warn('Could not load parsed Excel data:', error.message);
+  }
+  return null;
+};
+
+/**
+ * Get skills for a position
+ */
+const getSkillsForPosition = (position) => {
+  const skillsMap = {
+    'Electrician': ['Electrical Systems', 'Wiring', 'Safety', 'Troubleshooting'],
+    'Field Supervisor': ['Leadership', 'Project Management', 'Safety', 'Team Coordination'],
+    'Apprentice': ['Learning', 'Basic Electrical', 'Safety', 'Tool Handling'],
+    'General Laborer': ['Manual Labor', 'Equipment Handling', 'Safety', 'Support'],
+    'Temp': ['General Support', 'Basic Tasks', 'Safety'],
+    'Service Tech': ['Equipment Maintenance', 'Diagnostics', 'Repair', 'Safety'],
+    'Foreman': ['Leadership', 'Project Coordination', 'Safety', 'Quality Control']
+  };
+
+  return skillsMap[position] || ['General Skills', 'Safety'];
+};
+
+/**
  * Initialize demo data
  */
 const initializeDemoData = async () => {
@@ -56,8 +98,29 @@ const initializeDemoData = async () => {
       }
     ];
 
-    // Create demo employees
-    demoEmployees = [
+    // Load Excel data or create demo employees
+    const excelData = loadParsedExcelData();
+
+    if (excelData && excelData.employees && excelData.employees.length > 0) {
+      // Use real Excel data
+      console.log('Using real employee data from Excel file');
+      demoEmployees = excelData.employees.map(emp => ({
+        employee_id: emp.employee_id,
+        first_name: emp.name.split(' ')[0] || emp.name,
+        last_name: emp.name.split(' ').slice(1).join(' ') || '',
+        email: emp.email,
+        phone: emp.phone,
+        position: emp.position,
+        department: emp.department,
+        hire_date: emp.hire_date,
+        is_active: emp.status === 'Active',
+        employee_number: emp.employee_number,
+        skills: getSkillsForPosition(emp.position)
+      }));
+    } else {
+      // Fallback to demo data
+      console.log('Using fallback demo employee data');
+      demoEmployees = [
       {
         employee_id: 1,
         first_name: 'John',
@@ -106,10 +169,16 @@ const initializeDemoData = async () => {
         is_active: true,
         skills: ['Heavy Equipment', 'Maintenance', 'Safety']
       }
-    ];
+      ];
+    }
 
-    // Create demo projects
-    demoProjects = [
+    // Load projects from Excel data or create demo projects
+    if (excelData && excelData.projects && excelData.projects.length > 0) {
+      console.log('Using real project data from Excel file');
+      demoProjects = excelData.projects;
+    } else {
+      console.log('Using fallback demo project data');
+      demoProjects = [
       {
         project_id: 1,
         name: 'Tucker Substation Upgrade',
@@ -140,39 +209,77 @@ const initializeDemoData = async () => {
         priority: 'Medium',
         location: 'Training Center'
       }
-    ];
+      ];
+    }
 
-    // Create demo assignments
-    const today = new Date();
-    const tomorrow = new Date(today);
-    tomorrow.setDate(tomorrow.getDate() + 1);
+    // Load assignments from Excel data or create demo assignments
+    if (excelData && excelData.assignments && excelData.assignments.length > 0) {
+      console.log('Using real assignment data from Excel file');
+      demoAssignments = excelData.assignments;
+    } else {
+      console.log('Using fallback demo assignment data');
+      // Create demo assignments with MVP fields
+      const today = new Date();
+      const tomorrow = new Date(today);
+      tomorrow.setDate(tomorrow.getDate() + 1);
+      const yesterday = new Date(today);
+      yesterday.setDate(yesterday.getDate() - 1);
 
-    demoAssignments = [
+      demoAssignments = [
       {
         assignment_id: 1,
         employee_id: 1,
         project_id: 1,
         date: today.toISOString().split('T')[0],
+        task_description: 'Install new electrical panels and wiring',
+        location: 'Tucker Substation - Building A',
+        notes: 'Bring safety equipment and voltage tester',
         shift: 'Day',
-        status: 'Assigned'
+        status: 'Assigned',
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString()
       },
       {
         assignment_id: 2,
         employee_id: 2,
         project_id: 2,
         date: today.toISOString().split('T')[0],
+        task_description: 'Inspect and maintain power lines',
+        location: 'Route 85 - Mile Marker 15-20',
+        notes: 'Check for vegetation clearance and equipment wear',
         shift: 'Day',
-        status: 'Assigned'
+        status: 'Assigned',
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString()
       },
       {
         assignment_id: 3,
         employee_id: 3,
         project_id: 1,
         date: tomorrow.toISOString().split('T')[0],
+        task_description: 'Safety inspection of completed electrical work',
+        location: 'Tucker Substation - All Buildings',
+        notes: 'Complete safety checklist and documentation',
         shift: 'Day',
-        status: 'Scheduled'
+        status: 'Scheduled',
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString()
+      },
+      {
+        assignment_id: 4,
+        employee_id: 4,
+        project_id: 3,
+        date: yesterday.toISOString().split('T')[0],
+        task_description: 'Equipment maintenance and calibration',
+        location: 'Equipment Yard - Section C',
+        notes: 'Focus on heavy machinery and testing equipment',
+        shift: 'Day',
+        status: 'Completed',
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString()
       }
-    ];
+      ];
+    }
 
     logger.info('Demo data initialized successfully');
     logger.info(`Demo users: ${demoUsers.length}, Employees: ${demoEmployees.length}, Projects: ${demoProjects.length}`);
@@ -281,6 +388,99 @@ const getDashboardMetrics = async () => {
   };
 };
 
+/**
+ * Get all assignments
+ */
+const getAssignments = async () => {
+  return demoAssignments.map(assignment => ({
+    ...assignment,
+    employee: demoEmployees.find(e => e.employee_id === assignment.employee_id),
+    project: demoProjects.find(p => p.project_id === assignment.project_id)
+  }));
+};
+
+/**
+ * Create new assignment
+ */
+const createAssignment = async (assignmentData) => {
+  const { employee_id, project_id, assignment_date, task_description, location, notes } = assignmentData;
+
+  // Generate new assignment ID
+  const newId = Math.max(...demoAssignments.map(a => a.assignment_id), 0) + 1;
+
+  // Create assignment with MVP fields
+  const newAssignment = {
+    assignment_id: newId,
+    employee_id: parseInt(employee_id),
+    project_id: parseInt(project_id),
+    date: assignment_date,
+    task_description: task_description || '',
+    location: location || '',
+    notes: notes || '',
+    shift: 'Day',
+    status: 'Assigned',
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString()
+  };
+
+  demoAssignments.push(newAssignment);
+
+  // Return assignment with employee and project details
+  return {
+    ...newAssignment,
+    employee: demoEmployees.find(e => e.employee_id === newAssignment.employee_id),
+    project: demoProjects.find(p => p.project_id === newAssignment.project_id)
+  };
+};
+
+/**
+ * Update assignment
+ */
+const updateAssignment = async (assignmentId, updateData) => {
+  const assignmentIndex = demoAssignments.findIndex(a => a.assignment_id === assignmentId);
+
+  if (assignmentIndex === -1) {
+    throw new Error('Assignment not found');
+  }
+
+  // Update assignment with new data
+  const updatedAssignment = {
+    ...demoAssignments[assignmentIndex],
+    ...updateData,
+    updated_at: new Date().toISOString()
+  };
+
+  demoAssignments[assignmentIndex] = updatedAssignment;
+
+  // Return assignment with employee and project details
+  return {
+    ...updatedAssignment,
+    employee: demoEmployees.find(e => e.employee_id === updatedAssignment.employee_id),
+    project: demoProjects.find(p => p.project_id === updatedAssignment.project_id)
+  };
+};
+
+/**
+ * Delete assignment
+ */
+const deleteAssignment = async (assignmentId) => {
+  const assignmentIndex = demoAssignments.findIndex(a => a.assignment_id === assignmentId);
+
+  if (assignmentIndex === -1) {
+    throw new Error('Assignment not found');
+  }
+
+  demoAssignments.splice(assignmentIndex, 1);
+  return true;
+};
+
+/**
+ * Get projects (alias for getActiveProjects for consistency)
+ */
+const getProjects = async () => {
+  return demoProjects;
+};
+
 // Demo data will be initialized explicitly by the server
 
 module.exports = {
@@ -291,6 +491,11 @@ module.exports = {
   getEmployees,
   getUnassignedEmployees,
   getActiveProjects,
+  getProjects,
   getWeekAssignments,
-  getDashboardMetrics
+  getDashboardMetrics,
+  getAssignments,
+  createAssignment,
+  updateAssignment,
+  deleteAssignment
 };
