@@ -14,7 +14,7 @@ Use these demo credentials to test the login system:
 - Role: Administrator
 
 **Project Manager Account**:
-- Email: `antione.harrell@metropower.com`
+- Email: `antoine.harrell@metropower.com`
 - Password: `password123`
 - Role: Project Manager
 

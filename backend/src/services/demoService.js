@@ -85,10 +85,10 @@ const initializeDemoData = async () => {
       },
       {
         user_id: 2,
-        username: 'antione.harrell',
-        email: 'antione.harrell@metropower.com',
+        username: 'antoine.harrell',
+        email: 'antoine.harrell@metropower.com',
         password_hash: managerPasswordHash,
-        first_name: 'Antione',
+        first_name: 'Antoine',
         last_name: 'Harrell',
         role: 'Project Manager',
         is_active: true,

@@ -149,8 +149,8 @@ After successful database initialization, use these credentials:
 - Email: `admin@metropower.com`
 - Password: `MetroPower2025!`
 
-**Antione Harrell (Project Manager):**
-- Email: `antione.harrell@metropower.com`
+**Antoine Harrell (Project Manager):**
+- Email: `antoine.harrell@metropower.com`
 - Password: `MetroPower2025!`
 
 ## 🔍 Browser Console Debugging
