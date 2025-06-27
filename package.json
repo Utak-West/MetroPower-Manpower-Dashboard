@@ -42,6 +42,6 @@
     "frontend"
   ],
   "devDependencies": {
-    "vercel": "^44.2.6"
+    "vercel": "^44.2.7"
   }
 }

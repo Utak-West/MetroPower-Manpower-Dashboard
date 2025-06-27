@@ -34,8 +34,9 @@ try {
   if (serverModule.initializeApp) {
     initializationPromise = serverModule.initializeApp().catch(error => {
       console.error('Failed to initialize app:', error);
+      console.error('Error stack:', error.stack);
       // Don't throw here, let requests handle the error
-      return { error: error.message };
+      return { error: error.message, stack: error.stack };
     });
   }
 } catch (error) {
@@ -71,9 +72,12 @@ if (initializationPromise) {
       // Wait for initialization to complete
       const initResult = await initializationPromise;
       if (initResult && initResult.error) {
+        console.error('Initialization failed:', initResult.error);
+        console.error('Stack trace:', initResult.stack);
         return res.status(500).json({
           error: 'Application initialization failed',
           message: initResult.error,
+          details: initResult.stack,
           timestamp: new Date().toISOString(),
           path: req.originalUrl
         });

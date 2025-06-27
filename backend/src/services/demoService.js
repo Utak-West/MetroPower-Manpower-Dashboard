@@ -65,9 +65,23 @@ const getSkillsForPosition = (position) => {
  */
 const initializeDemoData = async () => {
   try {
+    logger.info('Starting demo data initialization...');
+
     // Create demo users with hashed passwords
-    const adminPasswordHash = await bcrypt.hash('MetroPower2025!', 12);
-    const managerPasswordHash = await bcrypt.hash('password123', 12);
+    logger.info('Creating password hashes...');
+    let adminPasswordHash, managerPasswordHash;
+
+    try {
+      adminPasswordHash = await bcrypt.hash('MetroPower2025!', 12);
+      logger.info('Admin password hash created');
+      managerPasswordHash = await bcrypt.hash('password123', 12);
+      logger.info('Manager password hash created');
+    } catch (bcryptError) {
+      logger.warn('Bcrypt failed, using pre-computed hashes:', bcryptError.message);
+      // Fallback to pre-computed hashes (from setup-vercel-db.sql)
+      adminPasswordHash = '$2a$12$LQv3c1yqBWVHxkd0LHAkCOYz6TtxMQJqhN8/LewdBPj/VcSAg/9PS'; // MetroPower2025!
+      managerPasswordHash = '$2a$12$cEgWLRNksZ/iqU7ITn2Duub0UNXXQZIykrDkn.2T4p2MKJkMRzepu'; // password123
+    }
 
     demoUsers = [
       {
@@ -99,7 +113,9 @@ const initializeDemoData = async () => {
     ];
 
     // Load Excel data or create demo employees
+    logger.info('Loading Excel data...');
     const excelData = loadParsedExcelData();
+    logger.info('Excel data loaded:', { hasData: !!excelData });
 
     if (excelData && excelData.employees && excelData.employees.length > 0) {
       // Use real Excel data
@@ -285,6 +301,41 @@ const initializeDemoData = async () => {
     logger.info(`Demo users: ${demoUsers.length}, Employees: ${demoEmployees.length}, Projects: ${demoProjects.length}`);
   } catch (error) {
     logger.error('Failed to initialize demo data:', error);
+    logger.error('Error stack:', error.stack);
+
+    // Try to provide minimal fallback data
+    if (demoUsers.length === 0) {
+      logger.warn('Creating minimal fallback user data');
+      demoUsers = [
+        {
+          user_id: 1,
+          username: 'admin',
+          email: 'admin@metropower.com',
+          password_hash: '$2a$12$LQv3c1yqBWVHxkd0LHAkCOYz6TtxMQJqhN8/LewdBPj/VcSAg/9PS',
+          first_name: 'System',
+          last_name: 'Administrator',
+          role: 'Admin',
+          is_active: true,
+          created_at: new Date(),
+          updated_at: new Date(),
+          last_login: null
+        },
+        {
+          user_id: 2,
+          username: 'antione.harrell',
+          email: 'antione.harrell@metropower.com',
+          password_hash: '$2a$12$cEgWLRNksZ/iqU7ITn2Duub0UNXXQZIykrDkn.2T4p2MKJkMRzepu',
+          first_name: 'Antione',
+          last_name: 'Harrell',
+          role: 'Project Manager',
+          is_active: true,
+          created_at: new Date(),
+          updated_at: new Date(),
+          last_login: null
+        }
+      ];
+    }
+
     throw error;
   }
 };

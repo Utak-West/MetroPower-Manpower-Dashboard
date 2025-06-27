@@ -130,6 +130,22 @@ app.get('/health', (req, res) => {
   });
 });
 
+// Debug endpoint for local development
+app.get('/api/debug', (req, res) => {
+  res.json({
+    status: 'debug',
+    timestamp: new Date().toISOString(),
+    environment: process.env.NODE_ENV || 'development',
+    isDemoMode: global.isDemoMode,
+    database: global.isDemoMode ? 'in-memory' : 'postgresql',
+    jwt: {
+      secret_configured: !!process.env.JWT_SECRET,
+      refresh_secret_configured: !!process.env.JWT_REFRESH_SECRET
+    },
+    message: 'Debug endpoint - local development only'
+  });
+});
+
 // API Documentation
 app.get('/api-docs', (req, res) => {
   res.json({
