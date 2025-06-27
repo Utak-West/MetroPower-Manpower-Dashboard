@@ -258,6 +258,148 @@
                 flex-direction: column;
             }
         }
+
+        /* Modal Styles */
+        .modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+
+        .modal.hidden {
+            display: none;
+        }
+
+        .modal-content {
+            background: white;
+            border-radius: 8px;
+            width: 90%;
+            max-width: 600px;
+            max-height: 90vh;
+            overflow-y: auto;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+        }
+
+        .modal-header {
+            padding: 1.5rem;
+            border-bottom: 1px solid #e9ecef;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .modal-header h2 {
+            margin: 0;
+            color: #333;
+        }
+
+        .modal-close {
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+            color: #6c757d;
+            padding: 0;
+            width: 30px;
+            height: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal-close:hover {
+            color: #dc3545;
+        }
+
+        .modal-body {
+            padding: 1.5rem;
+        }
+
+        .modal-actions {
+            display: flex;
+            gap: 1rem;
+            justify-content: flex-end;
+            margin-top: 1.5rem;
+        }
+
+        .btn-secondary {
+            background-color: #6c757d;
+            color: white;
+        }
+
+        .btn-secondary:hover {
+            background-color: #5a6268;
+        }
+
+        /* Action Button Styles */
+        .action-buttons {
+            display: flex;
+            gap: 0.5rem;
+            justify-content: center;
+        }
+
+        .btn-sm {
+            padding: 0.25rem 0.5rem;
+            font-size: 0.75rem;
+            border-radius: 4px;
+        }
+
+        .btn-primary {
+            background-color: #007bff;
+            color: white;
+            border: 1px solid #007bff;
+        }
+
+        .btn-primary:hover {
+            background-color: #0056b3;
+            border-color: #0056b3;
+        }
+
+        .btn-danger {
+            background-color: #dc3545;
+            color: white;
+            border: 1px solid #dc3545;
+        }
+
+        .btn-danger:hover {
+            background-color: #c82333;
+            border-color: #bd2130;
+        }
+
+        /* Navigation Tab Styles */
+        .nav-tabs {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .nav-tab {
+            padding: 0.75rem 1.5rem;
+            background: white;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-decoration: none;
+            color: #333;
+        }
+
+        .nav-tab:hover {
+            background: #f8f9fa;
+        }
+
+        .nav-tab.active {
+            background: #dc3545;
+            color: white;
+            border-color: #dc3545;
+        }
     </style>
 </head>
 <body>
@@ -266,12 +408,18 @@
         <h1>MetroPower Assignment Manager</h1>
         <div class="user-info">
             <span id="userDisplay">Loading...</span>
-            <button class="logout-btn" onclick="logout()">Logout</button>
+            <button type="button" class="logout-btn" onclick="logout()">Logout</button>
         </div>
     </header>
 
-    <!-- Main Content -->
+    <!-- Navigation -->
     <div class="container">
+        <div class="nav-tabs">
+            <a href="/assignments.html" class="nav-tab active">Assignments</a>
+            <a href="/staff.html" class="nav-tab">Staff Directory</a>
+        </div>
+
+    <!-- Main Content -->
         <!-- Add Assignment Form -->
         <div class="card">
             <div class="card-header">
@@ -321,7 +469,7 @@
         <div class="card">
             <div class="card-header">
                 <h2>Current Assignments</h2>
-                <button class="btn btn-secondary" onclick="refreshAssignments()">Refresh</button>
+                <button type="button" class="btn btn-secondary" onclick="refreshAssignments()">Refresh</button>
             </div>
             <div class="card-body">
                 <div id="assignmentsLoading" class="loading">Loading assignments...</div>
@@ -348,10 +496,62 @@
                 <div class="export-section">
                     <h3>Export Data</h3>
                     <div class="export-buttons">
-                        <button class="btn btn-secondary" onclick="exportAssignments('csv')">Export as CSV</button>
-                        <button class="btn btn-secondary" onclick="exportAssignments('excel')">Export as Excel</button>
+                        <button type="button" class="btn btn-secondary" onclick="exportAssignments('csv')">Export as CSV</button>
+                        <button type="button" class="btn btn-secondary" onclick="exportAssignments('excel')">Export as Excel</button>
                     </div>
                 </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Edit Assignment Modal -->
+    <div id="editAssignmentModal" class="modal hidden">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Edit Assignment</h2>
+                <button type="button" class="modal-close" onclick="closeEditModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div id="editFormMessage"></div>
+                <form id="editAssignmentForm">
+                    <input type="hidden" id="edit_assignment_id">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="edit_employee_id">Employee</label>
+                            <select id="edit_employee_id" class="form-control" required>
+                                <option value="">Select Employee</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="edit_project_id">Project</label>
+                            <select id="edit_project_id" class="form-control" required>
+                                <option value="">Select Project</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="edit_assignment_date">Assignment Date</label>
+                            <input type="date" id="edit_assignment_date" class="form-control" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="edit_location">Location</label>
+                            <input type="text" id="edit_location" class="form-control" placeholder="Work location">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="edit_task_description">Task Description</label>
+                        <textarea id="edit_task_description" class="form-control" rows="3" placeholder="Describe the work to be performed"></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label for="edit_notes">Notes</label>
+                        <textarea id="edit_notes" class="form-control" rows="2" placeholder="Additional notes or instructions"></textarea>
+                    </div>
+                    <div class="modal-actions">
+                        <button type="button" class="btn btn-secondary" onclick="closeEditModal()">Cancel</button>
+                        <button type="submit" class="btn">Update Assignment</button>
+                    </div>
+                </form>
             </div>
         </div>
     </div>

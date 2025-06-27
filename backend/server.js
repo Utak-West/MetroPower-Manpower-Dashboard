@@ -32,6 +32,7 @@ const { authenticate: authMiddleware, auditLog } = require('./src/middleware/aut
 const authRoutes = require('./src/routes/auth');
 const employeeRoutes = require('./src/routes/employees');
 const projectRoutes = require('./src/routes/projects');
+const positionRoutes = require('./src/routes/positions');
 const assignmentRoutes = require('./src/routes/assignments');
 const dashboardRoutes = require('./src/routes/dashboard');
 const exportRoutes = require('./src/routes/exports');
@@ -156,6 +157,7 @@ app.get('/api-docs', (req, res) => {
       auth: '/api/auth',
       employees: '/api/employees',
       projects: '/api/projects',
+      positions: '/api/positions',
       assignments: '/api/assignments',
       dashboard: '/api/dashboard',
       exports: '/api/exports',
@@ -184,6 +186,7 @@ app.use('/assets', express.static(path.join(frontendPath, 'assets')));
 app.use('/api/auth', authRoutes);
 app.use('/api/employees', authMiddleware, employeeRoutes);
 app.use('/api/projects', authMiddleware, projectRoutes);
+app.use('/api/positions', authMiddleware, positionRoutes);
 app.use('/api/assignments', authMiddleware, assignmentRoutes);
 app.use('/api/dashboard', authMiddleware, dashboardRoutes);
 app.use('/api/exports', authMiddleware, exportRoutes);

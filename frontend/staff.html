@@ -1,0 +1,495 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MetroPower Staff Directory - Categorization & Reports</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background-color: #f5f5f5;
+            color: #333;
+            line-height: 1.6;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #dc3545, #c82333);
+            color: white;
+            padding: 1rem 2rem;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .header h1 {
+            font-size: 1.5rem;
+            font-weight: 600;
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .logout-btn {
+            background: rgba(255,255,255,0.2);
+            color: white;
+            border: 1px solid rgba(255,255,255,0.3);
+            padding: 0.5rem 1rem;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+
+        .logout-btn:hover {
+            background: rgba(255,255,255,0.3);
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 2rem;
+            display: grid;
+            gap: 2rem;
+        }
+
+        .nav-tabs {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .nav-tab {
+            padding: 0.75rem 1.5rem;
+            background: white;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-decoration: none;
+            color: #333;
+        }
+
+        .nav-tab:hover {
+            background: #f8f9fa;
+        }
+
+        .nav-tab.active {
+            background: #dc3545;
+            color: white;
+            border-color: #dc3545;
+        }
+
+        .card {
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+
+        .card-header {
+            padding: 1.5rem;
+            border-bottom: 1px solid #e9ecef;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .card-header h2 {
+            margin: 0;
+            color: #333;
+        }
+
+        .card-body {
+            padding: 1.5rem;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .stat-card {
+            background: white;
+            padding: 1.5rem;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            text-align: center;
+        }
+
+        .stat-number {
+            font-size: 2rem;
+            font-weight: bold;
+            color: #dc3545;
+            margin-bottom: 0.5rem;
+        }
+
+        .stat-label {
+            color: #6c757d;
+            font-size: 0.9rem;
+        }
+
+        .filters {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+            flex-wrap: wrap;
+        }
+
+        .filter-group {
+            display: flex;
+            flex-direction: column;
+            gap: 0.25rem;
+        }
+
+        .filter-group label {
+            font-size: 0.875rem;
+            font-weight: 500;
+            color: #555;
+        }
+
+        .form-control {
+            padding: 0.5rem;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 0.875rem;
+        }
+
+        .btn {
+            padding: 0.5rem 1rem;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.875rem;
+            transition: background-color 0.2s;
+        }
+
+        .btn-primary {
+            background-color: #dc3545;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background-color: #c82333;
+        }
+
+        .btn-secondary {
+            background-color: #6c757d;
+            color: white;
+        }
+
+        .btn-secondary:hover {
+            background-color: #5a6268;
+        }
+
+        .position-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .position-card {
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+
+        .position-header {
+            padding: 1rem;
+            color: white;
+            font-weight: bold;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .position-code {
+            background: rgba(255,255,255,0.2);
+            padding: 0.25rem 0.5rem;
+            border-radius: 4px;
+            font-size: 0.75rem;
+        }
+
+        .employee-list {
+            padding: 1rem;
+        }
+
+        .employee-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.5rem 0;
+            border-bottom: 1px solid #f0f0f0;
+        }
+
+        .employee-item:last-child {
+            border-bottom: none;
+        }
+
+        .employee-name {
+            font-weight: 500;
+        }
+
+        .employee-id {
+            color: #6c757d;
+            font-size: 0.875rem;
+        }
+
+        .status-badge {
+            padding: 0.25rem 0.5rem;
+            border-radius: 12px;
+            font-size: 0.75rem;
+            font-weight: 500;
+        }
+
+        .status-active { background: #d4edda; color: #155724; }
+        .status-pto { background: #fff3cd; color: #856404; }
+        .status-leave { background: #f8d7da; color: #721c24; }
+        .status-military { background: #d1ecf1; color: #0c5460; }
+        .status-terminated { background: #f5c6cb; color: #721c24; }
+
+        .export-section {
+            margin-top: 2rem;
+            padding-top: 1.5rem;
+            border-top: 1px solid #e9ecef;
+        }
+
+        .export-buttons {
+            display: flex;
+            gap: 1rem;
+            flex-wrap: wrap;
+        }
+
+        .table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 1rem;
+        }
+
+        .table th,
+        .table td {
+            padding: 0.75rem;
+            text-align: left;
+            border-bottom: 1px solid #e9ecef;
+        }
+
+        .table th {
+            background-color: #f8f9fa;
+            font-weight: 600;
+            color: #495057;
+        }
+
+        .table tbody tr:hover {
+            background-color: #f8f9fa;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 2rem;
+            color: #6c757d;
+        }
+
+        .error {
+            background-color: #f8d7da;
+            color: #721c24;
+            padding: 1rem;
+            border-radius: 4px;
+            margin-bottom: 1rem;
+        }
+
+        .success {
+            background-color: #d4edda;
+            color: #155724;
+            padding: 1rem;
+            border-radius: 4px;
+            margin-bottom: 1rem;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 1rem;
+            }
+            
+            .filters {
+                flex-direction: column;
+            }
+            
+            .position-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .stats-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            
+            .export-buttons {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <header class="header">
+        <h1>MetroPower Staff Directory</h1>
+        <div class="user-info">
+            <span id="userDisplay">Loading...</span>
+            <button type="button" class="logout-btn" onclick="logout()">Logout</button>
+        </div>
+    </header>
+
+    <!-- Navigation -->
+    <div class="container">
+        <div class="nav-tabs">
+            <a href="/assignments.html" class="nav-tab">Assignments</a>
+            <a href="/staff.html" class="nav-tab active">Staff Directory</a>
+        </div>
+
+        <!-- Statistics Overview -->
+        <div class="stats-grid" id="statsGrid">
+            <div class="stat-card">
+                <div class="stat-number" id="totalEmployees">-</div>
+                <div class="stat-label">Total Employees</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number" id="activeEmployees">-</div>
+                <div class="stat-label">Active</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number" id="ptoEmployees">-</div>
+                <div class="stat-label">PTO/Leave</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number" id="totalPositions">-</div>
+                <div class="stat-label">Position Types</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number" id="recentHires">-</div>
+                <div class="stat-label">Recent Hires (1 Year)</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number" id="avgTenure">-</div>
+                <div class="stat-label">Average Tenure</div>
+            </div>
+        </div>
+
+        <!-- Position Breakdown -->
+        <div class="card">
+            <div class="card-header">
+                <h2>Position Distribution</h2>
+            </div>
+            <div class="card-body">
+                <div id="positionBreakdown"></div>
+            </div>
+        </div>
+
+        <!-- Filters -->
+        <div class="card">
+            <div class="card-header">
+                <h2>Filter & Search</h2>
+                <button type="button" class="btn btn-secondary" onclick="clearFilters()">Clear Filters</button>
+            </div>
+            <div class="card-body">
+                <div class="filters">
+                    <div class="filter-group">
+                        <label for="positionFilter">Position</label>
+                        <select id="positionFilter" class="form-control" onchange="applyFilters()">
+                            <option value="">All Positions</option>
+                        </select>
+                    </div>
+                    <div class="filter-group">
+                        <label for="statusFilter">Status</label>
+                        <select id="statusFilter" class="form-control" onchange="applyFilters()">
+                            <option value="">All Statuses</option>
+                            <option value="Active">Active</option>
+                            <option value="PTO">PTO</option>
+                            <option value="Leave">Leave</option>
+                            <option value="Military">Military</option>
+                            <option value="Terminated">Terminated</option>
+                        </select>
+                    </div>
+                    <div class="filter-group">
+                        <label for="hireDateFilter">Hire Date Range</label>
+                        <select id="hireDateFilter" class="form-control" onchange="applyFilters()">
+                            <option value="">All Dates</option>
+                            <option value="last-year">Last Year</option>
+                            <option value="last-2-years">Last 2 Years</option>
+                            <option value="last-5-years">Last 5 Years</option>
+                            <option value="before-2020">Before 2020</option>
+                        </select>
+                    </div>
+                    <div class="filter-group">
+                        <label for="searchInput">Search</label>
+                        <input type="text" id="searchInput" class="form-control" placeholder="Name, ID, or Employee Number" oninput="applyFilters()">
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Staff by Position -->
+        <div class="card">
+            <div class="card-header">
+                <h2>Staff by Position/Trade</h2>
+                <div class="export-buttons">
+                    <button type="button" class="btn btn-primary" onclick="exportStaff('excel')">Export Excel</button>
+                    <button type="button" class="btn btn-primary" onclick="exportStaff('pdf')">Export PDF</button>
+                    <button type="button" class="btn btn-secondary" onclick="exportStaff('csv')">Export CSV</button>
+                </div>
+            </div>
+            <div class="card-body">
+                <div id="staffLoading" class="loading">Loading staff data...</div>
+                <div id="staffError" class="error hidden"></div>
+                <div id="positionGrid" class="position-grid hidden"></div>
+            </div>
+        </div>
+
+        <!-- Detailed Staff Table -->
+        <div class="card">
+            <div class="card-header">
+                <h2>Detailed Staff List</h2>
+                <button type="button" class="btn btn-secondary" onclick="refreshStaff()">Refresh</button>
+            </div>
+            <div class="card-body">
+                <div id="tableLoading" class="loading hidden">Loading...</div>
+                <div id="tableError" class="error hidden"></div>
+                <div id="staffTableContainer" class="hidden">
+                    <table class="table" id="staffTable">
+                        <thead>
+                            <tr>
+                                <th>Employee ID</th>
+                                <th>Name</th>
+                                <th>Position</th>
+                                <th>Status</th>
+                                <th>Employee #</th>
+                                <th>Hire Date</th>
+                                <th>Contact</th>
+                            </tr>
+                        </thead>
+                        <tbody id="staffTableBody">
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="js/api.js"></script>
+    <script src="js/staff.js"></script>
+</body>
+</html>

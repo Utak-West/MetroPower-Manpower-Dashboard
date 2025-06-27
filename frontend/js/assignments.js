@@ -9,6 +9,7 @@
 let employees = [];
 let projects = [];
 let assignments = [];
+let currentUser = null;
 
 // Initialize the page when DOM is loaded
 document.addEventListener('DOMContentLoaded', async function() {
@@ -31,7 +32,8 @@ async function initializePage() {
     try {
         // Verify authentication and get user info
         const userResponse = await api.verifyToken();
-        displayUserInfo(userResponse.user);
+        currentUser = userResponse.user;
+        displayUserInfo(currentUser);
 
         // Load initial data
         await Promise.all([
@@ -40,8 +42,9 @@ async function initializePage() {
             loadAssignments()
         ]);
 
-        // Set up form handler
+        // Set up form handlers
         setupFormHandler();
+        setupEditFormHandler();
 
         // Set default date to today
         document.getElementById('assignment_date').value = new Date().toISOString().split('T')[0];
@@ -157,18 +160,24 @@ function displayAssignments(assignmentList) {
             assignment.project.name : 
             'Unknown Project';
             
-        const statusClass = `status-${assignment.status.toLowerCase()}`;
-        
+        // Use assignment_date for database mode, date for demo mode
+        const assignmentDate = assignment.assignment_date || assignment.date;
+        const statusClass = assignment.status ? `status-${assignment.status.toLowerCase()}` : '';
+
+        // Check if user can edit/delete (managers and admins)
+        const canEdit = currentUser && ['Project Manager', 'Admin', 'Super Admin'].includes(currentUser.role);
+
         row.innerHTML = `
-            <td>${formatDate(assignment.date)}</td>
+            <td>${formatDate(assignmentDate)}</td>
             <td>${employeeName}</td>
             <td>${projectName}</td>
-            <td>${assignment.task_description || 'No description'}</td>
+            <td>${assignment.task_description || assignment.notes || 'No description'}</td>
             <td>${assignment.location || 'No location'}</td>
-            <td><span class="status-badge ${statusClass}">${assignment.status}</span></td>
+            <td>${assignment.status ? `<span class="status-badge ${statusClass}">${assignment.status}</span>` : 'Active'}</td>
             <td>
                 <div class="action-buttons">
-                    <button class="btn btn-sm btn-danger" onclick="deleteAssignment(${assignment.assignment_id})">Delete</button>
+                    ${canEdit ? `<button type="button" class="btn btn-sm btn-primary" onclick="editAssignment(${assignment.assignment_id})">Edit</button>` : ''}
+                    ${canEdit ? `<button type="button" class="btn btn-sm btn-danger" onclick="deleteAssignment(${assignment.assignment_id})">Delete</button>` : ''}
                 </div>
             </td>
         `;
@@ -222,13 +231,125 @@ async function createAssignment() {
 }
 
 /**
+ * Edit assignment
+ */
+async function editAssignment(assignmentId) {
+    try {
+        // Get assignment data
+        const response = await api.get(`/assignments/${assignmentId}`);
+        const assignment = response.data;
+
+        // Populate edit form
+        document.getElementById('edit_assignment_id').value = assignment.assignment_id;
+        document.getElementById('edit_employee_id').value = assignment.employee_id;
+        document.getElementById('edit_project_id').value = assignment.project_id;
+        document.getElementById('edit_assignment_date').value = assignment.assignment_date || assignment.date;
+        document.getElementById('edit_location').value = assignment.location || '';
+        document.getElementById('edit_task_description').value = assignment.task_description || assignment.notes || '';
+        document.getElementById('edit_notes').value = assignment.notes || '';
+
+        // Populate dropdowns if not already populated
+        if (employees.length === 0) await loadEmployees();
+        if (projects.length === 0) await loadProjects();
+
+        // Populate edit form dropdowns
+        populateEditDropdowns();
+
+        // Show modal
+        document.getElementById('editAssignmentModal').classList.remove('hidden');
+
+    } catch (error) {
+        console.error('Failed to load assignment for editing:', error);
+        showError('Failed to load assignment data: ' + error.message);
+    }
+}
+
+/**
+ * Populate edit form dropdowns
+ */
+function populateEditDropdowns() {
+    // Populate employees dropdown
+    const employeeSelect = document.getElementById('edit_employee_id');
+    const currentEmployeeValue = employeeSelect.value;
+    employeeSelect.innerHTML = '<option value="">Select Employee</option>';
+
+    employees.forEach(employee => {
+        const option = document.createElement('option');
+        option.value = employee.employee_id;
+        option.textContent = `${employee.first_name || employee.name} ${employee.last_name || ''} - ${employee.position}`;
+        if (employee.employee_id == currentEmployeeValue) {
+            option.selected = true;
+        }
+        employeeSelect.appendChild(option);
+    });
+
+    // Populate projects dropdown
+    const projectSelect = document.getElementById('edit_project_id');
+    const currentProjectValue = projectSelect.value;
+    projectSelect.innerHTML = '<option value="">Select Project</option>';
+
+    projects.forEach(project => {
+        const option = document.createElement('option');
+        option.value = project.project_id;
+        option.textContent = project.name;
+        if (project.project_id == currentProjectValue) {
+            option.selected = true;
+        }
+        projectSelect.appendChild(option);
+    });
+}
+
+/**
+ * Close edit modal
+ */
+function closeEditModal() {
+    document.getElementById('editAssignmentModal').classList.add('hidden');
+    clearEditMessages();
+}
+
+/**
+ * Update assignment
+ */
+async function updateAssignment() {
+    const assignmentId = document.getElementById('edit_assignment_id').value;
+    const formData = {
+        employee_id: document.getElementById('edit_employee_id').value,
+        project_id: document.getElementById('edit_project_id').value,
+        assignment_date: document.getElementById('edit_assignment_date').value,
+        location: document.getElementById('edit_location').value,
+        task_description: document.getElementById('edit_task_description').value,
+        notes: document.getElementById('edit_notes').value
+    };
+
+    try {
+        clearEditMessages();
+
+        const response = await api.put(`/assignments/${assignmentId}`, formData);
+
+        showEditSuccess('Assignment updated successfully!');
+
+        // Refresh assignments list
+        await loadAssignments();
+
+        // Close modal after a short delay
+        setTimeout(() => {
+            closeEditModal();
+        }, 1500);
+
+    } catch (error) {
+        console.error('Failed to update assignment:', error);
+        showEditError('Failed to update assignment: ' + error.message);
+    }
+}
+
+/**
  * Delete assignment
  */
 async function deleteAssignment(assignmentId) {
     if (!confirm('Are you sure you want to delete this assignment?')) {
         return;
     }
-    
+
     try {
         await api.delete(`/assignments/${assignmentId}`);
         showSuccess('Assignment deleted successfully!');

@@ -7,7 +7,10 @@
  */
 
 const express = require('express')
+const ExcelJS = require('exceljs')
+const PDFDocument = require('pdfkit')
 const { asyncHandler } = require('../middleware/errorHandler')
+const { authenticate } = require('../middleware/auth')
 const logger = require('../utils/logger')
 
 const router = express.Router()
@@ -47,11 +50,115 @@ function convertToCSV(data, headers) {
 }
 
 /**
+ * Generate Excel workbook from data
+ */
+async function generateExcel(data, headers, sheetName = 'Data') {
+  const workbook = new ExcelJS.Workbook()
+  const worksheet = workbook.addWorksheet(sheetName)
+
+  // Add headers
+  worksheet.addRow(headers)
+
+  // Style headers
+  const headerRow = worksheet.getRow(1)
+  headerRow.font = { bold: true }
+  headerRow.fill = {
+    type: 'pattern',
+    pattern: 'solid',
+    fgColor: { argb: 'FFE6E6FA' }
+  }
+
+  // Add data rows
+  data.forEach(row => {
+    const values = headers.map(header => {
+      const key = header.toLowerCase().replace(/\s+/g, '_')
+      return row[key] || ''
+    })
+    worksheet.addRow(values)
+  })
+
+  // Auto-fit columns
+  worksheet.columns.forEach(column => {
+    let maxLength = 0
+    column.eachCell({ includeEmpty: true }, cell => {
+      const columnLength = cell.value ? cell.value.toString().length : 10
+      if (columnLength > maxLength) {
+        maxLength = columnLength
+      }
+    })
+    column.width = Math.min(maxLength + 2, 50)
+  })
+
+  return workbook
+}
+
+/**
+ * Generate PDF document from data
+ */
+function generatePDF(data, headers, title = 'Report') {
+  const doc = new PDFDocument({ margin: 50 })
+
+  // Title
+  doc.fontSize(16).font('Helvetica-Bold').text(title, { align: 'center' })
+  doc.moveDown()
+
+  // Date
+  doc.fontSize(10).font('Helvetica').text(`Generated: ${new Date().toLocaleString()}`, { align: 'right' })
+  doc.moveDown()
+
+  // Table setup
+  const tableTop = doc.y
+  const itemHeight = 20
+  const pageWidth = doc.page.width - doc.page.margins.left - doc.page.margins.right
+  const columnWidth = pageWidth / headers.length
+
+  // Headers
+  doc.fontSize(10).font('Helvetica-Bold')
+  headers.forEach((header, i) => {
+    doc.text(header, doc.page.margins.left + (i * columnWidth), tableTop, {
+      width: columnWidth,
+      align: 'left'
+    })
+  })
+
+  // Header line
+  doc.moveTo(doc.page.margins.left, tableTop + 15)
+     .lineTo(doc.page.width - doc.page.margins.right, tableTop + 15)
+     .stroke()
+
+  // Data rows
+  doc.font('Helvetica')
+  let currentY = tableTop + itemHeight
+
+  data.forEach((row, rowIndex) => {
+    // Check if we need a new page
+    if (currentY > doc.page.height - doc.page.margins.bottom - itemHeight) {
+      doc.addPage()
+      currentY = doc.page.margins.top
+    }
+
+    headers.forEach((header, colIndex) => {
+      const key = header.toLowerCase().replace(/\s+/g, '_')
+      const value = row[key] || ''
+
+      doc.text(value.toString(), doc.page.margins.left + (colIndex * columnWidth), currentY, {
+        width: columnWidth,
+        align: 'left'
+      })
+    })
+
+    currentY += itemHeight
+  })
+
+  return doc
+}
+
+/**
  * @route   GET /api/exports/assignments
  * @desc    Export assignments data
  * @access  Private
  */
-router.get('/assignments', asyncHandler(async (req, res) => {
+router.get('/assignments', authenticate, asyncHandler(async (req, res) => {
   try {
     const { format = 'csv' } = req.query
 
@@ -84,12 +191,30 @@ router.get('/assignments', asyncHandler(async (req, res) => {
         'Status'
       ]
 
+      const timestamp = new Date().toISOString().split('T')[0]
+
       if (format === 'csv') {
         const csvContent = convertToCSV(exportData, headers)
 
         res.setHeader('Content-Type', 'text/csv')
-        res.setHeader('Content-Disposition', `attachment; filename="assignments_${new Date().toISOString().split('T')[0]}.csv"`)
+        res.setHeader('Content-Disposition', `attachment; filename="assignments_${timestamp}.csv"`)
         res.send(csvContent)
+      } else if (format === 'excel') {
+        const workbook = await generateExcel(exportData, headers, 'Assignments')
+
+        res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
+        res.setHeader('Content-Disposition', `attachment; filename="assignments_${timestamp}.xlsx"`)
+
+        await workbook.xlsx.write(res)
+        res.end()
+      } else if (format === 'pdf') {
+        const doc = generatePDF(exportData, headers, 'MetroPower Assignments Report')
+
+        res.setHeader('Content-Type', 'application/pdf')
+        res.setHeader('Content-Disposition', `attachment; filename="assignments_${timestamp}.pdf"`)
+
+        doc.pipe(res)
+        doc.end()
       } else {
         res.json({
           success: true,
@@ -128,7 +253,7 @@ router.get('/assignments', asyncHandler(async (req, res) => {
  * @desc    Export employees data
  * @access  Private
  */
-router.get('/employees', asyncHandler(async (req, res) => {
+router.get('/employees', authenticate, asyncHandler(async (req, res) => {
   try {
     const { format = 'csv' } = req.query
 
@@ -162,12 +287,30 @@ router.get('/employees', asyncHandler(async (req, res) => {
         'Skills'
       ]
 
+      const timestamp = new Date().toISOString().split('T')[0]
+
       if (format === 'csv') {
         const csvContent = convertToCSV(exportData, headers)
 
         res.setHeader('Content-Type', 'text/csv')
-        res.setHeader('Content-Disposition', `attachment; filename="employees_${new Date().toISOString().split('T')[0]}.csv"`)
+        res.setHeader('Content-Disposition', `attachment; filename="employees_${timestamp}.csv"`)
         res.send(csvContent)
+      } else if (format === 'excel') {
+        const workbook = await generateExcel(exportData, headers, 'Employees')
+
+        res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
+        res.setHeader('Content-Disposition', `attachment; filename="employees_${timestamp}.xlsx"`)
+
+        await workbook.xlsx.write(res)
+        res.end()
+      } else if (format === 'pdf') {
+        const doc = generatePDF(exportData, headers, 'MetroPower Staff Directory')
+
+        res.setHeader('Content-Type', 'application/pdf')
+        res.setHeader('Content-Disposition', `attachment; filename="employees_${timestamp}.pdf"`)
+
+        doc.pipe(res)
+        doc.end()
       } else {
         res.json({
           success: true,
