@@ -40,5 +40,8 @@
   "workspaces": [
     "backend",
     "frontend"
-  ]
+  ],
+  "devDependencies": {
+    "vercel": "^44.2.6"
+  }
 }
