@@ -85,6 +85,10 @@
       "dest": "/frontend/assignments.html"
     },
     {
+      "src": "/staff.html",
+      "dest": "/frontend/staff.html"
+    },
+    {
       "src": "/manager.html",
       "dest": "/frontend/manager.html"
     },
