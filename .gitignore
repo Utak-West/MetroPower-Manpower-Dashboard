@@ -201,3 +201,4 @@ backend/logs/
 
 # Environment variables (keep .env as it contains demo config)
 # .env
+.vercel

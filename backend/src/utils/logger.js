@@ -13,10 +13,19 @@ const path = require('path')
 const fs = require('fs')
 const config = require('../config/app')
 
-// Ensure logs directory exists
+// Ensure logs directory exists (only if file logging is enabled and not in serverless)
+let fileLoggingEnabled = !config.logging.disableFileLogging
 const logsDir = path.dirname(config.logging.file)
-if (!fs.existsSync(logsDir)) {
-  fs.mkdirSync(logsDir, { recursive: true })
+
+if (fileLoggingEnabled) {
+  try {
+    if (!fs.existsSync(logsDir)) {
+      fs.mkdirSync(logsDir, { recursive: true })
+    }
+  } catch (error) {
+    console.warn('Cannot create logs directory in serverless environment, disabling file logging:', error.message)
+    fileLoggingEnabled = false
+  }
 }
 
 // Custom format for structured logging
@@ -68,7 +77,7 @@ transports.push(
 )
 
 // File transport (disabled in serverless environments)
-if (!config.logging.disableFileLogging && process.env.NODE_ENV !== 'test') {
+if (fileLoggingEnabled && process.env.NODE_ENV !== 'test') {
   // Main log file with rotation
   transports.push(
     new DailyRotateFile({

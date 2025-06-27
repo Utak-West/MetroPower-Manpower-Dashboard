@@ -12,7 +12,7 @@ const http = require('http');
 
 // Test configuration
 const LOCAL_BASE_URL = 'http://localhost:3001';
-const VERCEL_BASE_URL = process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : null;
+const VERCEL_BASE_URL = 'https://metro-power-manpower-dashboard.vercel.app';
 
 // Test credentials
 const TEST_CREDENTIALS = [
