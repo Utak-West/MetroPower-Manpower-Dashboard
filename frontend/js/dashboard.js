@@ -37,6 +37,7 @@ document.addEventListener('DOMContentLoaded', async function() {
 function initializeHeader() {
     const loginButton = document.getElementById('headerLoginButton');
     const logoutButton = document.getElementById('logoutButton');
+    const manageAssignmentsBtn = document.getElementById('manageAssignmentsBtn');
 
     if (loginButton) {
         loginButton.addEventListener('click', showLoginModal);
@@ -44,6 +45,10 @@ function initializeHeader() {
 
     if (logoutButton) {
         logoutButton.addEventListener('click', handleLogout);
+    }
+
+    if (manageAssignmentsBtn) {
+        manageAssignmentsBtn.addEventListener('click', navigateToAssignments);
     }
 }
 
@@ -98,6 +103,7 @@ function showAuthenticatedState(user) {
     const loginButton = document.getElementById('headerLoginButton');
     const userName = document.getElementById('userName');
     const userRole = document.getElementById('userRole');
+    const manageAssignmentsBtn = document.getElementById('manageAssignmentsBtn');
 
     if (userInfo) userInfo.style.display = 'flex';
     if (loginButton) loginButton.style.display = 'none';
@@ -109,6 +115,11 @@ function showAuthenticatedState(user) {
     if (userRole && user) {
         userRole.textContent = user.role;
     }
+
+    // Show manage assignments button for authorized users
+    if (manageAssignmentsBtn && user && ['Project Manager', 'Admin', 'Super Admin'].includes(user.role)) {
+        manageAssignmentsBtn.style.display = 'inline-block';
+    }
 }
 
 /**
@@ -117,9 +128,11 @@ function showAuthenticatedState(user) {
 function showUnauthenticatedState() {
     const userInfo = document.getElementById('userInfo');
     const loginButton = document.getElementById('headerLoginButton');
+    const manageAssignmentsBtn = document.getElementById('manageAssignmentsBtn');
 
     if (userInfo) userInfo.style.display = 'none';
     if (loginButton) loginButton.style.display = 'block';
+    if (manageAssignmentsBtn) manageAssignmentsBtn.style.display = 'none';
 
     showLoginModal();
 }
@@ -194,6 +207,13 @@ async function handleLogout() {
         console.error('Logout error:', error);
         showNotification('Logout failed', 'error');
     }
+}
+
+/**
+ * Navigate to assignment management page
+ */
+function navigateToAssignments() {
+    window.location.href = '/assignments.html';
 }
 
 /**
