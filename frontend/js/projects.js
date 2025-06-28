@@ -7,6 +7,7 @@
  */
 
 console.log('Projects.js file loaded');
+alert('Projects.js script is loading!');
 
 // Global variables
 let projects = [];
@@ -15,21 +16,71 @@ let currentView = 'card';
 let currentUser = null;
 let currentSort = { field: 'name', order: 'asc' };
 
+// Add immediate console log to verify script is loading
+console.log('Projects.js script loaded!');
+
+// Simple initialization without complex dependencies
+function simpleInit() {
+    console.log('Simple initialization starting...');
+
+    // Try to load projects with minimal dependencies
+    const token = localStorage.getItem('accessToken');
+    if (token) {
+        console.log('Token found, attempting to load projects...');
+        fetch('/api/projects?withStats=true', {
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
+            }
+        })
+        .then(response => {
+            console.log('API response status:', response.status);
+            if (response.ok) {
+                return response.json();
+            }
+            throw new Error(`HTTP ${response.status}`);
+        })
+        .then(data => {
+            console.log('Projects data received:', data);
+            // Simple display of projects
+            const cardView = document.getElementById('cardView');
+            if (cardView && data.projects) {
+                cardView.innerHTML = `<div style="padding: 20px;">Found ${data.projects.length} projects!</div>`;
+                cardView.style.display = 'block';
+            }
+        })
+        .catch(error => {
+            console.error('Error loading projects:', error);
+            const cardView = document.getElementById('cardView');
+            if (cardView) {
+                cardView.innerHTML = `<div style="padding: 20px; color: red;">Error: ${error.message}</div>`;
+                cardView.style.display = 'block';
+            }
+        });
+    } else {
+        console.log('No token found');
+        const cardView = document.getElementById('cardView');
+        if (cardView) {
+            cardView.innerHTML = '<div style="padding: 20px;">No authentication token found</div>';
+            cardView.style.display = 'block';
+        }
+    }
+}
+
 // Initialize projects page when DOM is loaded
-document.addEventListener('DOMContentLoaded', async function() {
-    console.log('Projects page initializing...');
-
-    // Initialize components
-    initializeAuth();
-    initializeViewToggle();
-    initializeDate();
-    initializeSearchAndFilters();
-
-    // Check authentication and load data
-    await checkAuthentication();
-
-    console.log('Projects page initialized');
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('DOM loaded, starting simple init...');
+    setTimeout(simpleInit, 100); // Small delay to ensure everything is ready
 });
+
+/**
+ * Initialize authentication
+ */
+function initializeAuth() {
+    console.log('Auth initialization - projects page');
+    // Auth is handled by auth.js which is loaded before this script
+    // This function exists for consistency with other pages
+}
 
 /**
  * Initialize date display
@@ -145,19 +196,11 @@ async function checkAuthentication() {
         let user = await getCurrentUser();
         console.log('User retrieved:', user);
 
-        // If no user found, try demo bypass for development
+        // If no user found, redirect to login
         if (!user) {
-            console.log('No user found, attempting demo bypass...');
-            try {
-                const response = await api.demoBypass();
-                user = response.user;
-                console.log('Demo bypass successful, user:', user);
-            } catch (demoError) {
-                console.error('Demo bypass failed:', demoError);
-                console.log('Redirecting to login page...');
-                window.location.href = '/index.html';
-                return;
-            }
+            console.log('No user found, redirecting to login page...');
+            window.location.href = '/index.html';
+            return;
         }
 
         // Store current user
@@ -216,8 +259,10 @@ async function loadProjects() {
 
         // Apply initial filters
         filteredProjects = [...projects];
+        console.log('Filtered projects before applyFilters:', filteredProjects.length);
         applyFilters();
 
+        console.log('About to hide loading state and show projects...');
         hideLoadingState();
 
     } catch (error) {
@@ -428,9 +473,14 @@ function applySorting() {
  * Render filtered projects
  */
 function renderFilteredProjects() {
+    console.log('renderFilteredProjects called with:', filteredProjects.length, 'projects');
+    console.log('Current view:', currentView);
+
     if (filteredProjects.length === 0) {
+        console.log('No projects to show, showing empty state');
         showEmptyState();
     } else {
+        console.log('Rendering projects in', currentView, 'view');
         if (currentView === 'card') {
             renderProjectCards(filteredProjects);
         } else {
@@ -508,14 +558,28 @@ function updateSortIndicators() {
  * Render project cards
  */
 function renderProjectCards(projectsData) {
+    console.log('renderProjectCards called with', projectsData.length, 'projects');
     const cardView = document.getElementById('cardView');
-    if (!cardView) return;
+    if (!cardView) {
+        console.error('cardView element not found!');
+        return;
+    }
+    console.log('cardView element found, rendering cards...');
 
     const cardsHTML = projectsData.map(project => {
         const statusClass = `status-${project.status.toLowerCase().replace(' ', '-')}`;
         const budget = project.budget ? `$${Number(project.budget).toLocaleString()}` : 'N/A';
-        const lastAssignment = project.lastAssignmentDate 
-            ? formatDate(new Date(project.lastAssignmentDate))
+
+        // Fallback formatDate function if not available
+        const formatDateFallback = (date) => {
+            if (typeof formatDate === 'function') {
+                return formatDate(date);
+            }
+            return date.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
+        };
+
+        const lastAssignment = project.lastAssignmentDate
+            ? formatDateFallback(new Date(project.lastAssignmentDate))
             : 'Never';
 
         return `
@@ -561,8 +625,10 @@ function renderProjectCards(projectsData) {
         `;
     }).join('');
 
+    console.log('Generated cards HTML length:', cardsHTML.length);
     cardView.innerHTML = cardsHTML;
     cardView.style.display = 'grid';
+    console.log('Cards rendered successfully, cardView display set to grid');
 }
 
 /**
