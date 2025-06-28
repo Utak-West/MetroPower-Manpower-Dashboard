@@ -7,70 +7,50 @@
  */
 
 console.log('Projects.js file loaded');
-alert('Projects.js script is loading!');
 
 // Global variables
 let projects = [];
 let filteredProjects = [];
 let currentView = 'card';
-let currentUser = null;
+let projectsCurrentUser = null;
 let currentSort = { field: 'name', order: 'asc' };
 
 // Add immediate console log to verify script is loading
 console.log('Projects.js script loaded!');
 
-// Simple initialization without complex dependencies
-function simpleInit() {
-    console.log('Simple initialization starting...');
-
-    // Try to load projects with minimal dependencies
-    const token = localStorage.getItem('accessToken');
-    if (token) {
-        console.log('Token found, attempting to load projects...');
-        fetch('/api/projects?withStats=true', {
-            headers: {
-                'Authorization': `Bearer ${token}`,
-                'Content-Type': 'application/json'
-            }
-        })
-        .then(response => {
-            console.log('API response status:', response.status);
-            if (response.ok) {
-                return response.json();
-            }
-            throw new Error(`HTTP ${response.status}`);
-        })
-        .then(data => {
-            console.log('Projects data received:', data);
-            // Simple display of projects
-            const cardView = document.getElementById('cardView');
-            if (cardView && data.projects) {
-                cardView.innerHTML = `<div style="padding: 20px;">Found ${data.projects.length} projects!</div>`;
-                cardView.style.display = 'block';
-            }
-        })
-        .catch(error => {
-            console.error('Error loading projects:', error);
-            const cardView = document.getElementById('cardView');
-            if (cardView) {
-                cardView.innerHTML = `<div style="padding: 20px; color: red;">Error: ${error.message}</div>`;
-                cardView.style.display = 'block';
-            }
-        });
-    } else {
-        console.log('No token found');
-        const cardView = document.getElementById('cardView');
-        if (cardView) {
-            cardView.innerHTML = '<div style="padding: 20px;">No authentication token found</div>';
-            cardView.style.display = 'block';
-        }
-    }
-}
-
 // Initialize projects page when DOM is loaded
-document.addEventListener('DOMContentLoaded', function() {
-    console.log('DOM loaded, starting simple init...');
-    setTimeout(simpleInit, 100); // Small delay to ensure everything is ready
+document.addEventListener('DOMContentLoaded', async function() {
+    console.log('Projects page DOM loaded, starting initialization...');
+
+    try {
+        // Check if required functions exist
+        console.log('Checking dependencies...');
+        console.log('getCurrentUser exists:', typeof getCurrentUser);
+        console.log('api exists:', typeof api);
+        console.log('formatDate exists:', typeof formatDate);
+
+        // Initialize components
+        console.log('Initializing auth...');
+        initializeAuth();
+
+        console.log('Initializing view toggle...');
+        initializeViewToggle();
+
+        console.log('Initializing date...');
+        initializeDate();
+
+        console.log('Initializing search and filters...');
+        initializeSearchAndFilters();
+
+        // Check authentication and load data
+        console.log('Starting authentication check...');
+        await checkAuthentication();
+
+        console.log('Projects page initialized successfully');
+    } catch (error) {
+        console.error('Error during projects page initialization:', error);
+        console.error('Error stack:', error.stack);
+    }
 });
 
 /**
@@ -204,8 +184,8 @@ async function checkAuthentication() {
         }
 
         // Store current user
-        currentUser = user;
-        console.log('Current user set:', currentUser);
+        projectsCurrentUser = user;
+        console.log('Current user set:', projectsCurrentUser);
 
         // Update user display
         const userName = document.getElementById('userName');
@@ -700,7 +680,7 @@ function closeProjectModal() {
  * Edit project
  */
 function editProject(projectId) {
-    if (!currentUser || !['Project Manager', 'Admin', 'Super Admin'].includes(currentUser.role)) {
+    if (!projectsCurrentUser || !['Project Manager', 'Admin', 'Super Admin'].includes(projectsCurrentUser.role)) {
         showNotification('Only managers can edit projects', 'error');
         return;
     }
@@ -766,7 +746,7 @@ function populateEditForm(project) {
  * Delete project
  */
 async function deleteProject(projectId) {
-    if (!currentUser || !['Project Manager', 'Admin', 'Super Admin'].includes(currentUser.role)) {
+    if (!projectsCurrentUser || !['Project Manager', 'Admin', 'Super Admin'].includes(projectsCurrentUser.role)) {
         showNotification('Only managers can delete projects', 'error');
         return;
     }
@@ -948,7 +928,7 @@ async function loadProjectDetails(projectId) {
                         <button type="button" class="btn btn-primary" onclick="exportProjectReport('${projectId}')">
                             <i class="icon-download"></i> Export Report
                         </button>
-                        ${currentUser && ['Project Manager', 'Admin', 'Super Admin'].includes(currentUser.role) ? `
+                        ${projectsCurrentUser && ['Project Manager', 'Admin', 'Super Admin'].includes(projectsCurrentUser.role) ? `
                             <button type="button" class="btn btn-warning" onclick="editProject('${projectId}')">
                                 <i class="icon-edit"></i> Edit Project
                             </button>
@@ -1009,7 +989,7 @@ function viewProjectCalendar(projectId) {
  */
 function showCreateProjectModal() {
     // Check if user is a manager
-    if (!currentUser || !['Project Manager', 'Admin', 'Super Admin'].includes(currentUser.role)) {
+    if (!projectsCurrentUser || !['Project Manager', 'Admin', 'Super Admin'].includes(projectsCurrentUser.role)) {
         showNotification('Only managers can create projects', 'error');
         return;
     }
@@ -1185,8 +1165,8 @@ async function updateProject(projectId) {
 function initializeProjectManagement() {
     // Show/hide create button based on user role
     const createBtn = document.getElementById('createProjectBtn');
-    if (createBtn && currentUser) {
-        if (['Project Manager', 'Admin', 'Super Admin'].includes(currentUser.role)) {
+    if (createBtn && projectsCurrentUser) {
+        if (['Project Manager', 'Admin', 'Super Admin'].includes(projectsCurrentUser.role)) {
             createBtn.style.display = 'inline-flex';
         } else {
             createBtn.style.display = 'none';
