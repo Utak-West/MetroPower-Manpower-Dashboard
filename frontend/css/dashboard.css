@@ -246,6 +246,23 @@ body {
     /* Show hamburger menu, hide desktop navigation */
     .hamburger-menu {
         display: flex !important;
+        flex-direction: column;
+        justify-content: space-around;
+        align-items: center;
+        width: 36px;
+        height: 36px;
+        min-width: 44px; /* Minimum touch target size for accessibility */
+        min-height: 44px;
+        margin-left: var(--spacing-sm); /* Ensure proper spacing from other elements */
+        order: 30; /* Position at the end of header-user */
+        flex-shrink: 0; /* Prevent shrinking */
+        background: transparent;
+        border: none;
+        cursor: pointer;
+        padding: var(--spacing-xs);
+        border-radius: var(--radius-sm);
+        transition: var(--transition);
+        position: relative;
     }
 
     .header-nav {
@@ -259,6 +276,7 @@ body {
 
     .header-top-container {
         height: 50px;
+        gap: var(--spacing-xs); /* Reduce gap between elements */
     }
 
     .nav-container {
@@ -270,31 +288,57 @@ body {
         max-width: 120px;
     }
 
+    /* Hide brand text on mobile to prioritize hamburger menu */
     .brand-info h1 {
-        font-size: var(--font-size-lg);
+        display: none;
     }
 
     .brand-info .branch-name {
-        font-size: var(--font-size-xs);
+        display: none;
     }
 
-    .header-center .current-date {
-        font-size: var(--font-size-base);
-    }
-
+    /* Hide non-essential user details */
     .user-details {
+        display: none;
+    }
+
+    /* Optimize header-user layout for mobile */
+    .header-user {
+        gap: var(--spacing-xs); /* Reduce gap on mobile for better spacing */
+        flex-shrink: 0; /* Prevent shrinking */
+    }
+
+    /* Minimize date display on mobile */
+    .header-user .current-date {
+        font-size: var(--font-size-sm);
+        font-weight: 500;
+        color: var(--dark-gray);
+        margin-right: var(--spacing-lg); /* Ensure 20px spacing from hamburger menu */
+        order: 20; /* Position before hamburger menu */
+        flex-shrink: 0; /* Prevent shrinking */
+    }
+
+    /* Login button spacing for mobile accessibility */
+    .login-btn {
+        margin-right: var(--spacing-lg); /* 20px spacing from adjacent elements */
+        padding: var(--spacing-xs) var(--spacing-sm);
+        font-size: var(--font-size-sm);
+    }
+
+    /* Hide manage button on mobile to save space */
+    .user-actions .manage-btn {
         display: none;
     }
 }
 
 /* Hamburger Menu Styles */
 .hamburger-menu {
-    display: none;
+    display: none; /* Hidden by default on desktop */
     flex-direction: column;
     justify-content: space-around;
     align-items: center;
-    width: 30px;
-    height: 30px;
+    width: 36px;
+    height: 36px;
     min-width: 44px; /* Minimum touch target size for accessibility */
     min-height: 44px;
     background: transparent;
@@ -305,6 +349,7 @@ body {
     transition: all 0.3s ease;
     border-radius: 4px;
     position: relative;
+    flex-shrink: 0; /* Prevent shrinking */
 }
 
 .hamburger-menu:hover {
@@ -468,22 +513,18 @@ body {
         max-width: 140px;
     }
 
+    /* Show brand text on tablets with smaller font */
     .brand-info h1 {
-        font-size: var(--font-size-lg);
+        display: block;
+        font-size: var(--font-size-base);
     }
 
-    /* Date display optimization for tablets - repositioned to right */
-    .header-user .current-date {
-        font-size: var(--font-size-sm);
-        font-weight: 500;
-        margin-right: var(--spacing-sm); /* Ensure 8px spacing from hamburger menu */
+    .brand-info .branch-name {
+        display: block;
+        font-size: var(--font-size-xs);
     }
 
-    /* User section optimization */
-    .header-user {
-        gap: var(--spacing-sm);
-    }
-
+    /* User actions optimization for tablets */
     .user-actions .manage-btn {
         font-size: var(--font-size-sm);
         padding: var(--spacing-xs) var(--spacing-sm);
@@ -492,11 +533,6 @@ body {
     /* Mobile navigation for tablets */
     .mobile-nav-menu {
         width: 320px; /* Slightly wider for tablets */
-    }
-
-    /* Hamburger menu spacing */
-    .hamburger-menu {
-        margin-left: var(--spacing-sm);
     }
 }
 
@@ -523,13 +559,13 @@ body {
         max-width: 100px;
     }
 
+    /* Keep brand text hidden on mobile phones for maximum space efficiency */
     .brand-info h1 {
-        font-size: var(--font-size-sm);
-        line-height: 1.2;
+        display: none;
     }
 
     .brand-info .branch-name {
-        font-size: var(--font-size-xs);
+        display: none;
     }
 
     /* Date display for mobile phones - repositioned and minimized */
@@ -537,7 +573,7 @@ body {
         font-size: var(--font-size-xs); /* Extra small font size */
         font-weight: 500;
         color: var(--dark-gray);
-        margin-right: var(--spacing-xs); /* Minimum spacing from hamburger menu */
+        margin-right: var(--spacing-lg); /* 20px spacing from hamburger menu */
         order: 10; /* Position before hamburger menu */
     }
 
@@ -557,10 +593,12 @@ body {
         display: none !important;
     }
 
+    /* Login button with proper spacing for mobile accessibility */
     .login-btn {
         padding: var(--spacing-xs) var(--spacing-sm);
         font-size: var(--font-size-xs);
         min-height: 36px; /* Smaller but still accessible */
+        margin-right: var(--spacing-lg); /* 20px spacing from adjacent elements */
     }
 
     /* Mobile navigation adjustments */
@@ -574,81 +612,17 @@ body {
         font-size: var(--font-size-sm);
     }
 
-    /* Ensure hamburger menu is properly sized for mobile */
-    .hamburger-menu {
-        width: 32px;
-        height: 32px;
-        min-width: 44px; /* Minimum touch target size */
-        min-height: 44px;
-        display: flex !important;
-        align-items: center;
-        justify-content: center;
-        margin-left: var(--spacing-xs); /* Ensure proper spacing */
-    }
-
-    /* Ensure desktop nav is hidden on mobile */
-    .header-nav {
-        display: none !important;
+    /* Ensure hamburger menu bars are properly sized for mobile */
+    .hamburger-menu .bar {
+        width: 20px; /* Slightly smaller bars for mobile */
+        height: 2px;
     }
 }
-
-/* Duplicate rule removed - handled in responsive sections */
 
 .header-right {
     display: flex;
     align-items: center;
     gap: var(--spacing-md);
-}
-
-.header-user {
-    display: flex;
-    align-items: center;
-    gap: var(--spacing-md);
-}
-
-/* Mobile Header Optimizations */
-@media (max-width: 768px) {
-    .header-user {
-        gap: var(--spacing-xs); /* Reduce gap on mobile for better spacing */
-    }
-
-    /* Repositioned date display for tablets/mobile */
-    .header-user .current-date {
-        font-size: var(--font-size-sm);
-        font-weight: 500;
-        color: var(--dark-gray);
-        margin-right: var(--spacing-sm); /* Ensure 8px spacing from hamburger menu */
-        order: 10; /* Position before hamburger menu */
-    }
-
-    /* Hide non-essential user details */
-    .user-details {
-        display: none;
-    }
-
-    /* Optimize user actions for mobile */
-    .user-actions {
-        display: flex;
-        gap: var(--spacing-xs);
-    }
-
-    .user-actions .manage-btn {
-        display: none; /* Hide manage button on mobile to save space */
-    }
-
-    /* Ensure proper spacing between interactive elements */
-    .login-btn,
-    .logout-btn {
-        margin-right: var(--spacing-sm);
-        padding: var(--spacing-xs) var(--spacing-sm);
-        font-size: var(--font-size-sm);
-    }
-
-    /* Hamburger menu positioning and spacing */
-    .hamburger-menu {
-        margin-left: var(--spacing-sm); /* Ensure minimum 8px gap */
-        order: 20; /* Position after date */
-    }
 }
 
 .user-info {
