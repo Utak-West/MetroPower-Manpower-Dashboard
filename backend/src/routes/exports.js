@@ -201,8 +201,19 @@ async function generateExcel(data, headers, sheetName = 'Data', options = {}) {
  * Generate PDF document from data with enhanced formatting and branding
  */
 function generatePDF(data, headers, title = 'Report', options = {}) {
+  // PDF Layout Constants
+  const PAGE_WIDTH = 595.28  // A4 width in points
+  const PAGE_HEIGHT = 841.89 // A4 height in points
+  const MARGIN = 40
+  const HEADER_HEIGHT = 75
+  const FOOTER_HEIGHT = 25
+  const TABLE_HEADER_HEIGHT = 22
+  const ROW_HEIGHT = 16
+  const MIN_COLUMN_WIDTH = 50
+  const MAX_COLUMN_WIDTH = 120
+
   const doc = new PDFDocument({
-    margin: 50,
+    margin: MARGIN,
     size: 'A4',
     info: {
       Title: title,
@@ -213,165 +224,189 @@ function generatePDF(data, headers, title = 'Report', options = {}) {
     }
   })
 
-  let currentPage = 1
-  const totalPages = Math.ceil(data.length / 25) + 1 // Estimate pages
+  // Calculate available content area
+  const contentWidth = PAGE_WIDTH - (MARGIN * 2)
+  const availableContentHeight = PAGE_HEIGHT - (MARGIN * 2) - HEADER_HEIGHT - FOOTER_HEIGHT
+  const rowsPerPage = Math.floor((availableContentHeight - TABLE_HEADER_HEIGHT) / ROW_HEIGHT)
+  const totalPages = Math.ceil(data.length / rowsPerPage)
 
-  // Function to add header to each page
-  function addPageHeader() {
-    const headerY = 30
+  let currentPage = 1
+
+  // Calculate optimal column widths
+  function calculateOptimalColumnWidths() {
+    const columnWidths = []
+    let totalContentWidth = 0
+
+    // First pass: calculate content-based widths
+    headers.forEach((header, index) => {
+      let maxWidth = header.length * 6 // Base width on header length
+
+      // Sample data to determine content width (check first 20 rows for performance)
+      const sampleSize = Math.min(data.length, 20)
+      for (let i = 0; i < sampleSize; i++) {
+        const key = header.toLowerCase().replace(/\s+/g, '_')
+        const value = (data[i][key] || '').toString()
+        maxWidth = Math.max(maxWidth, value.length * 5)
+      }
+
+      // Apply min/max constraints
+      maxWidth = Math.max(MIN_COLUMN_WIDTH, Math.min(maxWidth, MAX_COLUMN_WIDTH))
+      columnWidths[index] = maxWidth
+      totalContentWidth += maxWidth
+    })
+
+    // Second pass: scale to fit available width
+    if (totalContentWidth !== contentWidth) {
+      const scaleFactor = contentWidth / totalContentWidth
+      for (let i = 0; i < columnWidths.length; i++) {
+        columnWidths[i] = Math.floor(columnWidths[i] * scaleFactor)
+      }
+
+      // Adjust last column to ensure exact fit
+      const currentTotal = columnWidths.reduce((sum, width) => sum + width, 0)
+      columnWidths[columnWidths.length - 1] += (contentWidth - currentTotal)
+    }
+
+    return columnWidths
+  }
+
+  // Optimized header function
+  function addOptimizedPageHeader() {
+    const headerY = MARGIN
 
     // Add logo if available
     try {
       if (fs.existsSync(LOGO_PATH)) {
-        doc.image(LOGO_PATH, 50, headerY, { width: 60, height: 30 })
+        doc.image(LOGO_PATH, MARGIN, headerY, { width: 50, height: 25 })
       }
     } catch (error) {
       logger.warn('Could not load logo for PDF export:', error.message)
     }
 
-    // MetroPower Header
-    doc.fontSize(18).font('Helvetica-Bold').fillColor(METROPOWER_COLORS.primary)
-       .text('MetroPower', 120, headerY + 5)
+    // MetroPower Header - more compact
+    doc.fontSize(16).font('Helvetica-Bold').fillColor(METROPOWER_COLORS.primary)
+       .text('MetroPower', MARGIN + 60, headerY + 2)
 
-    doc.fontSize(12).font('Helvetica').fillColor('#000000')
-       .text('Tucker Branch - Manpower Dashboard', 120, headerY + 25)
+    doc.fontSize(10).font('Helvetica').fillColor('#000000')
+       .text('Tucker Branch - Manpower Dashboard', MARGIN + 60, headerY + 20)
 
-    // Title and date on right side
-    doc.fontSize(14).font('Helvetica-Bold').fillColor('#000000')
-       .text(title, 400, headerY + 5, { align: 'right', width: 150 })
-
-    doc.fontSize(9).font('Helvetica').fillColor('#666666')
-       .text(`Generated: ${new Date().toLocaleString()}`, 400, headerY + 25, { align: 'right', width: 150 })
-
-    // Page numbers
-    doc.fontSize(9).font('Helvetica').fillColor('#666666')
-       .text(`Page ${currentPage} of ${totalPages}`, 400, headerY + 40, { align: 'right', width: 150 })
-
-    // Header line
-    doc.strokeColor(METROPOWER_COLORS.primary).lineWidth(2)
-       .moveTo(50, headerY + 55).lineTo(550, headerY + 55).stroke()
-
-    return headerY + 70
-  }
-
-  // Function to add footer to each page
-  function addPageFooter() {
-    const footerY = doc.page.height - 50
-
-    doc.strokeColor(METROPOWER_COLORS.tableBorder).lineWidth(1)
-       .moveTo(50, footerY - 10).lineTo(550, footerY - 10).stroke()
+    // Title and info on right side - more compact
+    const rightX = PAGE_WIDTH - MARGIN - 140
+    doc.fontSize(12).font('Helvetica-Bold').fillColor('#000000')
+       .text(title, rightX, headerY + 2, { align: 'right', width: 140 })
 
     doc.fontSize(8).font('Helvetica').fillColor('#666666')
-       .text('© 2025 MetroPower - Confidential', 50, footerY, { align: 'left' })
-       .text(`Total Records: ${data.length}`, 0, footerY, { align: 'center', width: doc.page.width })
-       .text('MetroPower Dashboard System', 0, footerY, { align: 'right', width: doc.page.width - 50 })
+       .text(`Generated: ${new Date().toLocaleDateString()}`, rightX, headerY + 18, { align: 'right', width: 140 })
+       .text(`Page ${currentPage} of ${totalPages}`, rightX, headerY + 30, { align: 'right', width: 140 })
+
+    // Header line - thinner and closer
+    doc.strokeColor(METROPOWER_COLORS.primary).lineWidth(1)
+       .moveTo(MARGIN, headerY + 45).lineTo(PAGE_WIDTH - MARGIN, headerY + 45).stroke()
+
+    return headerY + HEADER_HEIGHT
   }
 
+  // Optimized footer function
+  function addOptimizedPageFooter() {
+    const footerY = PAGE_HEIGHT - MARGIN - FOOTER_HEIGHT
+
+    doc.strokeColor(METROPOWER_COLORS.tableBorder).lineWidth(0.5)
+       .moveTo(MARGIN, footerY).lineTo(PAGE_WIDTH - MARGIN, footerY).stroke()
+
+    doc.fontSize(7).font('Helvetica').fillColor('#666666')
+       .text('© 2025 MetroPower - Confidential', MARGIN, footerY + 8, { align: 'left' })
+       .text(`Total Records: ${data.length}`, 0, footerY + 8, { align: 'center', width: PAGE_WIDTH })
+       .text('MetroPower Dashboard System', 0, footerY + 8, { align: 'right', width: PAGE_WIDTH - MARGIN })
+  }
+
+  // Get optimal column widths
+  const columnWidths = calculateOptimalColumnWidths()
+
   // Start first page
-  let currentY = addPageHeader()
+  let currentY = addOptimizedPageHeader()
 
-  // Calculate column widths based on content
-  const pageWidth = doc.page.width - doc.page.margins.left - doc.page.margins.right
-  const columnWidths = headers.map(header => {
-    let maxWidth = header.length * 7 // Base width on header length
+  // Function to add table header
+  function addTableHeader() {
+    // Header background with better styling
+    doc.rect(MARGIN, currentY, contentWidth, TABLE_HEADER_HEIGHT)
+       .fillAndStroke(METROPOWER_COLORS.headerBg, METROPOWER_COLORS.tableBorder)
 
-    // Check data for longer content
-    data.slice(0, 10).forEach(row => { // Sample first 10 rows
-      const key = header.toLowerCase().replace(/\s+/g, '_')
-      const value = (row[key] || '').toString()
-      maxWidth = Math.max(maxWidth, value.length * 6)
+    // Header text with better alignment
+    doc.fontSize(9).font('Helvetica-Bold').fillColor('#000000')
+    let xPosition = MARGIN
+    headers.forEach((header, index) => {
+      const cellWidth = columnWidths[index]
+      doc.text(header, xPosition + 3, currentY + 6, {
+        width: cellWidth - 6,
+        align: 'center',
+        ellipsis: true
+      })
+      xPosition += cellWidth
     })
 
-    return Math.min(maxWidth, pageWidth / headers.length * 1.5)
-  })
+    currentY += TABLE_HEADER_HEIGHT
+  }
 
-  // Normalize column widths to fit page
-  const totalWidth = columnWidths.reduce((sum, width) => sum + width, 0)
-  const scaleFactor = pageWidth / totalWidth
-  columnWidths.forEach((width, index) => {
-    columnWidths[index] = width * scaleFactor
-  })
+  // Add initial table header
+  addTableHeader()
 
-  // Table headers
-  const headerHeight = 25
-  const rowHeight = 20
-
-  // Header background
-  doc.rect(50, currentY, pageWidth, headerHeight).fillAndStroke(METROPOWER_COLORS.headerBg, METROPOWER_COLORS.tableBorder)
-
-  // Header text
-  doc.fontSize(10).font('Helvetica-Bold').fillColor('#000000')
-  let xPosition = 50
-  headers.forEach((header, index) => {
-    doc.text(header, xPosition + 5, currentY + 8, {
-      width: columnWidths[index] - 10,
-      align: 'left',
-      ellipsis: true
-    })
-    xPosition += columnWidths[index]
-  })
-
-  currentY += headerHeight
-
-  // Data rows
-  doc.fontSize(9).font('Helvetica')
+  // Process data rows with optimized pagination
+  doc.fontSize(8).font('Helvetica')
 
   data.forEach((row, rowIndex) => {
-    // Check if we need a new page
-    if (currentY + rowHeight > doc.page.height - 100) {
-      addPageFooter()
+    // Check if we need a new page (more precise calculation)
+    const remainingSpace = PAGE_HEIGHT - MARGIN - FOOTER_HEIGHT - currentY
+    if (remainingSpace < ROW_HEIGHT + 5) { // Small buffer for safety
+      addOptimizedPageFooter()
       doc.addPage()
       currentPage++
-      currentY = addPageHeader()
-
-      // Re-add table headers on new page
-      doc.rect(50, currentY, pageWidth, headerHeight).fillAndStroke(METROPOWER_COLORS.headerBg, METROPOWER_COLORS.tableBorder)
-      doc.fontSize(10).font('Helvetica-Bold').fillColor('#000000')
-      xPosition = 50
-      headers.forEach((header, index) => {
-        doc.text(header, xPosition + 5, currentY + 8, {
-          width: columnWidths[index] - 10,
-          align: 'left',
-          ellipsis: true
-        })
-        xPosition += columnWidths[index]
-      })
-      currentY += headerHeight
-      doc.fontSize(9).font('Helvetica')
+      currentY = addOptimizedPageHeader()
+      addTableHeader()
     }
 
-    // Alternate row colors
+    // Alternate row colors with subtle styling
     const rowColor = rowIndex % 2 === 0 ? '#FFFFFF' : '#F8F9FA'
-    doc.rect(50, currentY, pageWidth, rowHeight).fillAndStroke(rowColor, METROPOWER_COLORS.tableBorder)
+    doc.rect(MARGIN, currentY, contentWidth, ROW_HEIGHT)
+       .fillAndStroke(rowColor, METROPOWER_COLORS.tableBorder)
 
-    // Row data
-    xPosition = 50
+    // Row data with improved formatting
+    let xPosition = MARGIN
     headers.forEach((header, colIndex) => {
       const key = header.toLowerCase().replace(/\s+/g, '_')
       let value = row[key] || ''
 
-      // Format dates
+      // Enhanced date formatting
       if (value && typeof value === 'string' && value.match(/^\d{4}-\d{2}-\d{2}/)) {
         try {
-          value = new Date(value).toLocaleDateString()
+          value = new Date(value).toLocaleDateString('en-US', {
+            month: 'short',
+            day: 'numeric',
+            year: 'numeric'
+          })
         } catch (e) {
           // Keep original value if date parsing fails
         }
       }
 
-      doc.fillColor('#000000').text(value.toString(), xPosition + 5, currentY + 6, {
-        width: columnWidths[colIndex] - 10,
+      // Better text handling with proper truncation
+      const cellWidth = columnWidths[colIndex]
+      const displayValue = value.toString()
+
+      doc.fillColor('#000000').text(displayValue, xPosition + 3, currentY + 4, {
+        width: cellWidth - 6,
         align: 'left',
-        ellipsis: true
+        ellipsis: true,
+        lineBreak: false
       })
-      xPosition += columnWidths[colIndex]
+
+      xPosition += cellWidth
     })
 
-    currentY += rowHeight
+    currentY += ROW_HEIGHT
   })
 
   // Add footer to last page
-  addPageFooter()
+  addOptimizedPageFooter()
 
   return doc
 }
