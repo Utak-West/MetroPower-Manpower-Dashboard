@@ -20,12 +20,30 @@ document.addEventListener('DOMContentLoaded', async function() {
     // Initialize components
     initializeAuth();
     initializeCalendarControls();
+    initializeDate();
 
     // Check authentication and load data
     await checkAuthentication();
 
     console.log('Calendar page initialized');
 });
+
+/**
+ * Initialize date display
+ */
+function initializeDate() {
+    const currentDateElement = document.getElementById('currentDate');
+    if (currentDateElement) {
+        const now = new Date();
+        const options = {
+            weekday: 'long',
+            year: 'numeric',
+            month: 'long',
+            day: 'numeric'
+        };
+        currentDateElement.textContent = now.toLocaleDateString('en-US', options);
+    }
+}
 
 /**
  * Initialize calendar controls
