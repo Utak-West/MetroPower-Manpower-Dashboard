@@ -46,6 +46,7 @@ async function initializePage() {
         // Set up form handlers
         setupFormHandler();
         setupEditFormHandler();
+        setupFilterHandlers();
 
         // Set default date to today
         document.getElementById('assignment_date').value = new Date().toISOString().split('T')[0];
@@ -212,6 +213,57 @@ function setupEditFormHandler() {
             e.preventDefault();
             await updateAssignment();
         });
+    }
+}
+
+/**
+ * Set up filter event handlers
+ */
+function setupFilterHandlers() {
+    // Project filter
+    const projectFilter = document.getElementById('assignmentProjectFilter');
+    if (projectFilter) {
+        projectFilter.addEventListener('change', applyAssignmentFilters);
+    }
+
+    // Employee filter
+    const employeeFilter = document.getElementById('assignmentEmployeeFilter');
+    if (employeeFilter) {
+        employeeFilter.addEventListener('change', applyAssignmentFilters);
+    }
+
+    // Status filter
+    const statusFilter = document.getElementById('assignmentStatusFilter');
+    if (statusFilter) {
+        statusFilter.addEventListener('change', applyAssignmentFilters);
+    }
+
+    // Date filters
+    const dateFromFilter = document.getElementById('assignmentDateFrom');
+    if (dateFromFilter) {
+        dateFromFilter.addEventListener('change', applyAssignmentFilters);
+    }
+
+    const dateToFilter = document.getElementById('assignmentDateTo');
+    if (dateToFilter) {
+        dateToFilter.addEventListener('change', applyAssignmentFilters);
+    }
+
+    // Sort filters
+    const sortByFilter = document.getElementById('assignmentSortBy');
+    if (sortByFilter) {
+        sortByFilter.addEventListener('change', applyAssignmentSorting);
+    }
+
+    const sortOrderFilter = document.getElementById('assignmentSortOrder');
+    if (sortOrderFilter) {
+        sortOrderFilter.addEventListener('change', applyAssignmentSorting);
+    }
+
+    // Clear filters button
+    const clearFiltersBtn = document.getElementById('clearAssignmentFilters');
+    if (clearFiltersBtn) {
+        clearFiltersBtn.addEventListener('click', clearAssignmentFilters);
     }
 }
 

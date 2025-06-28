@@ -7,6 +7,8 @@
  * Copyright 2025 The HigherSelf Network
  */
 
+console.log('Dashboard.js file loaded');
+
 // Global variables
 let currentWeekStart = null;
 let employees = [];
@@ -24,6 +26,7 @@ document.addEventListener('DOMContentLoaded', async function() {
     initializeHeader();
     initializeLoginModal();
     initializeNotifications();
+    initializeFilters();
 
     // Check authentication and load data
     await initializeAuthentication();
@@ -77,6 +80,38 @@ function initializeLoginModal() {
 
     if (loginForm) {
         loginForm.addEventListener('submit', handleLogin);
+    }
+}
+
+/**
+ * Initialize filter controls
+ */
+function initializeFilters() {
+    // Add event listeners for filter controls
+    const projectFilter = document.getElementById('projectFilter');
+    const positionFilter = document.getElementById('positionFilter');
+    const statusFilter = document.getElementById('statusFilter');
+    const searchFilter = document.getElementById('searchFilter');
+    const clearFiltersBtn = document.getElementById('clearFiltersBtn');
+
+    if (projectFilter) {
+        projectFilter.addEventListener('change', applyDashboardFilters);
+    }
+
+    if (positionFilter) {
+        positionFilter.addEventListener('change', applyDashboardFilters);
+    }
+
+    if (statusFilter) {
+        statusFilter.addEventListener('change', applyDashboardFilters);
+    }
+
+    if (searchFilter) {
+        searchFilter.addEventListener('input', applyDashboardFilters);
+    }
+
+    if (clearFiltersBtn) {
+        clearFiltersBtn.addEventListener('click', clearDashboardFilters);
     }
 }
 
@@ -293,6 +328,7 @@ function updateStatistics(data) {
  * Update unassigned employees display
  */
 function updateUnassignedEmployees(unassignedEmployees) {
+    console.log('updateUnassignedEmployees called with', unassignedEmployees.length, 'employees');
     const container = document.getElementById('unassignedEmployees');
     if (!container) return;
 
@@ -301,15 +337,27 @@ function updateUnassignedEmployees(unassignedEmployees) {
         return;
     }
 
-    const employeeCards = unassignedEmployees.map(employee => `
-        <div class="employee-card" data-employee-id="${employee.employee_id}">
-            <div class="employee-info">
-                <h4>${employee.first_name} ${employee.last_name}</h4>
-                <p class="employee-trade">${employee.trade}</p>
-                <p class="employee-rate">$${employee.hourly_rate}/hr</p>
+    const employeeCards = unassignedEmployees.map(employee => {
+        // Handle different name field structures
+        const employeeName = employee.name || `${employee.first_name || ''} ${employee.last_name || ''}`.trim();
+
+        // Handle different position field names
+        const employeePosition = employee.position || employee.position_name || employee.trade || 'Not specified';
+
+        // Handle hourly rate (may not be available in demo data)
+        const hourlyRate = employee.hourly_rate || employee.rate || 'N/A';
+        const rateDisplay = hourlyRate !== 'N/A' ? `$${hourlyRate}/hr` : 'Rate not specified';
+
+        return `
+            <div class="employee-card" data-employee-id="${employee.employee_id}">
+                <div class="employee-info">
+                    <h4>${employeeName}</h4>
+                    <p class="employee-trade">${employeePosition}</p>
+                    <p class="employee-rate">${rateDisplay}</p>
+                </div>
             </div>
-        </div>
-    `).join('');
+        `;
+    }).join('');
 
     container.innerHTML = employeeCards;
 }
@@ -445,57 +493,90 @@ function populateFilterDropdowns() {
  * Apply dashboard filters
  */
 function applyDashboardFilters() {
+    console.log('applyDashboardFilters called');
     const projectFilter = document.getElementById('projectFilter')?.value || '';
     const positionFilter = document.getElementById('positionFilter')?.value || '';
     const statusFilter = document.getElementById('statusFilter')?.value || '';
     const searchFilter = document.getElementById('searchFilter')?.value.toLowerCase() || '';
+    console.log('Search filter value:', searchFilter);
 
-    // Filter employees
-    filteredEmployees = employees.filter(employee => {
-        // Position filter
-        if (positionFilter && employee.position !== positionFilter) {
-            return false;
-        }
-
-        // Status filter
-        if (statusFilter && (employee.status || 'Active') !== statusFilter) {
-            return false;
-        }
-
-        // Search filter
-        if (searchFilter) {
-            const searchFields = [
-                employee.name || `${employee.first_name || ''} ${employee.last_name || ''}`,
-                employee.employee_id,
-                employee.employee_number || ''
-            ].join(' ').toLowerCase();
-
-            if (!searchFields.includes(searchFilter)) {
-                return false;
+    // Filter employees with all criteria
+    console.log('Starting employee filtering...');
+    try {
+        filteredEmployees = employees.filter(employee => {
+            // Position filter
+            if (positionFilter) {
+                const employeePosition = employee.position || employee.position_name || '';
+                if (employeePosition !== positionFilter) {
+                    return false;
+                }
             }
-        }
 
-        return true;
-    });
+            // Status filter
+            if (statusFilter) {
+                let employeeStatus = employee.status;
+                // Convert boolean is_active to status string if needed
+                if (typeof employee.is_active === 'boolean') {
+                    employeeStatus = employee.is_active ? 'Active' : 'Inactive';
+                }
+                // Default to Active if no status specified
+                employeeStatus = employeeStatus || 'Active';
 
-    // Filter assignments by project
-    filteredAssignments = {};
-    Object.keys(assignments).forEach(date => {
-        filteredAssignments[date] = assignments[date].filter(assignment => {
-            if (projectFilter && assignment.project_id != projectFilter) {
-                return false;
+                if (employeeStatus !== statusFilter) {
+                    return false;
+                }
             }
+
+            // Search filter - search in name, employee ID, and employee number
+            if (searchFilter) {
+                const employeeName = employee.name || `${employee.first_name || ''} ${employee.last_name || ''}`.trim();
+                const searchFields = [
+                    employeeName,
+                    employee.employee_id?.toString() || '',
+                    employee.employee_number?.toString() || ''
+                ].join(' ').toLowerCase();
+
+                if (!searchFields.includes(searchFilter)) {
+                    return false;
+                }
+            }
+
             return true;
         });
-    });
+        console.log('Employee filtering completed. Filtered count:', filteredEmployees.length);
+    } catch (error) {
+        console.error('Error in employee filtering:', error);
+        filteredEmployees = [...employees];
+    }
 
-    // Apply sorting to filtered data
-    applySorting();
+    // Filter assignments by project
+    console.log('Starting assignment filtering...');
+    try {
+        filteredAssignments = {};
+        Object.keys(assignments).forEach(date => {
+            // Ensure assignments[date] is an array before filtering
+            if (Array.isArray(assignments[date])) {
+                filteredAssignments[date] = assignments[date].filter(assignment => {
+                    if (projectFilter && assignment.project_id != projectFilter) {
+                        return false;
+                    }
+                    return true;
+                });
+            } else {
+                filteredAssignments[date] = assignments[date] || [];
+            }
+        });
+        console.log('Assignment filtering completed');
+    } catch (error) {
+        console.error('Error in assignment filtering:', error);
+        filteredAssignments = {...assignments};
+    }
 
     // Update displays
+    console.log('Updating displays...');
     updateUnassignedEmployees(filteredEmployees);
-    updateAssignmentGrid(filteredAssignments);
     updateFilteredStatistics();
+    console.log('Filter function completed');
 }
 
 /**
@@ -535,20 +616,21 @@ function applySorting() {
                 bValue = b.name || `${b.first_name || ''} ${b.last_name || ''}`.trim();
                 break;
             case 'position':
-                aValue = a.position || '';
-                bValue = b.position || '';
+                aValue = a.position || a.position_name || a.trade || '';
+                bValue = b.position || b.position_name || b.trade || '';
                 break;
             case 'status':
-                aValue = a.status || 'Active';
-                bValue = b.status || 'Active';
+                // Handle different status representations
+                aValue = a.status || (typeof a.is_active === 'boolean' ? (a.is_active ? 'Active' : 'Inactive') : 'Active');
+                bValue = b.status || (typeof b.is_active === 'boolean' ? (b.is_active ? 'Active' : 'Inactive') : 'Active');
                 break;
             case 'employee_number':
                 aValue = a.employee_number || a.employee_id || '';
                 bValue = b.employee_number || b.employee_id || '';
                 break;
             default:
-                aValue = a.name || '';
-                bValue = b.name || '';
+                aValue = a.name || `${a.first_name || ''} ${a.last_name || ''}`.trim();
+                bValue = b.name || `${b.first_name || ''} ${b.last_name || ''}`.trim();
         }
 
         // Convert to strings for comparison
@@ -562,19 +644,17 @@ function applySorting() {
         }
     });
 
-    // Update displays
-    updateUnassignedEmployees(filteredEmployees);
-    updateFilteredStatistics();
+    // Note: Display updates are handled by the calling function
+    // updateUnassignedEmployees(filteredEmployees); // Removed to avoid duplicate calls
+    // updateFilteredStatistics(); // Removed to avoid duplicate calls
 }
 
 /**
  * Update statistics based on filtered data
  */
 function updateFilteredStatistics() {
-    const totalAssignments = Object.values(filteredAssignments).reduce((sum, dayAssignments) => sum + dayAssignments.length, 0);
-
-    // Update statistics display if elements exist
-    const unassignedCountEl = document.querySelector('.stat-card .stat-number');
+    // Update the "Unassigned Today" count to reflect filtered employees
+    const unassignedCountEl = document.getElementById('unassignedCount');
     if (unassignedCountEl) {
         unassignedCountEl.textContent = filteredEmployees.length;
     }
