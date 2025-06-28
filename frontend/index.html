@@ -251,8 +251,10 @@
                             <button class="week-nav-btn" id="nextWeekBtn">Next Week →</button>
                         </div>
                         <div class="export-buttons">
-                            <button type="button" class="btn btn-secondary" onclick="exportDashboard('excel')">Export Excel</button>
-                            <button type="button" class="btn btn-primary" onclick="exportDashboard('pdf')">Export PDF</button>
+                            <button type="button" class="btn btn-secondary" onclick="exportDashboard('excel')" title="Export comprehensive dashboard data to Excel">📊 Dashboard Excel</button>
+                            <button type="button" class="btn btn-primary" onclick="exportDashboard('pdf')" title="Export dashboard summary to PDF">📄 Dashboard PDF</button>
+                            <button type="button" class="btn btn-secondary" onclick="exportWeeklyAssignments('excel')" title="Export only weekly assignments to Excel">📋 Assignments Excel</button>
+                            <button type="button" class="btn btn-outline-primary" onclick="showDashboardExportModal()" title="More export options">⚙️ Export Options</button>
                         </div>
                     </div>
                 </div>

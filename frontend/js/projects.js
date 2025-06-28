@@ -954,19 +954,123 @@ async function loadProjectDetails(projectId) {
 }
 
 /**
- * Export projects data
+ * Export projects data with enhanced UI feedback
  */
-async function exportProjects() {
-    try {
-        showNotification('Exporting projects...', 'info');
+async function exportProjects(format = 'excel') {
+    const exportButtons = document.querySelectorAll('.project-actions button, .export-format-options button');
+    const activeButton = Array.from(exportButtons).find(btn =>
+        btn.textContent.toLowerCase().includes(format.toLowerCase()) ||
+        (format === 'excel' && btn.textContent.toLowerCase().includes('export'))
+    );
 
-        // This would integrate with the existing export functionality
-        // For now, show a placeholder message
-        showNotification('Project export functionality coming soon', 'info');
+    try {
+        // Show loading state
+        if (activeButton) {
+            activeButton.classList.add('exporting');
+            activeButton.disabled = true;
+        }
+
+        showNotification(`Preparing projects ${format.toUpperCase()} export...`, 'info');
+
+        const response = await fetch(`${api.baseURL}/exports/projects?format=${format}`, {
+            headers: api.getHeaders()
+        });
+
+        if (!response.ok) {
+            const errorData = await response.json().catch(() => ({}));
+            throw new Error(errorData.message || `Export failed with status ${response.status}`);
+        }
+
+        if (format === 'excel' || format === 'pdf' || format === 'csv') {
+            showNotification('Generating file and starting download...', 'info');
+
+            const blob = await response.blob();
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.style.display = 'none';
+            a.href = url;
+
+            const dateStr = new Date().toISOString().split('T')[0];
+            const fileExtension = format === 'excel' ? 'xlsx' : format;
+            a.download = `metropower_projects_${dateStr}.${fileExtension}`;
+
+            document.body.appendChild(a);
+            a.click();
+            window.URL.revokeObjectURL(url);
+            document.body.removeChild(a);
+
+            showNotification(`Projects exported as ${format.toUpperCase()} successfully!`, 'success');
+        } else {
+            const data = await response.json();
+            console.log('Export data:', data);
+            showNotification('Export completed!', 'success');
+        }
 
     } catch (error) {
         console.error('Error exporting projects:', error);
-        showNotification('Failed to export projects', 'error');
+        showNotification(`Projects export failed: ${error.message}`, 'error');
+    } finally {
+        // Reset button state
+        if (activeButton) {
+            activeButton.classList.remove('exporting');
+            activeButton.disabled = false;
+        }
+    }
+}
+
+/**
+ * Show export options modal for projects
+ */
+function showProjectExportModal() {
+    const modal = document.createElement('div');
+    modal.className = 'modal-overlay';
+    modal.innerHTML = `
+        <div class="modal">
+            <div class="modal-header">
+                <h2>Export Projects</h2>
+                <button class="modal-close" onclick="closeExportModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label>Export Format:</label>
+                    <div class="export-format-options">
+                        <button type="button" class="btn btn-secondary" onclick="exportProjects('excel')">
+                            📊 Excel (.xlsx)
+                        </button>
+                        <button type="button" class="btn btn-primary" onclick="exportProjects('pdf')">
+                            📄 PDF Report
+                        </button>
+                        <button type="button" class="btn btn-secondary" onclick="exportProjects('csv')">
+                            📋 CSV Data
+                        </button>
+                    </div>
+                </div>
+                <div class="export-info">
+                    <p><strong>Excel:</strong> Comprehensive spreadsheet with all project data and formatting</p>
+                    <p><strong>PDF:</strong> Professional report with MetroPower branding</p>
+                    <p><strong>CSV:</strong> Raw data for import into other systems</p>
+                </div>
+            </div>
+        </div>
+    `;
+
+    document.body.appendChild(modal);
+
+    // Close modal when clicking outside
+    modal.addEventListener('click', (e) => {
+        if (e.target === modal) {
+            closeExportModal();
+        }
+    });
+}
+
+/**
+ * Close export modal
+ */
+function closeExportModal() {
+    const modal = document.querySelector('.modal-overlay');
+    if (modal) {
+        modal.remove();
     }
 }
 

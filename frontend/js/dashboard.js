@@ -852,45 +852,65 @@ function updateFilteredStatistics() {
 }
 
 /**
- * Export dashboard data
+ * Export dashboard data with comprehensive reporting and enhanced UI feedback
  */
 async function exportDashboard(format) {
-    try {
-        // Prepare dashboard summary data for export
-        const dashboardData = {
-            summary: {
-                total_employees: employees.length,
-                unassigned_employees: filteredEmployees.length,
-                total_projects: projects.length,
-                week_start: currentWeekStart
-            },
-            unassigned_employees: filteredEmployees,
-            weekly_assignments: filteredAssignments
-        };
+    const exportButtons = document.querySelectorAll('.export-buttons button');
+    const activeButton = Array.from(exportButtons).find(btn =>
+        btn.textContent.toLowerCase().includes('dashboard') &&
+        btn.textContent.toLowerCase().includes(format.toLowerCase())
+    );
 
-        // For now, export the assignments data
-        const response = await fetch(`${api.baseURL}/exports/assignments?format=${format}`, {
+    try {
+        // Show loading state
+        if (activeButton) {
+            activeButton.classList.add('exporting');
+            activeButton.disabled = true;
+        }
+
+        // Show loading notification
+        showNotification(`Preparing comprehensive dashboard ${format.toUpperCase()} export...`, 'info');
+
+        // Prepare query parameters
+        const params = new URLSearchParams({
+            format: format
+        });
+
+        // Include current week filter if active
+        if (currentWeekStart) {
+            params.append('weekStart', currentWeekStart);
+        }
+
+        // Use the comprehensive dashboard export endpoint
+        const response = await fetch(`${api.baseURL}/exports/dashboard?${params.toString()}`, {
             headers: api.getHeaders()
         });
 
         if (!response.ok) {
-            throw new Error('Export failed');
+            const errorData = await response.json().catch(() => ({}));
+            throw new Error(errorData.message || `Export failed with status ${response.status}`);
         }
 
         if (format === 'excel' || format === 'pdf') {
+            showNotification('Generating file and starting download...', 'info');
+
             const blob = await response.blob();
             const url = window.URL.createObjectURL(blob);
             const a = document.createElement('a');
+            a.style.display = 'none';
             a.href = url;
 
-            let fileExtension = format;
-            if (format === 'excel') fileExtension = 'xlsx';
+            // Generate filename with current date and week info
+            const dateStr = new Date().toISOString().split('T')[0];
+            const weekStr = currentWeekStart ? `_week_${currentWeekStart}` : '';
+            const fileExtension = format === 'excel' ? 'xlsx' : 'pdf';
+            a.download = `metropower_dashboard${weekStr}_${dateStr}.${fileExtension}`;
 
-            a.download = `dashboard_summary_${new Date().toISOString().split('T')[0]}.${fileExtension}`;
             document.body.appendChild(a);
             a.click();
             window.URL.revokeObjectURL(url);
             document.body.removeChild(a);
+
             showNotification(`Dashboard exported as ${format.toUpperCase()} successfully!`, 'success');
         } else {
             const data = await response.json();
@@ -899,6 +919,160 @@ async function exportDashboard(format) {
         }
     } catch (error) {
         console.error('Export failed:', error);
-        showNotification('Export failed: ' + error.message, 'error');
+        showNotification(`Dashboard export failed: ${error.message}`, 'error');
+    } finally {
+        // Reset button state
+        if (activeButton) {
+            activeButton.classList.remove('exporting');
+            activeButton.disabled = false;
+        }
+    }
+}
+
+/**
+ * Export current week assignments only with enhanced UI feedback
+ */
+async function exportWeeklyAssignments(format) {
+    const exportButtons = document.querySelectorAll('.export-buttons button');
+    const activeButton = Array.from(exportButtons).find(btn =>
+        btn.textContent.toLowerCase().includes('assignments') &&
+        btn.textContent.toLowerCase().includes(format.toLowerCase())
+    );
+
+    try {
+        // Show loading state
+        if (activeButton) {
+            activeButton.classList.add('exporting');
+            activeButton.disabled = true;
+        }
+
+        showNotification(`Preparing weekly assignments ${format.toUpperCase()} export...`, 'info');
+
+        const response = await fetch(`${api.baseURL}/exports/assignments?format=${format}`, {
+            headers: api.getHeaders()
+        });
+
+        if (!response.ok) {
+            const errorData = await response.json().catch(() => ({}));
+            throw new Error(errorData.message || `Export failed with status ${response.status}`);
+        }
+
+        if (format === 'excel' || format === 'pdf' || format === 'csv') {
+            showNotification('Generating file and starting download...', 'info');
+
+            const blob = await response.blob();
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.style.display = 'none';
+            a.href = url;
+
+            const dateStr = new Date().toISOString().split('T')[0];
+            const weekStr = currentWeekStart ? `_week_${currentWeekStart}` : '';
+            const fileExtension = format === 'excel' ? 'xlsx' : format;
+            a.download = `metropower_assignments${weekStr}_${dateStr}.${fileExtension}`;
+
+            document.body.appendChild(a);
+            a.click();
+            window.URL.revokeObjectURL(url);
+            document.body.removeChild(a);
+
+            showNotification(`Assignments exported as ${format.toUpperCase()} successfully!`, 'success');
+        } else {
+            const data = await response.json();
+            console.log('Export data:', data);
+            showNotification('Export completed!', 'success');
+        }
+    } catch (error) {
+        console.error('Export failed:', error);
+        showNotification(`Weekly assignments export failed: ${error.message}`, 'error');
+    } finally {
+        // Reset button state
+        if (activeButton) {
+            activeButton.classList.remove('exporting');
+            activeButton.disabled = false;
+        }
+    }
+}
+
+/**
+ * Show dashboard export options modal
+ */
+function showDashboardExportModal() {
+    const modal = document.createElement('div');
+    modal.className = 'modal-overlay';
+    modal.innerHTML = `
+        <div class="modal">
+            <div class="modal-header">
+                <h2>Export Dashboard Data</h2>
+                <button type="button" class="modal-close" onclick="closeDashboardExportModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="export-section">
+                    <h3>📊 Comprehensive Dashboard Export</h3>
+                    <p>Includes all dashboard data: assignments, employees, projects, and statistics</p>
+                    <div class="export-format-options">
+                        <button type="button" class="btn btn-primary" onclick="exportDashboard('excel'); closeDashboardExportModal();">
+                            📊 Excel Workbook (Multiple Sheets)
+                        </button>
+                        <button type="button" class="btn btn-secondary" onclick="exportDashboard('pdf'); closeDashboardExportModal();">
+                            📄 PDF Summary Report
+                        </button>
+                    </div>
+                </div>
+
+                <div class="export-section">
+                    <h3>📋 Weekly Assignments Only</h3>
+                    <p>Export only the current week's assignment data</p>
+                    <div class="export-format-options">
+                        <button type="button" class="btn btn-success" onclick="exportWeeklyAssignments('excel'); closeDashboardExportModal();">
+                            📊 Excel Spreadsheet
+                        </button>
+                        <button type="button" class="btn btn-primary" onclick="exportWeeklyAssignments('pdf'); closeDashboardExportModal();">
+                            📄 PDF Report
+                        </button>
+                        <button type="button" class="btn btn-secondary" onclick="exportWeeklyAssignments('csv'); closeDashboardExportModal();">
+                            📋 CSV Data
+                        </button>
+                    </div>
+                </div>
+
+                <div class="export-info">
+                    <h4>Export Information:</h4>
+                    <ul>
+                        <li><strong>Excel:</strong> Professional spreadsheets with MetroPower branding and formatting</li>
+                        <li><strong>PDF:</strong> Print-ready reports with company logo and professional layout</li>
+                        <li><strong>CSV:</strong> Raw data for import into other systems</li>
+                    </ul>
+                    ${currentWeekStart ? `<p><strong>Current Week:</strong> ${currentWeekStart}</p>` : ''}
+                </div>
+            </div>
+        </div>
+    `;
+
+    document.body.appendChild(modal);
+
+    // Close modal when clicking outside
+    modal.addEventListener('click', (e) => {
+        if (e.target === modal) {
+            closeDashboardExportModal();
+        }
+    });
+
+    // Close modal on Escape key
+    document.addEventListener('keydown', function escapeHandler(e) {
+        if (e.key === 'Escape') {
+            closeDashboardExportModal();
+            document.removeEventListener('keydown', escapeHandler);
+        }
+    });
+}
+
+/**
+ * Close dashboard export modal
+ */
+function closeDashboardExportModal() {
+    const modal = document.querySelector('.modal-overlay');
+    if (modal && modal.querySelector('.modal-header h2').textContent === 'Export Dashboard Data') {
+        modal.remove();
     }
 }

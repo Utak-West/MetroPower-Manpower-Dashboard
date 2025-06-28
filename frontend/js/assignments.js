@@ -548,32 +548,51 @@ async function refreshAssignments() {
 }
 
 /**
- * Export assignments data
+ * Export assignments data with enhanced UI feedback
  */
 async function exportAssignments(format) {
+    const exportButtons = document.querySelectorAll('.export-buttons button');
+    const activeButton = Array.from(exportButtons).find(btn =>
+        btn.textContent.toLowerCase().includes(format.toLowerCase())
+    );
+
     try {
+        // Show loading state
+        if (activeButton) {
+            activeButton.classList.add('exporting');
+            activeButton.disabled = true;
+        }
+
+        showNotification(`Preparing ${format.toUpperCase()} export...`, 'info');
+
         const response = await fetch(`${api.baseURL}/exports/assignments?format=${format}`, {
             headers: api.getHeaders()
         });
 
         if (!response.ok) {
-            throw new Error('Export failed');
+            const errorData = await response.json().catch(() => ({}));
+            throw new Error(errorData.message || `Export failed with status ${response.status}`);
         }
 
         if (format === 'csv' || format === 'excel' || format === 'pdf') {
+            showNotification('Downloading file...', 'info');
+
             const blob = await response.blob();
             const url = window.URL.createObjectURL(blob);
             const a = document.createElement('a');
+            a.style.display = 'none';
             a.href = url;
 
             let fileExtension = format;
             if (format === 'excel') fileExtension = 'xlsx';
 
-            a.download = `assignments_${new Date().toISOString().split('T')[0]}.${fileExtension}`;
+            const dateStr = new Date().toISOString().split('T')[0];
+            a.download = `metropower_assignments_${dateStr}.${fileExtension}`;
             document.body.appendChild(a);
             a.click();
             window.URL.revokeObjectURL(url);
             document.body.removeChild(a);
+
             showSuccess(`Assignments exported as ${format.toUpperCase()} successfully!`);
         } else {
             const data = await response.json();
@@ -582,7 +601,13 @@ async function exportAssignments(format) {
         }
     } catch (error) {
         console.error('Export failed:', error);
-        showError('Export failed: ' + error.message);
+        showError(`Export failed: ${error.message}`);
+    } finally {
+        // Reset button state
+        if (activeButton) {
+            activeButton.classList.remove('exporting');
+            activeButton.disabled = false;
+        }
     }
 }
 
