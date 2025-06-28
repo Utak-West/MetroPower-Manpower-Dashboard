@@ -58,7 +58,31 @@
     },
     {
       "src": "/favicon.ico",
-      "dest": "/frontend/assets/images/favicon.svg"
+      "dest": "/frontend/favicon.ico"
+    },
+    {
+      "src": "/apple-touch-icon.png",
+      "dest": "/frontend/apple-touch-icon.png"
+    },
+    {
+      "src": "/favicon-16x16.png",
+      "dest": "/frontend/favicon-16x16.png"
+    },
+    {
+      "src": "/favicon-32x32.png",
+      "dest": "/frontend/favicon-32x32.png"
+    },
+    {
+      "src": "/android-chrome-192x192.png",
+      "dest": "/frontend/android-chrome-192x192.png"
+    },
+    {
+      "src": "/android-chrome-512x512.png",
+      "dest": "/frontend/android-chrome-512x512.png"
+    },
+    {
+      "src": "/site.webmanifest",
+      "dest": "/frontend/site.webmanifest"
     },
     {
       "src": "/assets/images/(.*)",
