@@ -27,6 +27,7 @@ document.addEventListener('DOMContentLoaded', async function() {
     initializeLoginModal();
     initializeNotifications();
     initializeFilters();
+    initializeAssignmentCardHandlers();
 
     // Check authentication and load data
     await initializeAuthentication();
@@ -359,8 +360,12 @@ function updateUnassignedEmployees(unassignedEmployees) {
         const hourlyRate = employee.hourly_rate || employee.rate || 'N/A';
         const rateDisplay = hourlyRate !== 'N/A' ? `$${hourlyRate}/hr` : 'Rate not specified';
 
+        // Check if user can edit (managers and admins)
+        const canEdit = currentUser && ['Project Manager', 'Admin', 'Super Admin'].includes(currentUser.role);
+        const clickableClass = canEdit ? 'clickable-unassigned-employee' : '';
+
         return `
-            <div class="employee-card" data-employee-id="${employee.employee_id}">
+            <div class="employee-card ${clickableClass}" data-employee-id="${employee.employee_id}">
                 <div class="employee-info">
                     <h4>${employeeName}</h4>
                     <p class="employee-trade">${employeePosition}</p>
@@ -401,8 +406,178 @@ function updateAssignmentGrid(weekAssignments) {
     const container = document.getElementById('assignmentGrid');
     if (!container) return;
 
-    // For now, show a simple message
-    container.innerHTML = '<div class="empty-state"><p>Assignment grid functionality coming soon</p></div>';
+    // If no assignments data, show empty state
+    if (!weekAssignments || Object.keys(weekAssignments).length === 0) {
+        container.innerHTML = '<div class="empty-state"><p>No assignments found for this week</p></div>';
+        return;
+    }
+
+    // Create assignment grid HTML
+    const gridHTML = createAssignmentGridHTML(weekAssignments);
+    container.innerHTML = gridHTML;
+}
+
+/**
+ * Create assignment grid HTML structure
+ */
+function createAssignmentGridHTML(weekAssignments) {
+    const days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'];
+
+    // Extract all assignments from the week data
+    let allAssignments = [];
+    if (Array.isArray(weekAssignments)) {
+        // weekAssignments is array of day objects
+        allAssignments = weekAssignments.flatMap(dayData =>
+            dayData.assignments ? dayData.assignments : []
+        );
+    } else if (typeof weekAssignments === 'object') {
+        // weekAssignments is object with day keys
+        allAssignments = Object.values(weekAssignments).flatMap(dayData =>
+            Array.isArray(dayData) ? dayData : (dayData.assignments || [])
+        );
+    }
+
+    // Get unique projects
+    const projects = [...new Set(allAssignments.map(a =>
+        a.project_name || a.project?.name || 'Unknown Project'
+    ))];
+
+    if (projects.length === 0) {
+        return '<div class="empty-state"><p>No assignments found for this week</p></div>';
+    }
+
+    let gridHTML = `
+        <div class="assignment-grid-container">
+            <div class="assignment-grid-header">
+                <div class="project-column">Project</div>
+                ${days.map(day => `<div class="day-column">${day}</div>`).join('')}
+            </div>
+            <div class="assignment-grid-body">
+    `;
+
+    // Create rows for each project
+    projects.forEach(projectName => {
+        gridHTML += `
+            <div class="assignment-row">
+                <div class="project-cell">
+                    <strong>${projectName}</strong>
+                </div>
+        `;
+
+        // Add cells for each day
+        days.forEach(day => {
+            const dayAssignments = getAssignmentsForProjectAndDay(weekAssignments, projectName, day);
+            gridHTML += `
+                <div class="day-cell">
+                    ${dayAssignments.map(assignment => createAssignmentCard(assignment)).join('')}
+                </div>
+            `;
+        });
+
+        gridHTML += '</div>';
+    });
+
+    gridHTML += `
+            </div>
+        </div>
+    `;
+
+    return gridHTML;
+}
+
+/**
+ * Get assignments for a specific project and day
+ */
+function getAssignmentsForProjectAndDay(weekAssignments, projectName, day) {
+    let allAssignments = [];
+
+    // Extract all assignments from the week data
+    if (Array.isArray(weekAssignments)) {
+        // weekAssignments is array of day objects
+        allAssignments = weekAssignments.flatMap(dayData =>
+            dayData.assignments ? dayData.assignments : []
+        );
+    } else if (typeof weekAssignments === 'object') {
+        // weekAssignments is object with day keys
+        allAssignments = Object.values(weekAssignments).flatMap(dayData =>
+            Array.isArray(dayData) ? dayData : (dayData.assignments || [])
+        );
+    }
+
+    // Filter by project and day
+    return allAssignments.filter(assignment => {
+        const assignmentProject = assignment.project_name || assignment.project?.name || 'Unknown Project';
+        const assignmentDay = getDayFromDate(assignment.assignment_date || assignment.date);
+        return assignmentProject === projectName && assignmentDay === day;
+    });
+}
+
+/**
+ * Create assignment card HTML
+ */
+function createAssignmentCard(assignment) {
+    const employeeName = assignment.employee_name ||
+                        (assignment.employee ? `${assignment.employee.first_name} ${assignment.employee.last_name}` : '') ||
+                        `${assignment.first_name || ''} ${assignment.last_name || ''}`.trim() ||
+                        'Unknown Employee';
+
+    const positionName = assignment.position_name || assignment.position || '';
+    const positionColor = assignment.position_color || '#6c757d';
+    const employeeId = assignment.employee_id || (assignment.employee ? assignment.employee.employee_id : null);
+
+    // Check if user can edit (managers and admins)
+    const canEdit = currentUser && ['Project Manager', 'Admin', 'Super Admin'].includes(currentUser.role);
+    const clickableClass = canEdit && employeeId ? 'clickable-assignment-employee' : '';
+
+    return `
+        <div class="assignment-card ${clickableClass}" data-assignment-id="${assignment.assignment_id || assignment.id}" data-employee-id="${employeeId || ''}">
+            <div class="employee-name" style="color: ${positionColor}; font-weight: 600;">
+                ${employeeName}
+            </div>
+            ${positionName ? `<div class="position-name">${positionName}</div>` : ''}
+            ${assignment.notes ? `<div class="assignment-notes">${assignment.notes}</div>` : ''}
+        </div>
+    `;
+}
+
+/**
+ * Get day name from date string
+ */
+function getDayFromDate(dateString) {
+    if (!dateString) return '';
+
+    const date = new Date(dateString);
+    const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+    return days[date.getDay()];
+}
+
+/**
+ * Initialize assignment card click handlers
+ */
+function initializeAssignmentCardHandlers() {
+    // Use event delegation for dynamically created assignment cards and unassigned employees
+    document.addEventListener('click', function(event) {
+        // Handle assignment card clicks
+        const assignmentCard = event.target.closest('.clickable-assignment-employee');
+        if (assignmentCard) {
+            const employeeId = assignmentCard.getAttribute('data-employee-id');
+            if (employeeId && currentUser && ['Project Manager', 'Admin', 'Super Admin'].includes(currentUser.role)) {
+                // For now, redirect to staff page with employee highlighted
+                window.location.href = `/staff.html?employee=${employeeId}`;
+            }
+            return;
+        }
+
+        // Handle unassigned employee card clicks
+        const unassignedCard = event.target.closest('.clickable-unassigned-employee');
+        if (unassignedCard) {
+            const employeeId = unassignedCard.getAttribute('data-employee-id');
+            if (employeeId && currentUser && ['Project Manager', 'Admin', 'Super Admin'].includes(currentUser.role)) {
+                // For now, redirect to staff page with employee highlighted
+                window.location.href = `/staff.html?employee=${employeeId}`;
+            }
+        }
+    });
 }
 
 /**

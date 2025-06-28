@@ -296,10 +296,11 @@ function createPositionCard(position, employees) {
     } else {
         employees.forEach(employee => {
             const employeeItem = document.createElement('div');
-            employeeItem.className = 'employee-item';
-            
+            employeeItem.className = 'employee-item clickable-employee';
+            employeeItem.setAttribute('data-employee-id', employee.employee_id);
+
             const statusClass = `status-${(employee.status || 'active').toLowerCase()}`;
-            
+
             employeeItem.innerHTML = `
                 <div>
                     <div class="employee-name">${employee.name || `${employee.first_name} ${employee.last_name}`}</div>
@@ -307,7 +308,13 @@ function createPositionCard(position, employees) {
                 </div>
                 <span class="status-badge ${statusClass}">${employee.status || 'Active'}</span>
             `;
-            
+
+            // Add click handler for manager users
+            if (currentUser && ['Project Manager', 'Admin', 'Super Admin'].includes(currentUser.role)) {
+                employeeItem.addEventListener('click', () => openEmployeeEditModal(employee));
+                employeeItem.style.cursor = 'pointer';
+            }
+
             employeeList.appendChild(employeeItem);
         });
     }
@@ -333,22 +340,30 @@ function displayStaffTable() {
     
     filteredEmployees.forEach(employee => {
         const row = document.createElement('tr');
-        
+        row.className = 'clickable-employee-row';
+        row.setAttribute('data-employee-id', employee.employee_id);
+
         const positionName = getPositionName(employee.position_id || employee.position);
         const statusClass = `status-${(employee.status || 'active').toLowerCase()}`;
         const hireDate = employee.hire_date ? formatDate(employee.hire_date) : 'N/A';
         const contact = employee.phone || employee.email || 'N/A';
-        
+
         row.innerHTML = `
             <td>${employee.employee_id}</td>
-            <td>${employee.name || `${employee.first_name || ''} ${employee.last_name || ''}`}</td>
+            <td class="employee-name-cell">${employee.name || `${employee.first_name || ''} ${employee.last_name || ''}`}</td>
             <td>${positionName}</td>
             <td><span class="status-badge ${statusClass}">${employee.status || 'Active'}</span></td>
             <td>${employee.employee_number || 'N/A'}</td>
             <td>${hireDate}</td>
             <td>${contact}</td>
         `;
-        
+
+        // Add click handler for manager users
+        if (currentUser && ['Project Manager', 'Admin', 'Super Admin'].includes(currentUser.role)) {
+            row.addEventListener('click', () => openEmployeeEditModal(employee));
+            row.style.cursor = 'pointer';
+        }
+
         tbody.appendChild(row);
     });
     
@@ -554,6 +569,257 @@ function showMessage(message, type = 'info') {
     setTimeout(() => {
         document.body.removeChild(messageEl);
     }, 3000);
+}
+
+/**
+ * Open employee edit modal
+ */
+function openEmployeeEditModal(employee) {
+    // Check if user has permission
+    if (!currentUser || !['Project Manager', 'Admin', 'Super Admin'].includes(currentUser.role)) {
+        showError('You do not have permission to edit employee information.');
+        return;
+    }
+
+    // Create modal if it doesn't exist
+    let modal = document.getElementById('employeeEditModal');
+    if (!modal) {
+        modal = createEmployeeEditModal();
+        document.body.appendChild(modal);
+    }
+
+    // Populate modal with employee data
+    populateEmployeeEditModal(employee);
+
+    // Show modal
+    modal.style.display = 'flex';
+}
+
+/**
+ * Create employee edit modal
+ */
+function createEmployeeEditModal() {
+    const modal = document.createElement('div');
+    modal.id = 'employeeEditModal';
+    modal.className = 'modal-overlay';
+    modal.style.display = 'none';
+
+    modal.innerHTML = `
+        <div class="modal large-modal">
+            <div class="modal-header">
+                <h2>Edit Employee</h2>
+                <button type="button" class="modal-close" onclick="closeEmployeeEditModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form id="employeeEditForm">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="editEmployeeId">Employee ID</label>
+                            <input type="text" id="editEmployeeId" name="employee_id" readonly>
+                        </div>
+                        <div class="form-group">
+                            <label for="editEmployeeNumber">Employee Number</label>
+                            <input type="text" id="editEmployeeNumber" name="employee_number">
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="editFirstName">First Name</label>
+                            <input type="text" id="editFirstName" name="first_name" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="editLastName">Last Name</label>
+                            <input type="text" id="editLastName" name="last_name" required>
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="editPosition">Position</label>
+                            <select id="editPosition" name="position_id" required>
+                                <option value="">Select Position</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="editStatus">Status</label>
+                            <select id="editStatus" name="status" required>
+                                <option value="Active">Active</option>
+                                <option value="Inactive">Inactive</option>
+                                <option value="Vacation">Vacation</option>
+                                <option value="Medical">Medical</option>
+                                <option value="Military">Military</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="editPhone">Phone</label>
+                            <input type="tel" id="editPhone" name="phone">
+                        </div>
+                        <div class="form-group">
+                            <label for="editEmail">Email</label>
+                            <input type="email" id="editEmail" name="email">
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="editHireDate">Hire Date</label>
+                            <input type="date" id="editHireDate" name="hire_date">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="editNotes">Notes</label>
+                        <textarea id="editNotes" name="notes" rows="3"></textarea>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" onclick="closeEmployeeEditModal()">Cancel</button>
+                <button type="button" class="btn btn-primary" onclick="saveEmployeeChanges()">Save Changes</button>
+            </div>
+        </div>
+    `;
+
+    return modal;
+}
+
+/**
+ * Populate employee edit modal with data
+ */
+function populateEmployeeEditModal(employee) {
+    // Basic employee info
+    document.getElementById('editEmployeeId').value = employee.employee_id || '';
+    document.getElementById('editEmployeeNumber').value = employee.employee_number || '';
+
+    // Parse name from combined name field or use separate fields
+    let firstName = employee.first_name || '';
+    let lastName = employee.last_name || '';
+
+    if (!firstName && !lastName && employee.name) {
+        const nameParts = employee.name.split(' ');
+        firstName = nameParts[0] || '';
+        lastName = nameParts.slice(1).join(' ') || '';
+    }
+
+    document.getElementById('editFirstName').value = firstName;
+    document.getElementById('editLastName').value = lastName;
+
+    // Position
+    const positionSelect = document.getElementById('editPosition');
+    positionSelect.innerHTML = '<option value="">Select Position</option>';
+    positions.forEach(position => {
+        const option = document.createElement('option');
+        option.value = position.position_id;
+        option.textContent = position.name;
+        if (employee.position_id === position.position_id || employee.position === position.name) {
+            option.selected = true;
+        }
+        positionSelect.appendChild(option);
+    });
+
+    // Status
+    document.getElementById('editStatus').value = employee.status || 'Active';
+
+    // Contact info
+    document.getElementById('editPhone').value = employee.phone || '';
+    document.getElementById('editEmail').value = employee.email || '';
+
+    // Hire date
+    if (employee.hire_date) {
+        const hireDate = new Date(employee.hire_date);
+        document.getElementById('editHireDate').value = hireDate.toISOString().split('T')[0];
+    }
+
+    // Notes
+    document.getElementById('editNotes').value = employee.notes || '';
+
+    // Store original employee data for comparison
+    document.getElementById('employeeEditForm').setAttribute('data-employee-id', employee.employee_id);
+}
+
+/**
+ * Close employee edit modal
+ */
+function closeEmployeeEditModal() {
+    const modal = document.getElementById('employeeEditModal');
+    if (modal) {
+        modal.style.display = 'none';
+    }
+}
+
+/**
+ * Save employee changes
+ */
+async function saveEmployeeChanges() {
+    try {
+        const form = document.getElementById('employeeEditForm');
+        const employeeId = form.getAttribute('data-employee-id');
+
+        // Collect form data
+        const formData = new FormData(form);
+        const employeeData = {};
+
+        for (let [key, value] of formData.entries()) {
+            employeeData[key] = value;
+        }
+
+        // Validate required fields
+        if (!employeeData.first_name || !employeeData.last_name) {
+            showError('First name and last name are required.');
+            return;
+        }
+
+        // Show loading state
+        const saveButton = document.querySelector('#employeeEditModal .btn-primary');
+        const originalText = saveButton.textContent;
+        saveButton.textContent = 'Saving...';
+        saveButton.disabled = true;
+
+        // For demo mode, just show success message
+        if (global.isDemoMode || true) { // Always demo mode for now
+            // Update local employee data
+            const employeeIndex = employees.findIndex(emp => emp.employee_id === employeeId);
+            if (employeeIndex !== -1) {
+                employees[employeeIndex] = {
+                    ...employees[employeeIndex],
+                    ...employeeData,
+                    name: `${employeeData.first_name} ${employeeData.last_name}`
+                };
+
+                // Update filtered employees
+                filteredEmployees = [...employees];
+
+                // Refresh displays
+                updateStatistics();
+                displayStaffByPosition();
+                displayStaffTable();
+            }
+
+            showMessage('Employee updated successfully!', 'success');
+            closeEmployeeEditModal();
+        } else {
+            // Real API call would go here
+            const response = await api.put(`/employees/${employeeId}`, employeeData);
+
+            if (response.success) {
+                showMessage('Employee updated successfully!', 'success');
+                closeEmployeeEditModal();
+                await refreshStaff();
+            } else {
+                throw new Error(response.message || 'Failed to update employee');
+            }
+        }
+
+    } catch (error) {
+        console.error('Error saving employee changes:', error);
+        showError('Failed to save changes: ' + error.message);
+    } finally {
+        // Reset button state
+        const saveButton = document.querySelector('#employeeEditModal .btn-primary');
+        if (saveButton) {
+            saveButton.textContent = 'Save Changes';
+            saveButton.disabled = false;
+        }
+    }
 }
 
 // Initialize page when DOM is loaded
