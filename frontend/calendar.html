@@ -485,6 +485,13 @@
                         </div>
                     </div>
                     <button type="button" class="login-btn" id="headerLoginButton" style="display: none;">Login</button>
+
+                    <!-- Hamburger Menu Button -->
+                    <button type="button" class="hamburger-menu" id="hamburgerMenu" aria-label="Toggle navigation menu">
+                        <span class="bar"></span>
+                        <span class="bar"></span>
+                        <span class="bar"></span>
+                    </button>
                 </div>
             </div>
         </div>
@@ -501,8 +508,24 @@
             </div>
         </nav>
     </header>
+
+    <!-- Mobile Navigation Overlay -->
+    <div class="mobile-nav-overlay" id="mobileNavOverlay">
+        <div class="mobile-nav-menu" id="mobileNavMenu">
+            <div class="mobile-nav-header">
+                <img src="/assets/images/metropower-logo.png" alt="MetroPower Logo" class="logo">
+                <button type="button" class="mobile-nav-close" id="mobileNavClose" aria-label="Close navigation menu">&times;</button>
+            </div>
+            <div class="mobile-nav-links">
+                <a href="/index.html" class="mobile-nav-link">Dashboard</a>
+                <a href="/assignments.html" class="mobile-nav-link">Assignments</a>
+                <a href="/staff.html" class="mobile-nav-link">Staff</a>
+                <a href="/projects.html" class="mobile-nav-link">Projects</a>
+                <a href="/calendar.html" class="mobile-nav-link active">Calendar</a>
+                <a href="/manager.html" class="mobile-nav-link">Manager</a>
+            </div>
         </div>
-    </header>
+    </div>
 
     <!-- Main Content -->
     <main class="calendar-container">

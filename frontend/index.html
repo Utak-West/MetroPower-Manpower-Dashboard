@@ -64,6 +64,13 @@
                         </div>
                     </div>
                     <button class="login-btn" id="headerLoginButton" style="display: none;">Login</button>
+
+                    <!-- Hamburger Menu Button -->
+                    <button type="button" class="hamburger-menu" id="hamburgerMenu" aria-label="Toggle navigation menu">
+                        <span class="bar"></span>
+                        <span class="bar"></span>
+                        <span class="bar"></span>
+                    </button>
                 </div>
             </div>
         </div>
@@ -80,6 +87,24 @@
             </div>
         </nav>
     </header>
+
+    <!-- Mobile Navigation Overlay -->
+    <div class="mobile-nav-overlay" id="mobileNavOverlay">
+        <div class="mobile-nav-menu" id="mobileNavMenu">
+            <div class="mobile-nav-header">
+                <img src="/assets/images/metropower-logo.png" alt="MetroPower Logo" class="logo">
+                <button type="button" class="mobile-nav-close" id="mobileNavClose" aria-label="Close navigation menu">&times;</button>
+            </div>
+            <div class="mobile-nav-links">
+                <a href="/index.html" class="mobile-nav-link active">Dashboard</a>
+                <a href="/assignments.html" class="mobile-nav-link" id="mobileNavAssignments" style="display: none;">Assignments</a>
+                <a href="/staff.html" class="mobile-nav-link" id="mobileNavStaff" style="display: none;">Staff</a>
+                <a href="/projects.html" class="mobile-nav-link" id="mobileNavProjects" style="display: none;">Projects</a>
+                <a href="/calendar.html" class="mobile-nav-link" id="mobileNavCalendar" style="display: none;">Calendar</a>
+                <a href="/manager.html" class="mobile-nav-link" id="mobileNavManager" style="display: none;">Manager</a>
+            </div>
+        </div>
+    </div>
 
     <!-- Main Content -->
     <main class="main-content">

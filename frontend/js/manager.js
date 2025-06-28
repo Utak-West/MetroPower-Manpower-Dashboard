@@ -275,7 +275,10 @@ document.addEventListener('DOMContentLoaded', async function() {
 
     // Set today's date as default for assignment form
     document.getElementById('assignDate').valueAsDate = new Date();
-    
+
+    // Initialize mobile navigation
+    initializeMobileNavigation();
+
     // Load initial data
     loadTabData('employees');
 

@@ -27,6 +27,7 @@ document.addEventListener('DOMContentLoaded', async function() {
     initializeHeader();
     initializeLoginModal();
     initializeNotifications();
+    initializeMobileNavigation();
     initializeFilters();
     initializeAssignmentCardHandlers();
 

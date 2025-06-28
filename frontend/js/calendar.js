@@ -22,6 +22,7 @@ document.addEventListener('DOMContentLoaded', async function() {
     initializeCalendarControls();
     initializeDate();
     initializeModalEventListeners();
+    initializeMobileNavigation();
 
     // Check authentication and load data
     await checkAuthentication();

@@ -48,6 +48,9 @@ async function initializePage() {
         setupEditFormHandler();
         setupFilterHandlers();
 
+        // Initialize mobile navigation
+        initializeMobileNavigation();
+
         // Set default date to today
         document.getElementById('assignment_date').value = new Date().toISOString().split('T')[0];
 

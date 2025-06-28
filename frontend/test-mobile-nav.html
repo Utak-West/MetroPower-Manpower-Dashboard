@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mobile Navigation Test - MetroPower Dashboard</title>
+    <link rel="stylesheet" href="/css/dashboard.css">
+    <link rel="stylesheet" href="/css/components.css">
+    <style>
+        body {
+            margin: 0;
+            font-family: Inter, sans-serif;
+        }
+        .test-content {
+            padding: 2rem;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        .test-section {
+            background: white;
+            border-radius: 8px;
+            padding: 1.5rem;
+            margin-bottom: 1rem;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .test-instructions {
+            background: #f8f9fa;
+            border-left: 4px solid #E52822;
+            padding: 1rem;
+            margin-bottom: 1rem;
+        }
+        .status-indicator {
+            display: inline-block;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            margin-right: 8px;
+        }
+        .status-pass { background: #28a745; }
+        .status-fail { background: #dc3545; }
+        .status-pending { background: #ffc107; }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <header class="header">
+        <!-- Top Header Bar -->
+        <div class="header-top">
+            <div class="header-top-container">
+                <div class="header-brand">
+                    <img src="/assets/images/metropower-logo.png" alt="MetroPower Logo" class="logo">
+                    <div class="brand-info">
+                        <h1>Mobile Nav Test</h1>
+                        <span class="branch-name">Tucker Branch</span>
+                    </div>
+                </div>
+                <div class="header-center">
+                    <div class="current-date" id="currentDate">Test Mode</div>
+                </div>
+                <div class="header-user">
+                    <button type="button" class="login-btn">Login</button>
+                    
+                    <!-- Hamburger Menu Button -->
+                    <button type="button" class="hamburger-menu" id="hamburgerMenu" aria-label="Toggle navigation menu">
+                        <span class="bar"></span>
+                        <span class="bar"></span>
+                        <span class="bar"></span>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Navigation Bar -->
+        <nav class="header-nav">
+            <div class="nav-container">
+                <a href="#" class="nav-link active">Dashboard</a>
+                <a href="#" class="nav-link">Assignments</a>
+                <a href="#" class="nav-link">Staff</a>
+                <a href="#" class="nav-link">Projects</a>
+                <a href="#" class="nav-link">Calendar</a>
+                <a href="#" class="nav-link">Manager</a>
+            </div>
+        </nav>
+    </header>
+
+    <!-- Mobile Navigation Overlay -->
+    <div class="mobile-nav-overlay" id="mobileNavOverlay">
+        <div class="mobile-nav-menu" id="mobileNavMenu">
+            <div class="mobile-nav-header">
+                <img src="/assets/images/metropower-logo.png" alt="MetroPower Logo" class="logo">
+                <button type="button" class="mobile-nav-close" id="mobileNavClose" aria-label="Close navigation menu">&times;</button>
+            </div>
+            <div class="mobile-nav-links">
+                <a href="#" class="mobile-nav-link active">Dashboard</a>
+                <a href="#" class="mobile-nav-link">Assignments</a>
+                <a href="#" class="mobile-nav-link">Staff</a>
+                <a href="#" class="mobile-nav-link">Projects</a>
+                <a href="#" class="mobile-nav-link">Calendar</a>
+                <a href="#" class="mobile-nav-link">Manager</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Test Content -->
+    <main class="test-content">
+        <div class="test-instructions">
+            <h2>Mobile Navigation Test Instructions</h2>
+            <p>This page tests the hamburger menu functionality. Follow these steps:</p>
+            <ol>
+                <li>Resize your browser window to mobile size (< 768px width) or use mobile device</li>
+                <li>The hamburger menu (☰) should appear in the top right</li>
+                <li>Click the hamburger menu to open the mobile navigation</li>
+                <li>Test all the closing methods listed below</li>
+            </ol>
+        </div>
+
+        <div class="test-section">
+            <h3>Test Checklist</h3>
+            <div id="testResults">
+                <p><span class="status-indicator status-pending"></span> Hamburger menu visible on mobile</p>
+                <p><span class="status-indicator status-pending"></span> Menu opens when hamburger clicked</p>
+                <p><span class="status-indicator status-pending"></span> Menu closes when X button clicked</p>
+                <p><span class="status-indicator status-pending"></span> Menu closes when clicking outside</p>
+                <p><span class="status-indicator status-pending"></span> Menu closes when pressing Escape key</p>
+                <p><span class="status-indicator status-pending"></span> Menu closes when clicking navigation link</p>
+                <p><span class="status-indicator status-pending"></span> Menu closes when resizing to desktop</p>
+                <p><span class="status-indicator status-pending"></span> Smooth animations work properly</p>
+                <p><span class="status-indicator status-pending"></span> No conflicts with other UI elements</p>
+            </div>
+        </div>
+
+        <div class="test-section">
+            <h3>Manual Test Controls</h3>
+            <button type="button" onclick="testHamburgerMenu()" class="btn">Test Hamburger Menu</button>
+            <button type="button" onclick="testMobileNavigation()" class="btn">Test Mobile Navigation</button>
+            <button type="button" onclick="resetTests()" class="btn btn-secondary">Reset Tests</button>
+        </div>
+    </main>
+
+    <!-- Scripts -->
+    <script src="/js/components.js"></script>
+    <script>
+        // Initialize mobile navigation when page loads
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('Test page loaded, initializing mobile navigation...');
+            initializeMobileNavigation();
+            
+            // Update current date
+            document.getElementById('currentDate').textContent = new Date().toLocaleDateString();
+        });
+
+        // Test functions
+        function testHamburgerMenu() {
+            const hamburger = document.getElementById('hamburgerMenu');
+            if (hamburger) {
+                hamburger.click();
+                console.log('Hamburger menu clicked programmatically');
+            }
+        }
+
+        function testMobileNavigation() {
+            const overlay = document.getElementById('mobileNavOverlay');
+            if (overlay) {
+                overlay.classList.toggle('active');
+                console.log('Mobile navigation toggled programmatically');
+            }
+        }
+
+        function resetTests() {
+            const overlay = document.getElementById('mobileNavOverlay');
+            const hamburger = document.getElementById('hamburgerMenu');
+            
+            if (overlay) overlay.classList.remove('active');
+            if (hamburger) hamburger.classList.remove('active');
+            
+            console.log('Tests reset');
+        }
+
+        // Log window resize events
+        window.addEventListener('resize', function() {
+            console.log('Window resized to:', window.innerWidth, 'x', window.innerHeight);
+        });
+    </script>
+</body>
+</html>

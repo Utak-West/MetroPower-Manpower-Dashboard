@@ -42,6 +42,9 @@ document.addEventListener('DOMContentLoaded', async function() {
         console.log('Initializing search and filters...');
         initializeSearchAndFilters();
 
+        console.log('Initializing mobile navigation...');
+        initializeMobileNavigation();
+
         // Check authentication and load data
         console.log('Starting authentication check...');
         await checkAuthentication();

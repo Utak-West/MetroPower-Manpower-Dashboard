@@ -33,6 +33,9 @@ async function initializePage() {
         displayStaffByPosition();
         displayStaffTable();
 
+        // Initialize mobile navigation
+        initializeMobileNavigation();
+
     } catch (error) {
         console.error('Failed to initialize page:', error);
         showError('Failed to load page data. Please refresh and try again.');
