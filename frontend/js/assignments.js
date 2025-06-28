@@ -61,8 +61,21 @@ async function initializePage() {
  * Display user information in header
  */
 function displayUserInfo(user) {
-    const userDisplay = document.getElementById('userDisplay');
-    userDisplay.textContent = `${user.first_name} ${user.last_name} (${user.role})`;
+    const userName = document.getElementById('userName');
+    const userRole = document.getElementById('userRole');
+    const userInfo = document.getElementById('userInfo');
+
+    if (userName) {
+        userName.textContent = `${user.first_name} ${user.last_name}`;
+    }
+
+    if (userRole) {
+        userRole.textContent = user.role;
+    }
+
+    if (userInfo) {
+        userInfo.style.display = 'flex';
+    }
 }
 
 /**

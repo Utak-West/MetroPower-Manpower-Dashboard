@@ -285,9 +285,12 @@ function renderMonthCalendar() {
             
             const dayNumberClass = `day-number ${!isCurrentMonth ? 'other-month' : ''} ${isToday ? 'today' : ''}`;
             
-            const assignmentsHTML = dayAssignments.slice(0, 3).map(assignment =>
-                `<div class="assignment-item" onclick="showAssignmentDetails('${dateStr}')">${assignment.employee ? assignment.employee.name : 'Unknown'}</div>`
-            ).join('');
+            const assignmentsHTML = dayAssignments.slice(0, 3).map(assignment => {
+                const employeeName = assignment.employee ?
+                    `${assignment.employee.first_name || ''} ${assignment.employee.last_name || ''}`.trim() || 'Unknown' :
+                    'Unknown';
+                return `<div class="assignment-item" onclick="showAssignmentDetails('${dateStr}')">${employeeName}</div>`;
+            }).join('');
             
             const moreCount = dayAssignments.length > 3 ? dayAssignments.length - 3 : 0;
             const countHTML = moreCount > 0 ? `<div class="assignment-count">${moreCount}+</div>` : '';
@@ -339,12 +342,15 @@ function renderWeekCalendar() {
                 const dateStr = date.toISOString().split('T')[0];
                 const dayAssignments = calendarData.assignments[dateStr] || [];
 
-                const assignmentsContent = dayAssignments.map(assignment =>
-                    `<div class="assignment-item" onclick="showAssignmentDetails('${dateStr}')">
-                        <div class="assignment-employee">${assignment.employee ? assignment.employee.name : 'Unknown'}</div>
+                const assignmentsContent = dayAssignments.map(assignment => {
+                    const employeeName = assignment.employee ?
+                        `${assignment.employee.first_name || ''} ${assignment.employee.last_name || ''}`.trim() || 'Unknown' :
+                        'Unknown';
+                    return `<div class="assignment-item" onclick="showAssignmentDetails('${dateStr}')">
+                        <div class="assignment-employee">${employeeName}</div>
                         <div class="assignment-project">${assignment.project ? assignment.project.name : 'Unknown Project'}</div>
-                    </div>`
-                ).join('');
+                    </div>`;
+                }).join('');
 
                 return `<div class="week-day-column">${assignmentsContent}</div>`;
             }).join('')}
@@ -403,11 +409,21 @@ function showErrorState() {
 }
 
 /**
+ * Update element with HTML content (for modal content)
+ */
+function updateElementHTML(elementId, htmlContent) {
+    const element = document.getElementById(elementId);
+    if (element) {
+        element.innerHTML = htmlContent;
+    }
+}
+
+/**
  * Show assignment details for a specific date
  */
 function showAssignmentDetails(dateStr) {
     const assignments = calendarData.assignments[dateStr] || [];
-    
+
     if (assignments.length === 0) {
         showNotification('No assignments for this date', 'info');
         return;
@@ -415,15 +431,31 @@ function showAssignmentDetails(dateStr) {
 
     // Update modal content
     updateElement('modalDate', `Assignments for ${formatDate(new Date(dateStr))}`);
-    
-    const assignmentsHTML = assignments.map(assignment => `
-        <div class="assignment-detail">
-            <strong>${assignment.employee.name}</strong> - ${assignment.project.name}
-            <br><small>Position: ${assignment.employee.position || 'N/A'}</small>
-        </div>
-    `).join('');
 
-    updateElement('modalAssignmentContent', assignmentsHTML);
+    const assignmentsHTML = assignments.map(assignment => {
+        const employeeName = assignment.employee ?
+            `${assignment.employee.first_name || ''} ${assignment.employee.last_name || ''}`.trim() || 'Unknown Employee' :
+            'Unknown Employee';
+        const projectName = assignment.project ? assignment.project.name : 'Unknown Project';
+        const position = assignment.employee ? assignment.employee.position : 'N/A';
+        const taskDescription = assignment.task_description || 'No task description';
+        const location = assignment.location || 'No location specified';
+
+        return `
+            <div class="assignment-detail">
+                <div class="assignment-header">
+                    <strong>${employeeName}</strong> - ${projectName}
+                </div>
+                <div class="assignment-info">
+                    <small>Position: ${position}</small><br>
+                    <small>Task: ${taskDescription}</small><br>
+                    <small>Location: ${location}</small>
+                </div>
+            </div>
+        `;
+    }).join('');
+
+    updateElementHTML('modalAssignmentContent', assignmentsHTML);
 
     // Show modal
     const modal = document.getElementById('assignmentModal');

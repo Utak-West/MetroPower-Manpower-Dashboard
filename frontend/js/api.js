@@ -287,14 +287,7 @@ class APIClient {
         return this.get('/employees');
     }
 
-    /**
-     * Get all projects
-     */
-    async getProjects(params = {}) {
-        const queryString = new URLSearchParams(params).toString();
-        const url = queryString ? `/projects?${queryString}` : '/projects';
-        return this.get(url);
-    }
+
 
     /**
      * Get project details by ID

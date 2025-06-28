@@ -17,6 +17,7 @@ let assignments = {};
 let filteredEmployees = [];
 let filteredAssignments = {};
 let positions = [];
+let currentUser = null;
 
 // Initialize dashboard when DOM is loaded
 document.addEventListener('DOMContentLoaded', async function() {
@@ -138,6 +139,9 @@ async function initializeAuthentication() {
  * Show authenticated state
  */
 function showAuthenticatedState(user) {
+    // Set global currentUser
+    currentUser = user;
+
     const userInfo = document.getElementById('userInfo');
     const loginButton = document.getElementById('headerLoginButton');
     const userName = document.getElementById('userName');

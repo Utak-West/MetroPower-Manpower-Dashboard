@@ -99,28 +99,49 @@ function switchView(view) {
  */
 async function checkAuthentication() {
     try {
+        console.log('Checking authentication...');
         const user = await getCurrentUser();
+        console.log('User retrieved:', user);
 
         if (!user) {
+            console.log('No user found, redirecting to login');
             window.location.href = '/index.html';
             return;
         }
 
         // Store current user
         currentUser = user;
+        console.log('Current user set:', currentUser);
 
         // Update user display
-        updateElement('userDisplay', `${user.first_name} ${user.last_name} (${user.role})`);
+        const userName = document.getElementById('userName');
+        const userRole = document.getElementById('userRole');
+        const userInfo = document.getElementById('userInfo');
+
+        if (userName) {
+            userName.textContent = `${user.first_name} ${user.last_name}`;
+        }
+
+        if (userRole) {
+            userRole.textContent = user.role;
+        }
+
+        if (userInfo) {
+            userInfo.style.display = 'flex';
+        }
 
         // Initialize project management features
         initializeProjectManagement();
 
         // Load projects data
+        console.log('Loading projects...');
         await loadProjects();
 
     } catch (error) {
         console.error('Authentication check failed:', error);
-        window.location.href = '/index.html';
+        showErrorState();
+        // Don't redirect immediately, let user see the error
+        // window.location.href = '/index.html';
     }
 }
 
@@ -129,16 +150,23 @@ async function checkAuthentication() {
  */
 async function loadProjects() {
     try {
+        console.log('Starting to load projects...');
         showLoadingState();
 
+        console.log('Making API call to get projects...');
         const response = await api.getProjects({ withStats: true });
+        console.log('API response received:', response);
+
         projects = response.data || [];
+        console.log('Projects loaded:', projects.length);
 
         hideLoadingState();
 
         if (projects.length === 0) {
+            console.log('No projects found, showing empty state');
             showEmptyState();
         } else {
+            console.log('Rendering projects in', currentView, 'view');
             if (currentView === 'card') {
                 renderProjectCards(projects);
             } else {
@@ -148,6 +176,7 @@ async function loadProjects() {
 
     } catch (error) {
         console.error('Error loading projects:', error);
+        console.error('Error details:', error.message, error.stack);
         hideLoadingState();
         showErrorState();
     }
