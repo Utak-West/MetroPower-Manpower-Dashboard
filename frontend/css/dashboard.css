@@ -252,10 +252,10 @@ body {
     display: block;
 }
 
-/* Tablet and Mobile Navigation (≤768px) */
-@media (max-width: 768px) {
+/* Tablet and Mobile Navigation (≤1024px) - Includes iPads */
+@media screen and (max-width: 1024px) {
     /* Show hamburger menu, hide desktop navigation */
-    .hamburger-menu {
+    .header .hamburger-menu {
         display: flex !important;
         flex-direction: column;
         justify-content: space-around;
@@ -407,6 +407,20 @@ body {
     transform: rotate(-45deg) translate(6px, -6px);
 }
 
+/* Additional mobile-specific hamburger menu visibility */
+@media screen and (max-width: 480px) {
+    .hamburger-menu {
+        display: flex !important;
+    }
+}
+
+/* iPad specific hamburger menu visibility */
+@media screen and (min-width: 481px) and (max-width: 1024px) {
+    .hamburger-menu {
+        display: flex !important;
+    }
+}
+
 /* Mobile Navigation Overlay */
 .mobile-nav-overlay {
     position: fixed;
@@ -518,8 +532,8 @@ body {
     color: var(--white);
 }
 
-/* Tablet Specific Adjustments (481px-768px) */
-@media (min-width: 481px) and (max-width: 768px) {
+/* Tablet Specific Adjustments (481px-1024px) */
+@media (min-width: 481px) and (max-width: 1024px) {
     /* Header layout optimizations for tablets */
     .header-top-container {
         height: 55px;
@@ -1185,7 +1199,7 @@ body {
     }
 }
 
-@media (max-width: 768px) {
+@media (max-width: 1024px) {
     .assignment-grid-container {
         overflow-x: auto;
     }
@@ -1214,7 +1228,7 @@ body {
 }
 
 /* Responsive design */
-@media (max-width: 768px) {
+@media (max-width: 1024px) {
     .header-container {
         padding: 0 var(--spacing-md);
         height: 60px;

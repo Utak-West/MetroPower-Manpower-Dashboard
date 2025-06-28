@@ -363,7 +363,7 @@
 }
 
 /* Responsive utilities */
-@media (max-width: 768px) {
+@media (max-width: 1024px) {
     .modal-overlay {
         padding: var(--spacing-md);
     }
@@ -446,7 +446,7 @@
 }
 
 /* Responsive form adjustments */
-@media (max-width: 768px) {
+@media (max-width: 1024px) {
     .form-row {
         flex-direction: column;
         gap: 0;
@@ -580,7 +580,7 @@
 }
 
 /* Export responsive adjustments */
-@media (max-width: 768px) {
+@media (max-width: 1024px) {
     .export-buttons {
         flex-direction: column;
         gap: 0.5rem;
