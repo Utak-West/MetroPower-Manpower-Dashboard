@@ -100,6 +100,16 @@ function showLoading(show = true) {
 }
 
 /**
+ * Update element content safely
+ */
+function updateElement(elementId, text) {
+    const element = document.getElementById(elementId);
+    if (element) {
+        element.textContent = text;
+    }
+}
+
+/**
  * Create modal
  */
 function createModal(title, content, actions = []) {

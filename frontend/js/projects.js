@@ -142,13 +142,22 @@ function switchView(view) {
 async function checkAuthentication() {
     try {
         console.log('Checking authentication...');
-        const user = await getCurrentUser();
+        let user = await getCurrentUser();
         console.log('User retrieved:', user);
 
+        // If no user found, try demo bypass for development
         if (!user) {
-            console.log('No user found, redirecting to login');
-            window.location.href = '/index.html';
-            return;
+            console.log('No user found, attempting demo bypass...');
+            try {
+                const response = await api.demoBypass();
+                user = response.user;
+                console.log('Demo bypass successful, user:', user);
+            } catch (demoError) {
+                console.error('Demo bypass failed:', demoError);
+                console.log('Redirecting to login page...');
+                window.location.href = '/index.html';
+                return;
+            }
         }
 
         // Store current user
@@ -625,7 +634,7 @@ function closeProjectModal() {
  * Edit project
  */
 function editProject(projectId) {
-    if (!currentUser || currentUser.role !== 'manager') {
+    if (!currentUser || !['Project Manager', 'Admin', 'Super Admin'].includes(currentUser.role)) {
         showNotification('Only managers can edit projects', 'error');
         return;
     }
@@ -691,7 +700,7 @@ function populateEditForm(project) {
  * Delete project
  */
 async function deleteProject(projectId) {
-    if (!currentUser || currentUser.role !== 'manager') {
+    if (!currentUser || !['Project Manager', 'Admin', 'Super Admin'].includes(currentUser.role)) {
         showNotification('Only managers can delete projects', 'error');
         return;
     }
@@ -873,7 +882,7 @@ async function loadProjectDetails(projectId) {
                         <button type="button" class="btn btn-primary" onclick="exportProjectReport('${projectId}')">
                             <i class="icon-download"></i> Export Report
                         </button>
-                        ${currentUser && currentUser.role === 'manager' ? `
+                        ${currentUser && ['Project Manager', 'Admin', 'Super Admin'].includes(currentUser.role) ? `
                             <button type="button" class="btn btn-warning" onclick="editProject('${projectId}')">
                                 <i class="icon-edit"></i> Edit Project
                             </button>
@@ -927,29 +936,14 @@ function viewProjectCalendar(projectId) {
     window.location.href = `/calendar.html?project=${projectId}`;
 }
 
-/**
- * Export project report
- */
-async function exportProjectReport(projectId) {
-    try {
-        showNotification('Exporting project report...', 'info');
 
-        // This would integrate with the existing export functionality
-        // For now, show a placeholder message
-        showNotification('Project report export functionality coming soon', 'info');
-
-    } catch (error) {
-        console.error('Error exporting project report:', error);
-        showNotification('Failed to export project report', 'error');
-    }
-}
 
 /**
  * Show create project modal
  */
 function showCreateProjectModal() {
     // Check if user is a manager
-    if (!currentUser || currentUser.role !== 'manager') {
+    if (!currentUser || !['Project Manager', 'Admin', 'Super Admin'].includes(currentUser.role)) {
         showNotification('Only managers can create projects', 'error');
         return;
     }
@@ -1065,58 +1059,7 @@ async function createProject() {
     }
 }
 
-/**
- * Edit existing project
- */
-async function editProject(projectId) {
-    try {
-        // Check if user is a manager
-        if (!currentUser || currentUser.role !== 'manager') {
-            showNotification('Only managers can edit projects', 'error');
-            return;
-        }
 
-        // Find the project data
-        const project = projects.find(p => p.project_id === projectId);
-        if (!project) {
-            showNotification('Project not found', 'error');
-            return;
-        }
-
-        // Show the create modal but populate it with existing data
-        showCreateProjectModal();
-
-        // Change modal title
-        const modalTitle = document.querySelector('#createProjectModal .modal-header h2');
-        if (modalTitle) {
-            modalTitle.textContent = 'Edit Project';
-        }
-
-        // Populate form with existing data
-        document.getElementById('projectName').value = project.name || '';
-        document.getElementById('projectId').value = project.project_id || '';
-        document.getElementById('projectId').readOnly = true; // Don't allow changing project ID
-        document.getElementById('projectDescription').value = project.description || '';
-        document.getElementById('projectLocation').value = project.location || '';
-        document.getElementById('projectStatus').value = project.status || 'Active';
-        document.getElementById('projectStartDate').value = project.start_date || '';
-        document.getElementById('projectEndDate').value = project.end_date || '';
-        document.getElementById('projectBudget').value = project.budget || '';
-        document.getElementById('projectManager').value = project.project_manager || '';
-        document.getElementById('projectNotes').value = project.notes || '';
-
-        // Change the create button to update
-        const createBtn = document.querySelector('#createProjectModal .modal-footer .btn-primary');
-        if (createBtn) {
-            createBtn.textContent = 'Update Project';
-            createBtn.onclick = () => updateProject(projectId);
-        }
-
-    } catch (error) {
-        console.error('Error editing project:', error);
-        showNotification('Failed to load project for editing', 'error');
-    }
-}
 
 /**
  * Update existing project
@@ -1177,7 +1120,7 @@ function initializeProjectManagement() {
     // Show/hide create button based on user role
     const createBtn = document.getElementById('createProjectBtn');
     if (createBtn && currentUser) {
-        if (currentUser.role === 'manager') {
+        if (['Project Manager', 'Admin', 'Super Admin'].includes(currentUser.role)) {
             createBtn.style.display = 'inline-flex';
         } else {
             createBtn.style.display = 'none';

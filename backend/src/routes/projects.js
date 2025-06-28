@@ -214,7 +214,7 @@ router.get('/:id/assignments', asyncHandler(async (req, res) => {
 router.post('/', asyncHandler(async (req, res) => {
   try {
     // Check if user is authenticated and has manager role
-    if (!req.user || req.user.role !== 'manager') {
+    if (!req.user || !['Project Manager', 'Admin', 'Super Admin'].includes(req.user.role)) {
       return res.status(403).json({
         error: 'Access denied',
         message: 'Only managers can create projects'
@@ -313,7 +313,7 @@ router.post('/', asyncHandler(async (req, res) => {
 router.put('/:id', asyncHandler(async (req, res) => {
   try {
     // Check if user is authenticated and has manager role
-    if (!req.user || req.user.role !== 'manager') {
+    if (!req.user || !['Project Manager', 'Admin', 'Super Admin'].includes(req.user.role)) {
       return res.status(403).json({
         error: 'Access denied',
         message: 'Only managers can update projects'

@@ -265,11 +265,31 @@ async function loadProjectOptions() {
 }
 
 // Form submission handlers
-document.addEventListener('DOMContentLoaded', function() {
+document.addEventListener('DOMContentLoaded', async function() {
     // Check authentication
     if (!authToken) {
-        window.location.href = '/';
-        return;
+        console.log('No auth token found, attempting demo bypass...');
+        try {
+            // Try demo bypass
+            const response = await fetch('/api/auth/demo-bypass');
+            if (response.ok) {
+                const data = await response.json();
+                if (data.accessToken) {
+                    localStorage.setItem('accessToken', data.accessToken);
+                    authToken = data.accessToken;
+                    console.log('Demo bypass successful');
+                } else {
+                    throw new Error('No access token in response');
+                }
+            } else {
+                throw new Error('Demo bypass failed');
+            }
+        } catch (error) {
+            console.error('Demo bypass failed:', error);
+            console.log('Redirecting to main dashboard...');
+            window.location.href = '/';
+            return;
+        }
     }
 
     // Set today's date as default for assignment form
