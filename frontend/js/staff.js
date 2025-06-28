@@ -377,9 +377,18 @@ function applyFilters() {
     const searchInput = document.getElementById('searchInput').value.toLowerCase();
 
     filteredEmployees = employees.filter(employee => {
-        // Position filter
-        if (positionFilter && employee.position_id != positionFilter && employee.position !== getPositionName(positionFilter)) {
-            return false;
+        // Position filter - work with actual data structure
+        if (positionFilter) {
+            const selectedPositionId = parseInt(positionFilter);
+            const selectedPositionName = getPositionName(selectedPositionId);
+
+            // Employee data has 'position' field with position name
+            const employeePositionName = employee.position;
+
+            // Compare position names since that's what we have in the data
+            if (employeePositionName !== selectedPositionName) {
+                return false;
+            }
         }
 
         // Status filter
