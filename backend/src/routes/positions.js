@@ -28,7 +28,8 @@ router.get('/', authenticate, asyncHandler(async (req, res) => {
         { position_id: 2, name: 'Field Supervisor', code: 'FS', color_code: '#3B5998', description: 'Field operations supervisor' },
         { position_id: 3, name: 'Apprentice', code: 'AP', color_code: '#F7B731', description: 'Electrical apprentice' },
         { position_id: 4, name: 'General Laborer', code: 'GL', color_code: '#6F42C1', description: 'General construction laborer' },
-        { position_id: 5, name: 'Temp', code: 'TM', color_code: '#E52822', description: 'Temporary worker' }
+        { position_id: 5, name: 'Temp', code: 'TM', color_code: '#E52822', description: 'Temporary worker' },
+        { position_id: 6, name: 'Service Tech', code: 'ST', color_code: '#17A2B8', description: 'Service technician' }
       ]
 
       return res.json({
@@ -88,7 +89,8 @@ router.get('/:id', authenticate, asyncHandler(async (req, res) => {
         { position_id: 2, name: 'Field Supervisor', code: 'FS', color_code: '#3B5998', description: 'Field operations supervisor' },
         { position_id: 3, name: 'Apprentice', code: 'AP', color_code: '#F7B731', description: 'Electrical apprentice' },
         { position_id: 4, name: 'General Laborer', code: 'GL', color_code: '#6F42C1', description: 'General construction laborer' },
-        { position_id: 5, name: 'Temp', code: 'TM', color_code: '#E52822', description: 'Temporary worker' }
+        { position_id: 5, name: 'Temp', code: 'TM', color_code: '#E52822', description: 'Temporary worker' },
+        { position_id: 6, name: 'Service Tech', code: 'ST', color_code: '#17A2B8', description: 'Service technician' }
       ]
 
       const position = positions.find(p => p.position_id === parseInt(id))

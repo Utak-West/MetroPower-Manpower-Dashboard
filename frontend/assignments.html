@@ -466,6 +466,66 @@
             </div>
         </div>
 
+        <!-- Assignment Filters -->
+        <div class="card">
+            <div class="card-header">
+                <h2>Filter Assignments</h2>
+            </div>
+            <div class="card-body">
+                <div class="filters">
+                    <div class="filter-group">
+                        <label for="assignmentProjectFilter">Project</label>
+                        <select id="assignmentProjectFilter" class="form-control" onchange="applyAssignmentFilters()">
+                            <option value="">All Projects</option>
+                        </select>
+                    </div>
+                    <div class="filter-group">
+                        <label for="assignmentEmployeeFilter">Employee</label>
+                        <select id="assignmentEmployeeFilter" class="form-control" onchange="applyAssignmentFilters()">
+                            <option value="">All Employees</option>
+                        </select>
+                    </div>
+                    <div class="filter-group">
+                        <label for="assignmentStatusFilter">Status</label>
+                        <select id="assignmentStatusFilter" class="form-control" onchange="applyAssignmentFilters()">
+                            <option value="">All Status</option>
+                            <option value="Assigned">Assigned</option>
+                            <option value="In Progress">In Progress</option>
+                            <option value="Completed">Completed</option>
+                            <option value="Cancelled">Cancelled</option>
+                        </select>
+                    </div>
+                    <div class="filter-group">
+                        <label for="assignmentDateFrom">Date From</label>
+                        <input type="date" id="assignmentDateFrom" class="form-control" onchange="applyAssignmentFilters()">
+                    </div>
+                    <div class="filter-group">
+                        <label for="assignmentDateTo">Date To</label>
+                        <input type="date" id="assignmentDateTo" class="form-control" onchange="applyAssignmentFilters()">
+                    </div>
+                    <div class="filter-group">
+                        <label for="assignmentSortBy">Sort By</label>
+                        <select id="assignmentSortBy" class="form-control" onchange="applyAssignmentSorting()">
+                            <option value="date">Assignment Date</option>
+                            <option value="employee">Employee Name</option>
+                            <option value="project">Project Name</option>
+                            <option value="status">Status</option>
+                        </select>
+                    </div>
+                    <div class="filter-group">
+                        <label for="assignmentSortOrder">Order</label>
+                        <select id="assignmentSortOrder" class="form-control" onchange="applyAssignmentSorting()">
+                            <option value="desc">Newest First</option>
+                            <option value="asc">Oldest First</option>
+                        </select>
+                    </div>
+                    <div class="filter-group">
+                        <button type="button" class="btn btn-secondary" onclick="clearAssignmentFilters()">Clear Filters</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
         <!-- Assignments List -->
         <div class="card">
             <div class="card-header">
@@ -499,6 +559,7 @@
                     <div class="export-buttons">
                         <button type="button" class="btn btn-secondary" onclick="exportAssignments('csv')">Export as CSV</button>
                         <button type="button" class="btn btn-secondary" onclick="exportAssignments('excel')">Export as Excel</button>
+                        <button type="button" class="btn btn-primary" onclick="exportAssignments('pdf')">Export as PDF</button>
                     </div>
                 </div>
             </div>

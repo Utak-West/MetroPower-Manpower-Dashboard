@@ -12,6 +12,9 @@ let currentWeekStart = null;
 let employees = [];
 let projects = [];
 let assignments = {};
+let filteredEmployees = [];
+let filteredAssignments = {};
+let positions = [];
 
 // Initialize dashboard when DOM is loaded
 document.addEventListener('DOMContentLoaded', async function() {
@@ -249,11 +252,21 @@ async function loadDashboardData() {
         projects = data.activeProjects || [];
         assignments = data.weekAssignments || {};
 
+        // Initialize filtered data
+        filteredEmployees = [...employees];
+        filteredAssignments = {...assignments};
+
+        // Load positions for filtering
+        await loadPositions();
+
+        // Populate filter dropdowns
+        populateFilterDropdowns();
+
         // Update UI
         updateStatistics(data);
-        updateUnassignedEmployees(data.unassignedToday || []);
+        updateUnassignedEmployees(filteredEmployees);
         updateWeekDisplay();
-        updateAssignmentGrid(data.weekAssignments || {});
+        updateAssignmentGrid(filteredAssignments);
 
     } catch (error) {
         console.error('Error loading dashboard data:', error);
@@ -383,5 +396,238 @@ function updateElement(id, value) {
     const element = document.getElementById(id);
     if (element) {
         element.textContent = value;
+    }
+}
+
+/**
+ * Load positions for filtering
+ */
+async function loadPositions() {
+    try {
+        const response = await api.get('/positions');
+        positions = response.data || [];
+    } catch (error) {
+        console.error('Error loading positions:', error);
+        positions = [];
+    }
+}
+
+/**
+ * Populate filter dropdowns
+ */
+function populateFilterDropdowns() {
+    // Populate project filter
+    const projectFilter = document.getElementById('projectFilter');
+    if (projectFilter) {
+        projectFilter.innerHTML = '<option value="">All Projects</option>';
+        projects.forEach(project => {
+            const option = document.createElement('option');
+            option.value = project.project_id;
+            option.textContent = project.name || project.project_name;
+            projectFilter.appendChild(option);
+        });
+    }
+
+    // Populate position filter
+    const positionFilter = document.getElementById('positionFilter');
+    if (positionFilter) {
+        positionFilter.innerHTML = '<option value="">All Positions</option>';
+        positions.forEach(position => {
+            const option = document.createElement('option');
+            option.value = position.name;
+            option.textContent = position.name;
+            positionFilter.appendChild(option);
+        });
+    }
+}
+
+/**
+ * Apply dashboard filters
+ */
+function applyDashboardFilters() {
+    const projectFilter = document.getElementById('projectFilter')?.value || '';
+    const positionFilter = document.getElementById('positionFilter')?.value || '';
+    const statusFilter = document.getElementById('statusFilter')?.value || '';
+    const searchFilter = document.getElementById('searchFilter')?.value.toLowerCase() || '';
+
+    // Filter employees
+    filteredEmployees = employees.filter(employee => {
+        // Position filter
+        if (positionFilter && employee.position !== positionFilter) {
+            return false;
+        }
+
+        // Status filter
+        if (statusFilter && (employee.status || 'Active') !== statusFilter) {
+            return false;
+        }
+
+        // Search filter
+        if (searchFilter) {
+            const searchFields = [
+                employee.name || `${employee.first_name || ''} ${employee.last_name || ''}`,
+                employee.employee_id,
+                employee.employee_number || ''
+            ].join(' ').toLowerCase();
+
+            if (!searchFields.includes(searchFilter)) {
+                return false;
+            }
+        }
+
+        return true;
+    });
+
+    // Filter assignments by project
+    filteredAssignments = {};
+    Object.keys(assignments).forEach(date => {
+        filteredAssignments[date] = assignments[date].filter(assignment => {
+            if (projectFilter && assignment.project_id != projectFilter) {
+                return false;
+            }
+            return true;
+        });
+    });
+
+    // Apply sorting to filtered data
+    applySorting();
+
+    // Update displays
+    updateUnassignedEmployees(filteredEmployees);
+    updateAssignmentGrid(filteredAssignments);
+    updateFilteredStatistics();
+}
+
+/**
+ * Clear dashboard filters
+ */
+function clearDashboardFilters() {
+    document.getElementById('projectFilter').value = '';
+    document.getElementById('positionFilter').value = '';
+    document.getElementById('statusFilter').value = '';
+    document.getElementById('searchFilter').value = '';
+    document.getElementById('sortBy').value = 'name';
+    document.getElementById('sortOrder').value = 'asc';
+
+    filteredEmployees = [...employees];
+    filteredAssignments = {...assignments};
+
+    applySorting();
+    updateUnassignedEmployees(filteredEmployees);
+    updateAssignmentGrid(filteredAssignments);
+    updateFilteredStatistics();
+}
+
+/**
+ * Apply sorting to filtered data
+ */
+function applySorting() {
+    const sortBy = document.getElementById('sortBy')?.value || 'name';
+    const sortOrder = document.getElementById('sortOrder')?.value || 'asc';
+
+    // Sort employees
+    filteredEmployees.sort((a, b) => {
+        let aValue, bValue;
+
+        switch (sortBy) {
+            case 'name':
+                aValue = a.name || `${a.first_name || ''} ${a.last_name || ''}`.trim();
+                bValue = b.name || `${b.first_name || ''} ${b.last_name || ''}`.trim();
+                break;
+            case 'position':
+                aValue = a.position || '';
+                bValue = b.position || '';
+                break;
+            case 'status':
+                aValue = a.status || 'Active';
+                bValue = b.status || 'Active';
+                break;
+            case 'employee_number':
+                aValue = a.employee_number || a.employee_id || '';
+                bValue = b.employee_number || b.employee_id || '';
+                break;
+            default:
+                aValue = a.name || '';
+                bValue = b.name || '';
+        }
+
+        // Convert to strings for comparison
+        aValue = String(aValue).toLowerCase();
+        bValue = String(bValue).toLowerCase();
+
+        if (sortOrder === 'desc') {
+            return bValue.localeCompare(aValue);
+        } else {
+            return aValue.localeCompare(bValue);
+        }
+    });
+
+    // Update displays
+    updateUnassignedEmployees(filteredEmployees);
+    updateFilteredStatistics();
+}
+
+/**
+ * Update statistics based on filtered data
+ */
+function updateFilteredStatistics() {
+    const totalAssignments = Object.values(filteredAssignments).reduce((sum, dayAssignments) => sum + dayAssignments.length, 0);
+
+    // Update statistics display if elements exist
+    const unassignedCountEl = document.querySelector('.stat-card .stat-number');
+    if (unassignedCountEl) {
+        unassignedCountEl.textContent = filteredEmployees.length;
+    }
+}
+
+/**
+ * Export dashboard data
+ */
+async function exportDashboard(format) {
+    try {
+        // Prepare dashboard summary data for export
+        const dashboardData = {
+            summary: {
+                total_employees: employees.length,
+                unassigned_employees: filteredEmployees.length,
+                total_projects: projects.length,
+                week_start: currentWeekStart
+            },
+            unassigned_employees: filteredEmployees,
+            weekly_assignments: filteredAssignments
+        };
+
+        // For now, export the assignments data
+        const response = await fetch(`${api.baseURL}/exports/assignments?format=${format}`, {
+            headers: api.getHeaders()
+        });
+
+        if (!response.ok) {
+            throw new Error('Export failed');
+        }
+
+        if (format === 'excel' || format === 'pdf') {
+            const blob = await response.blob();
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+
+            let fileExtension = format;
+            if (format === 'excel') fileExtension = 'xlsx';
+
+            a.download = `dashboard_summary_${new Date().toISOString().split('T')[0]}.${fileExtension}`;
+            document.body.appendChild(a);
+            a.click();
+            window.URL.revokeObjectURL(url);
+            document.body.removeChild(a);
+            showNotification(`Dashboard exported as ${format.toUpperCase()} successfully!`, 'success');
+        } else {
+            const data = await response.json();
+            console.log('Export data:', data);
+            showNotification('Export completed!', 'success');
+        }
+    } catch (error) {
+        console.error('Export failed:', error);
+        showNotification('Export failed: ' + error.message, 'error');
     }
 }

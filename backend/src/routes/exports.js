@@ -98,12 +98,18 @@ async function generateExcel(data, headers, sheetName = 'Data') {
 function generatePDF(data, headers, title = 'Report') {
   const doc = new PDFDocument({ margin: 50 })
 
+  // MetroPower Header
+  doc.fontSize(20).font('Helvetica-Bold').fillColor('#DC3545').text('MetroPower', { align: 'center' })
+  doc.fontSize(12).font('Helvetica').fillColor('#000000').text('Manpower Dashboard', { align: 'center' })
+  doc.moveDown()
+
   // Title
   doc.fontSize(16).font('Helvetica-Bold').text(title, { align: 'center' })
   doc.moveDown()
 
-  // Date
+  // Date and metadata
   doc.fontSize(10).font('Helvetica').text(`Generated: ${new Date().toLocaleString()}`, { align: 'right' })
+  doc.text(`Total Records: ${data.length}`, { align: 'right' })
   doc.moveDown()
 
   // Table setup

@@ -67,6 +67,58 @@
             <p>Loading dashboard data...</p>
         </div>
 
+        <!-- Dashboard Filters -->
+        <div class="filters-container">
+            <div class="filters">
+                <div class="filter-group">
+                    <label for="projectFilter">Project</label>
+                    <select id="projectFilter" class="form-control" onchange="applyDashboardFilters()">
+                        <option value="">All Projects</option>
+                    </select>
+                </div>
+                <div class="filter-group">
+                    <label for="positionFilter">Position</label>
+                    <select id="positionFilter" class="form-control" onchange="applyDashboardFilters()">
+                        <option value="">All Positions</option>
+                    </select>
+                </div>
+                <div class="filter-group">
+                    <label for="statusFilter">Status</label>
+                    <select id="statusFilter" class="form-control" onchange="applyDashboardFilters()">
+                        <option value="">All Status</option>
+                        <option value="Active">Active</option>
+                        <option value="Inactive">Inactive</option>
+                        <option value="Vacation">Vacation</option>
+                        <option value="Medical">Medical</option>
+                        <option value="Military">Military</option>
+                    </select>
+                </div>
+                <div class="filter-group">
+                    <label for="searchFilter">Search</label>
+                    <input type="text" id="searchFilter" class="form-control" placeholder="Employee name or ID" oninput="applyDashboardFilters()">
+                </div>
+                <div class="filter-group">
+                    <label for="sortBy">Sort By</label>
+                    <select id="sortBy" class="form-control" onchange="applySorting()">
+                        <option value="name">Employee Name</option>
+                        <option value="position">Position</option>
+                        <option value="status">Status</option>
+                        <option value="employee_number">Employee ID</option>
+                    </select>
+                </div>
+                <div class="filter-group">
+                    <label for="sortOrder">Order</label>
+                    <select id="sortOrder" class="form-control" onchange="applySorting()">
+                        <option value="asc">Ascending</option>
+                        <option value="desc">Descending</option>
+                    </select>
+                </div>
+                <div class="filter-group">
+                    <button type="button" class="btn btn-secondary" onclick="clearDashboardFilters()">Clear Filters</button>
+                </div>
+            </div>
+        </div>
+
         <!-- Dashboard Content -->
         <div class="dashboard-container" id="dashboardContainer">
             <!-- Statistics Cards -->
@@ -140,10 +192,16 @@
             <section class="assignment-section">
                 <div class="section-header">
                     <h2>Weekly Assignments</h2>
-                    <div class="week-navigation">
-                        <button class="week-nav-btn" id="prevWeekBtn">← Previous Week</button>
-                        <span class="current-week" id="currentWeek">Loading...</span>
-                        <button class="week-nav-btn" id="nextWeekBtn">Next Week →</button>
+                    <div class="section-actions">
+                        <div class="week-navigation">
+                            <button class="week-nav-btn" id="prevWeekBtn">← Previous Week</button>
+                            <span class="current-week" id="currentWeek">Loading...</span>
+                            <button class="week-nav-btn" id="nextWeekBtn">Next Week →</button>
+                        </div>
+                        <div class="export-buttons">
+                            <button type="button" class="btn btn-secondary" onclick="exportDashboard('excel')">Export Excel</button>
+                            <button type="button" class="btn btn-primary" onclick="exportDashboard('pdf')">Export PDF</button>
+                        </div>
                     </div>
                 </div>
 

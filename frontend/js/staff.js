@@ -469,17 +469,21 @@ async function exportStaff(format) {
             throw new Error('Export failed');
         }
         
-        if (format === 'csv' || format === 'excel') {
+        if (format === 'csv' || format === 'excel' || format === 'pdf') {
             const blob = await response.blob();
             const url = window.URL.createObjectURL(blob);
             const a = document.createElement('a');
             a.href = url;
-            a.download = `staff_directory_${new Date().toISOString().split('T')[0]}.${format === 'excel' ? 'xlsx' : 'csv'}`;
+
+            let fileExtension = format;
+            if (format === 'excel') fileExtension = 'xlsx';
+
+            a.download = `staff_directory_${new Date().toISOString().split('T')[0]}.${fileExtension}`;
             document.body.appendChild(a);
             a.click();
             window.URL.revokeObjectURL(url);
             document.body.removeChild(a);
-            showMessage('Staff directory exported successfully!', 'success');
+            showMessage(`Staff directory exported as ${format.toUpperCase()} successfully!`, 'success');
         } else {
             const data = await response.json();
             console.log('Export data:', data);

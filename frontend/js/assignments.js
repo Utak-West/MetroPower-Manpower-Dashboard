@@ -10,6 +10,7 @@ let employees = [];
 let projects = [];
 let assignments = [];
 let currentUser = null;
+let filteredAssignments = [];
 
 // Initialize the page when DOM is loaded
 document.addEventListener('DOMContentLoaded', async function() {
@@ -124,9 +125,13 @@ async function loadAssignments() {
 
         const response = await api.get('/assignments');
         assignments = response.data || [];
-        
-        displayAssignments(assignments);
-        
+        filteredAssignments = [...assignments];
+
+        // Populate filter dropdowns
+        populateAssignmentFilters();
+
+        displayAssignments(filteredAssignments);
+
         loadingEl.classList.add('hidden');
         tableEl.classList.remove('hidden');
     } catch (error) {
@@ -482,22 +487,26 @@ async function exportAssignments(format) {
         const response = await fetch(`${api.baseURL}/exports/assignments?format=${format}`, {
             headers: api.getHeaders()
         });
-        
+
         if (!response.ok) {
             throw new Error('Export failed');
         }
-        
-        if (format === 'csv') {
+
+        if (format === 'csv' || format === 'excel' || format === 'pdf') {
             const blob = await response.blob();
             const url = window.URL.createObjectURL(blob);
             const a = document.createElement('a');
             a.href = url;
-            a.download = `assignments_${new Date().toISOString().split('T')[0]}.csv`;
+
+            let fileExtension = format;
+            if (format === 'excel') fileExtension = 'xlsx';
+
+            a.download = `assignments_${new Date().toISOString().split('T')[0]}.${fileExtension}`;
             document.body.appendChild(a);
             a.click();
             window.URL.revokeObjectURL(url);
             document.body.removeChild(a);
-            showSuccess('Assignments exported successfully!');
+            showSuccess(`Assignments exported as ${format.toUpperCase()} successfully!`);
         } else {
             const data = await response.json();
             console.log('Export data:', data);
@@ -539,6 +548,160 @@ function clearEditMessages() {
 function logout() {
     api.setToken(null);
     window.location.href = '/';
+}
+
+/**
+ * Populate assignment filter dropdowns
+ */
+function populateAssignmentFilters() {
+    // Populate project filter
+    const projectFilter = document.getElementById('assignmentProjectFilter');
+    if (projectFilter && projects.length > 0) {
+        projectFilter.innerHTML = '<option value="">All Projects</option>';
+        projects.forEach(project => {
+            const option = document.createElement('option');
+            option.value = project.project_id;
+            option.textContent = project.name || project.project_name;
+            projectFilter.appendChild(option);
+        });
+    }
+
+    // Populate employee filter
+    const employeeFilter = document.getElementById('assignmentEmployeeFilter');
+    if (employeeFilter && employees.length > 0) {
+        employeeFilter.innerHTML = '<option value="">All Employees</option>';
+        employees.forEach(employee => {
+            const option = document.createElement('option');
+            option.value = employee.employee_id;
+            option.textContent = employee.name || `${employee.first_name || ''} ${employee.last_name || ''}`.trim();
+            employeeFilter.appendChild(option);
+        });
+    }
+}
+
+/**
+ * Apply assignment filters
+ */
+function applyAssignmentFilters() {
+    const projectFilter = document.getElementById('assignmentProjectFilter')?.value || '';
+    const employeeFilter = document.getElementById('assignmentEmployeeFilter')?.value || '';
+    const statusFilter = document.getElementById('assignmentStatusFilter')?.value || '';
+    const dateFromFilter = document.getElementById('assignmentDateFrom')?.value || '';
+    const dateToFilter = document.getElementById('assignmentDateTo')?.value || '';
+
+    filteredAssignments = assignments.filter(assignment => {
+        // Project filter
+        if (projectFilter && assignment.project_id != projectFilter) {
+            return false;
+        }
+
+        // Employee filter
+        if (employeeFilter && assignment.employee_id != employeeFilter) {
+            return false;
+        }
+
+        // Status filter
+        if (statusFilter && (assignment.status || 'Assigned') !== statusFilter) {
+            return false;
+        }
+
+        // Date range filter
+        const assignmentDate = assignment.assignment_date || assignment.date;
+        if (assignmentDate) {
+            const date = new Date(assignmentDate);
+
+            if (dateFromFilter) {
+                const fromDate = new Date(dateFromFilter);
+                if (date < fromDate) return false;
+            }
+
+            if (dateToFilter) {
+                const toDate = new Date(dateToFilter);
+                if (date > toDate) return false;
+            }
+        }
+
+        return true;
+    });
+
+    applyAssignmentSorting();
+    displayAssignments(filteredAssignments);
+}
+
+/**
+ * Clear assignment filters
+ */
+function clearAssignmentFilters() {
+    document.getElementById('assignmentProjectFilter').value = '';
+    document.getElementById('assignmentEmployeeFilter').value = '';
+    document.getElementById('assignmentStatusFilter').value = '';
+    document.getElementById('assignmentDateFrom').value = '';
+    document.getElementById('assignmentDateTo').value = '';
+    document.getElementById('assignmentSortBy').value = 'date';
+    document.getElementById('assignmentSortOrder').value = 'desc';
+
+    filteredAssignments = [...assignments];
+    applyAssignmentSorting();
+    displayAssignments(filteredAssignments);
+}
+
+/**
+ * Apply sorting to assignment data
+ */
+function applyAssignmentSorting() {
+    const sortBy = document.getElementById('assignmentSortBy')?.value || 'date';
+    const sortOrder = document.getElementById('assignmentSortOrder')?.value || 'desc';
+
+    filteredAssignments.sort((a, b) => {
+        let aValue, bValue;
+
+        switch (sortBy) {
+            case 'date':
+                aValue = new Date(a.assignment_date || a.date || '1970-01-01');
+                bValue = new Date(b.assignment_date || b.date || '1970-01-01');
+                break;
+            case 'employee':
+                const aEmployee = employees.find(emp => emp.employee_id == a.employee_id);
+                const bEmployee = employees.find(emp => emp.employee_id == b.employee_id);
+                aValue = aEmployee ? (aEmployee.name || `${aEmployee.first_name || ''} ${aEmployee.last_name || ''}`.trim()) : '';
+                bValue = bEmployee ? (bEmployee.name || `${bEmployee.first_name || ''} ${bEmployee.last_name || ''}`.trim()) : '';
+                break;
+            case 'project':
+                const aProject = projects.find(proj => proj.project_id == a.project_id);
+                const bProject = projects.find(proj => proj.project_id == b.project_id);
+                aValue = aProject ? (aProject.name || aProject.project_name || '') : '';
+                bValue = bProject ? (bProject.name || bProject.project_name || '') : '';
+                break;
+            case 'status':
+                aValue = a.status || 'Assigned';
+                bValue = b.status || 'Assigned';
+                break;
+            default:
+                aValue = a.assignment_date || a.date || '';
+                bValue = b.assignment_date || b.date || '';
+        }
+
+        // Handle date comparison
+        if (sortBy === 'date') {
+            if (sortOrder === 'desc') {
+                return bValue - aValue;
+            } else {
+                return aValue - bValue;
+            }
+        }
+
+        // Handle string comparison
+        aValue = String(aValue).toLowerCase();
+        bValue = String(bValue).toLowerCase();
+
+        if (sortOrder === 'desc') {
+            return bValue.localeCompare(aValue);
+        } else {
+            return aValue.localeCompare(bValue);
+        }
+    });
+
+    displayAssignments(filteredAssignments);
 }
 
 /**
