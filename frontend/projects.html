@@ -303,6 +303,237 @@
                 flex-direction: column;
             }
         }
+
+        /* Search and Filter Controls */
+        .projects-controls {
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 8px;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .search-section {
+            margin-bottom: 1.5rem;
+        }
+
+        .search-input-group {
+            display: flex;
+            gap: 0.5rem;
+            max-width: 600px;
+        }
+
+        .search-input {
+            flex: 1;
+            padding: 0.5rem 1rem;
+            border: 1px solid #ced4da;
+            border-radius: 4px;
+            font-size: 1rem;
+        }
+
+        .filter-section {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1rem;
+            align-items: end;
+        }
+
+        .filter-group {
+            display: flex;
+            flex-direction: column;
+            gap: 0.25rem;
+            min-width: 150px;
+        }
+
+        .filter-group label {
+            font-weight: 500;
+            color: #495057;
+            font-size: 0.875rem;
+        }
+
+        .filter-select,
+        .filter-input {
+            padding: 0.375rem 0.75rem;
+            border: 1px solid #ced4da;
+            border-radius: 4px;
+            font-size: 0.875rem;
+            background: white;
+        }
+
+        .filter-actions {
+            display: flex;
+            gap: 0.5rem;
+            margin-left: auto;
+        }
+
+        .filter-actions .btn {
+            padding: 0.375rem 1rem;
+            font-size: 0.875rem;
+        }
+
+        /* Sortable table headers */
+        .sortable {
+            cursor: pointer;
+            user-select: none;
+            position: relative;
+            transition: background-color 0.2s;
+        }
+
+        .sortable:hover {
+            background-color: #f8f9fa;
+        }
+
+        .sort-indicator {
+            margin-left: 0.5rem;
+            font-size: 0.8rem;
+            opacity: 0.5;
+        }
+
+        .sort-indicator.asc::after {
+            content: '▲';
+            opacity: 1;
+        }
+
+        .sort-indicator.desc::after {
+            content: '▼';
+            opacity: 1;
+        }
+
+        /* Enhanced Project Modal Styles */
+        .project-detail-content {
+            padding: 0;
+        }
+
+        .project-summary {
+            background: #f8f9fa;
+            padding: 1.5rem;
+            margin: -1.5rem -1.5rem 1.5rem -1.5rem;
+            border-bottom: 1px solid #dee2e6;
+        }
+
+        .project-header-info {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+
+        .project-header-info h3 {
+            margin: 0;
+            color: #333;
+            font-size: 1.5rem;
+        }
+
+        .project-description {
+            margin: 0;
+            color: #6c757d;
+            line-height: 1.5;
+        }
+
+        .project-info-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 2rem;
+            margin-bottom: 2rem;
+        }
+
+        .info-section h4 {
+            color: #495057;
+            margin-bottom: 1rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 2px solid #e9ecef;
+        }
+
+        .info-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.5rem 0;
+            border-bottom: 1px solid #f1f3f4;
+        }
+
+        .info-row:last-child {
+            border-bottom: none;
+        }
+
+        .info-label {
+            font-weight: 500;
+            color: #495057;
+        }
+
+        .info-value {
+            color: #333;
+            font-weight: 400;
+        }
+
+        .current-assignments {
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 8px;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .current-assignments h4 {
+            margin-bottom: 1rem;
+            color: #495057;
+        }
+
+        .assignments-list {
+            display: grid;
+            gap: 0.75rem;
+        }
+
+        .assignment-item {
+            background: white;
+            padding: 1rem;
+            border-radius: 6px;
+            border: 1px solid #e9ecef;
+        }
+
+        .project-actions {
+            display: flex;
+            gap: 0.75rem;
+            flex-wrap: wrap;
+            padding-top: 1.5rem;
+            border-top: 1px solid #dee2e6;
+        }
+
+        .project-actions .btn {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        /* Responsive adjustments for search/filter */
+        @media (max-width: 768px) {
+            .filter-section {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .filter-actions {
+                margin-left: 0;
+                margin-top: 1rem;
+            }
+
+            .search-input-group {
+                max-width: 100%;
+            }
+
+            .project-info-grid {
+                grid-template-columns: 1fr;
+                gap: 1.5rem;
+            }
+
+            .project-actions {
+                flex-direction: column;
+            }
+
+            .project-actions .btn {
+                justify-content: center;
+            }
+        }
     </style>
 </head>
 <body>
@@ -348,7 +579,6 @@
             </div>
         </nav>
     </header>
-    </header>
 
     <!-- Main Content -->
     <main class="projects-container">
@@ -362,6 +592,58 @@
                 <div class="project-actions">
                     <button type="button" class="btn btn-success" id="createProjectBtn" onclick="showCreateProjectModal()">+ Create New Project</button>
                     <button type="button" class="btn btn-primary" onclick="exportProjects()">Export Projects</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Search and Filter Controls -->
+        <div class="projects-controls">
+            <div class="search-section">
+                <div class="search-input-group">
+                    <input type="text" id="projectSearch" placeholder="Search projects by name, ID, location, or manager..." class="search-input">
+                    <button type="button" class="btn btn-secondary" onclick="clearSearch()">Clear</button>
+                </div>
+            </div>
+
+            <div class="filter-section">
+                <div class="filter-group">
+                    <label for="statusFilter">Status:</label>
+                    <select id="statusFilter" class="filter-select">
+                        <option value="">All Statuses</option>
+                        <option value="Active">Active</option>
+                        <option value="Completed">Completed</option>
+                        <option value="On Hold">On Hold</option>
+                        <option value="Cancelled">Cancelled</option>
+                    </select>
+                </div>
+
+                <div class="filter-group">
+                    <label for="locationFilter">Location:</label>
+                    <select id="locationFilter" class="filter-select">
+                        <option value="">All Locations</option>
+                    </select>
+                </div>
+
+                <div class="filter-group">
+                    <label for="managerFilter">Manager:</label>
+                    <select id="managerFilter" class="filter-select">
+                        <option value="">All Managers</option>
+                    </select>
+                </div>
+
+                <div class="filter-group">
+                    <label for="dateFromFilter">Start Date From:</label>
+                    <input type="date" id="dateFromFilter" class="filter-input">
+                </div>
+
+                <div class="filter-group">
+                    <label for="dateToFilter">Start Date To:</label>
+                    <input type="date" id="dateToFilter" class="filter-input">
+                </div>
+
+                <div class="filter-actions">
+                    <button type="button" class="btn btn-secondary" onclick="clearAllFilters()">Clear Filters</button>
+                    <button type="button" class="btn btn-primary" onclick="applyFilters()">Apply Filters</button>
                 </div>
             </div>
         </div>
@@ -388,13 +670,27 @@
             <table class="table">
                 <thead>
                     <tr>
-                        <th>Project Name</th>
-                        <th>Number</th>
-                        <th>Status</th>
-                        <th>Location</th>
-                        <th>Current Staff</th>
-                        <th>Total Assignments</th>
-                        <th>Budget</th>
+                        <th class="sortable" onclick="sortProjects('name')">
+                            Project Name <span class="sort-indicator" id="sort-name"></span>
+                        </th>
+                        <th class="sortable" onclick="sortProjects('number')">
+                            Number <span class="sort-indicator" id="sort-number"></span>
+                        </th>
+                        <th class="sortable" onclick="sortProjects('status')">
+                            Status <span class="sort-indicator" id="sort-status"></span>
+                        </th>
+                        <th class="sortable" onclick="sortProjects('location')">
+                            Location <span class="sort-indicator" id="sort-location"></span>
+                        </th>
+                        <th class="sortable" onclick="sortProjects('currentAssignments')">
+                            Current Staff <span class="sort-indicator" id="sort-currentAssignments"></span>
+                        </th>
+                        <th class="sortable" onclick="sortProjects('totalAssignments')">
+                            Total Assignments <span class="sort-indicator" id="sort-totalAssignments"></span>
+                        </th>
+                        <th class="sortable" onclick="sortProjects('budget')">
+                            Budget <span class="sort-indicator" id="sort-budget"></span>
+                        </th>
                     </tr>
                 </thead>
                 <tbody id="projectsTableBody">
@@ -488,7 +784,7 @@
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" onclick="hideCreateProjectModal()">Cancel</button>
-                <button type="button" class="btn btn-primary" onclick="createProject()">Create Project</button>
+                <button type="button" class="btn btn-primary" id="submitProjectBtn" onclick="submitProject()">Create Project</button>
             </div>
         </div>
     </div>

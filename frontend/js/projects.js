@@ -10,8 +10,10 @@ console.log('Projects.js file loaded');
 
 // Global variables
 let projects = [];
+let filteredProjects = [];
 let currentView = 'card';
 let currentUser = null;
+let currentSort = { field: 'name', order: 'asc' };
 
 // Initialize projects page when DOM is loaded
 document.addEventListener('DOMContentLoaded', async function() {
@@ -21,6 +23,7 @@ document.addEventListener('DOMContentLoaded', async function() {
     initializeAuth();
     initializeViewToggle();
     initializeDate();
+    initializeSearchAndFilters();
 
     // Check authentication and load data
     await checkAuthentication();
@@ -59,6 +62,45 @@ function initializeViewToggle() {
     if (tableViewBtn) {
         tableViewBtn.addEventListener('click', () => switchView('table'));
     }
+}
+
+/**
+ * Initialize search and filter functionality
+ */
+function initializeSearchAndFilters() {
+    const searchInput = document.getElementById('projectSearch');
+    const statusFilter = document.getElementById('statusFilter');
+    const locationFilter = document.getElementById('locationFilter');
+    const managerFilter = document.getElementById('managerFilter');
+    const dateFromFilter = document.getElementById('dateFromFilter');
+    const dateToFilter = document.getElementById('dateToFilter');
+
+    // Add event listeners for real-time search
+    if (searchInput) {
+        searchInput.addEventListener('input', debounce(applyFilters, 300));
+    }
+
+    // Add event listeners for filters
+    [statusFilter, locationFilter, managerFilter, dateFromFilter, dateToFilter].forEach(filter => {
+        if (filter) {
+            filter.addEventListener('change', applyFilters);
+        }
+    });
+}
+
+/**
+ * Debounce function to limit API calls
+ */
+function debounce(func, wait) {
+    let timeout;
+    return function executedFunction(...args) {
+        const later = () => {
+            clearTimeout(timeout);
+            func(...args);
+        };
+        clearTimeout(timeout);
+        timeout = setTimeout(later, wait);
+    };
 }
 
 /**
@@ -160,19 +202,14 @@ async function loadProjects() {
         projects = response.data || [];
         console.log('Projects loaded:', projects.length);
 
-        hideLoadingState();
+        // Initialize filter options
+        populateFilterOptions();
 
-        if (projects.length === 0) {
-            console.log('No projects found, showing empty state');
-            showEmptyState();
-        } else {
-            console.log('Rendering projects in', currentView, 'view');
-            if (currentView === 'card') {
-                renderProjectCards(projects);
-            } else {
-                renderProjectTable(projects);
-            }
-        }
+        // Apply initial filters
+        filteredProjects = [...projects];
+        applyFilters();
+
+        hideLoadingState();
 
     } catch (error) {
         console.error('Error loading projects:', error);
@@ -248,6 +285,213 @@ function showEmptyState() {
             tbody.innerHTML = '<tr><td colspan="7" class="empty-state">No projects found.</td></tr>';
         }
         tableView.style.display = 'block';
+    }
+}
+
+/**
+ * Populate filter dropdown options
+ */
+function populateFilterOptions() {
+    if (!projects || projects.length === 0) return;
+
+    // Populate location filter
+    const locationFilter = document.getElementById('locationFilter');
+    if (locationFilter) {
+        const locations = [...new Set(projects.map(p => p.location).filter(Boolean))];
+        locationFilter.innerHTML = '<option value="">All Locations</option>' +
+            locations.map(location => `<option value="${location}">${location}</option>`).join('');
+    }
+
+    // Populate manager filter
+    const managerFilter = document.getElementById('managerFilter');
+    if (managerFilter) {
+        const managers = [...new Set(projects.map(p => p.manager_name).filter(Boolean))];
+        managerFilter.innerHTML = '<option value="">All Managers</option>' +
+            managers.map(manager => `<option value="${manager}">${manager}</option>`).join('');
+    }
+}
+
+/**
+ * Apply search and filters
+ */
+function applyFilters() {
+    if (!projects || projects.length === 0) {
+        filteredProjects = [];
+        renderFilteredProjects();
+        return;
+    }
+
+    const searchTerm = document.getElementById('projectSearch')?.value.toLowerCase() || '';
+    const statusFilter = document.getElementById('statusFilter')?.value || '';
+    const locationFilter = document.getElementById('locationFilter')?.value || '';
+    const managerFilter = document.getElementById('managerFilter')?.value || '';
+    const dateFromFilter = document.getElementById('dateFromFilter')?.value || '';
+    const dateToFilter = document.getElementById('dateToFilter')?.value || '';
+
+    filteredProjects = projects.filter(project => {
+        // Search filter
+        if (searchTerm) {
+            const searchableText = [
+                project.name,
+                project.number,
+                project.project_id,
+                project.location,
+                project.manager_name,
+                project.description
+            ].filter(Boolean).join(' ').toLowerCase();
+
+            if (!searchableText.includes(searchTerm)) {
+                return false;
+            }
+        }
+
+        // Status filter
+        if (statusFilter && project.status !== statusFilter) {
+            return false;
+        }
+
+        // Location filter
+        if (locationFilter && project.location !== locationFilter) {
+            return false;
+        }
+
+        // Manager filter
+        if (managerFilter && project.manager_name !== managerFilter) {
+            return false;
+        }
+
+        // Date range filters
+        if (dateFromFilter && project.start_date) {
+            const projectDate = new Date(project.start_date);
+            const fromDate = new Date(dateFromFilter);
+            if (projectDate < fromDate) {
+                return false;
+            }
+        }
+
+        if (dateToFilter && project.start_date) {
+            const projectDate = new Date(project.start_date);
+            const toDate = new Date(dateToFilter);
+            if (projectDate > toDate) {
+                return false;
+            }
+        }
+
+        return true;
+    });
+
+    // Apply sorting
+    applySorting();
+
+    // Render filtered results
+    renderFilteredProjects();
+}
+
+/**
+ * Apply sorting to filtered projects
+ */
+function applySorting() {
+    if (!filteredProjects || filteredProjects.length === 0) return;
+
+    filteredProjects.sort((a, b) => {
+        let aValue = a[currentSort.field];
+        let bValue = b[currentSort.field];
+
+        // Handle different data types
+        if (currentSort.field === 'budget') {
+            aValue = parseFloat(aValue) || 0;
+            bValue = parseFloat(bValue) || 0;
+        } else if (currentSort.field === 'start_date' || currentSort.field === 'end_date') {
+            aValue = new Date(aValue || '1900-01-01');
+            bValue = new Date(bValue || '1900-01-01');
+        } else {
+            aValue = String(aValue || '').toLowerCase();
+            bValue = String(bValue || '').toLowerCase();
+        }
+
+        if (aValue < bValue) return currentSort.order === 'asc' ? -1 : 1;
+        if (aValue > bValue) return currentSort.order === 'asc' ? 1 : -1;
+        return 0;
+    });
+}
+
+/**
+ * Render filtered projects
+ */
+function renderFilteredProjects() {
+    if (filteredProjects.length === 0) {
+        showEmptyState();
+    } else {
+        if (currentView === 'card') {
+            renderProjectCards(filteredProjects);
+        } else {
+            renderProjectTable(filteredProjects);
+        }
+    }
+}
+
+/**
+ * Clear search input
+ */
+function clearSearch() {
+    const searchInput = document.getElementById('projectSearch');
+    if (searchInput) {
+        searchInput.value = '';
+        applyFilters();
+    }
+}
+
+/**
+ * Clear all filters
+ */
+function clearAllFilters() {
+    const searchInput = document.getElementById('projectSearch');
+    const statusFilter = document.getElementById('statusFilter');
+    const locationFilter = document.getElementById('locationFilter');
+    const managerFilter = document.getElementById('managerFilter');
+    const dateFromFilter = document.getElementById('dateFromFilter');
+    const dateToFilter = document.getElementById('dateToFilter');
+
+    [searchInput, statusFilter, locationFilter, managerFilter, dateFromFilter, dateToFilter].forEach(element => {
+        if (element) element.value = '';
+    });
+
+    applyFilters();
+}
+
+/**
+ * Sort projects by field
+ */
+function sortProjects(field) {
+    // Toggle sort order if clicking the same field
+    if (currentSort.field === field) {
+        currentSort.order = currentSort.order === 'asc' ? 'desc' : 'asc';
+    } else {
+        currentSort.field = field;
+        currentSort.order = 'asc';
+    }
+
+    // Update sort indicators
+    updateSortIndicators();
+
+    // Apply sorting and re-render
+    applySorting();
+    renderFilteredProjects();
+}
+
+/**
+ * Update sort indicators in table headers
+ */
+function updateSortIndicators() {
+    // Clear all indicators
+    document.querySelectorAll('.sort-indicator').forEach(indicator => {
+        indicator.className = 'sort-indicator';
+    });
+
+    // Set current sort indicator
+    const currentIndicator = document.getElementById(`sort-${currentSort.field}`);
+    if (currentIndicator) {
+        currentIndicator.className = `sort-indicator ${currentSort.order}`;
     }
 }
 
@@ -378,6 +622,160 @@ function closeProjectModal() {
 }
 
 /**
+ * Edit project
+ */
+function editProject(projectId) {
+    if (!currentUser || currentUser.role !== 'manager') {
+        showNotification('Only managers can edit projects', 'error');
+        return;
+    }
+
+    const project = projects.find(p => p.project_id.toString() === projectId.toString());
+    if (!project) {
+        showNotification('Project not found', 'error');
+        return;
+    }
+
+    // Close project modal and open edit modal
+    closeProjectModal();
+
+    // Populate edit form with current project data
+    populateEditForm(project);
+
+    // Show edit modal
+    const editModal = document.getElementById('createProjectModal');
+    if (editModal) {
+        // Change modal title
+        const modalTitle = editModal.querySelector('h2');
+        if (modalTitle) modalTitle.textContent = 'Edit Project';
+
+        // Change submit button text
+        const submitBtn = document.getElementById('submitProjectBtn');
+        if (submitBtn) submitBtn.textContent = 'Update Project';
+
+        // Change form action
+        const form = document.getElementById('createProjectForm');
+        if (form) {
+            form.setAttribute('data-project-id', projectId);
+            form.setAttribute('data-mode', 'edit');
+        }
+
+        editModal.style.display = 'flex';
+    }
+}
+
+/**
+ * Populate edit form with project data
+ */
+function populateEditForm(project) {
+    const fields = {
+        'projectName': project.name,
+        'projectNumber': project.number,
+        'projectDescription': project.description,
+        'projectLocation': project.location,
+        'projectStartDate': project.start_date ? project.start_date.split('T')[0] : '',
+        'projectEndDate': project.end_date ? project.end_date.split('T')[0] : '',
+        'projectBudget': project.budget,
+        'projectStatus': project.status
+    };
+
+    Object.entries(fields).forEach(([fieldId, value]) => {
+        const field = document.getElementById(fieldId);
+        if (field && value !== null && value !== undefined) {
+            field.value = value;
+        }
+    });
+}
+
+/**
+ * Delete project
+ */
+async function deleteProject(projectId) {
+    if (!currentUser || currentUser.role !== 'manager') {
+        showNotification('Only managers can delete projects', 'error');
+        return;
+    }
+
+    const project = projects.find(p => p.project_id.toString() === projectId.toString());
+    if (!project) {
+        showNotification('Project not found', 'error');
+        return;
+    }
+
+    const confirmed = confirm(`Are you sure you want to delete project "${project.name}"? This action cannot be undone.`);
+    if (!confirmed) return;
+
+    try {
+        // In demo mode, just remove from local array
+        const index = projects.findIndex(p => p.project_id.toString() === projectId.toString());
+        if (index > -1) {
+            projects.splice(index, 1);
+            filteredProjects = filteredProjects.filter(p => p.project_id.toString() !== projectId.toString());
+
+            closeProjectModal();
+            renderFilteredProjects();
+            showNotification('Project deleted successfully', 'success');
+        }
+    } catch (error) {
+        console.error('Error deleting project:', error);
+        showNotification('Failed to delete project', 'error');
+    }
+}
+
+/**
+ * Export project report
+ */
+function exportProjectReport(projectId) {
+    const project = projects.find(p => p.project_id.toString() === projectId.toString());
+    if (!project) {
+        showNotification('Project not found', 'error');
+        return;
+    }
+
+    // Create CSV content
+    const csvContent = generateProjectReportCSV(project);
+
+    // Download CSV
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    const url = URL.createObjectURL(blob);
+    link.setAttribute('href', url);
+    link.setAttribute('download', `${project.name}_report.csv`);
+    link.style.visibility = 'hidden';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+
+    showNotification('Project report exported successfully', 'success');
+}
+
+/**
+ * Generate project report CSV content
+ */
+function generateProjectReportCSV(project) {
+    const headers = ['Field', 'Value'];
+    const rows = [
+        ['Project Name', project.name],
+        ['Project Number', project.number || project.project_id],
+        ['Status', project.status],
+        ['Location', project.location || 'N/A'],
+        ['Description', project.description || 'N/A'],
+        ['Start Date', project.start_date ? formatDate(new Date(project.start_date)) : 'N/A'],
+        ['End Date', project.end_date ? formatDate(new Date(project.end_date)) : 'N/A'],
+        ['Budget', project.budget ? `$${Number(project.budget).toLocaleString()}` : 'N/A'],
+        ['Current Assignments', project.currentAssignments || 0],
+        ['Total Assignments', project.totalAssignments || 0],
+        ['Manager', project.manager_name || 'N/A']
+    ];
+
+    const csvContent = [headers, ...rows]
+        .map(row => row.map(field => `"${field}"`).join(','))
+        .join('\n');
+
+    return csvContent;
+}
+
+/**
  * Load detailed project data
  */
 async function loadProjectDetails(projectId) {
@@ -416,32 +814,73 @@ async function loadProjectDetails(projectId) {
         if (modalContent) {
             modalContent.innerHTML = `
                 <div class="project-detail-content">
+                    <div class="project-summary">
+                        <div class="project-header-info">
+                            <h3>${project.name}</h3>
+                            <span class="status-badge status-${project.status.toLowerCase().replace(' ', '-')}">${project.status}</span>
+                        </div>
+                        <p class="project-description">${project.description || 'No description available'}</p>
+                    </div>
+
                     <div class="project-info-grid">
                         <div class="info-section">
-                            <h4>Project Information</h4>
-                            <p><strong>Description:</strong> ${project.description || 'No description available'}</p>
-                            <p><strong>Status:</strong> <span class="status-badge status-${project.status.toLowerCase().replace(' ', '-')}">${project.status}</span></p>
-                            <p><strong>Location:</strong> ${project.location || 'N/A'}</p>
-                            <p><strong>Budget:</strong> ${project.budget ? `$${Number(project.budget).toLocaleString()}` : 'N/A'}</p>
+                            <h4>Project Details</h4>
+                            <div class="info-row">
+                                <span class="info-label">Project Number:</span>
+                                <span class="info-value">${project.number || project.project_id}</span>
+                            </div>
+                            <div class="info-row">
+                                <span class="info-label">Location:</span>
+                                <span class="info-value">${project.location || 'N/A'}</span>
+                            </div>
+                            <div class="info-row">
+                                <span class="info-label">Budget:</span>
+                                <span class="info-value">${project.budget ? `$${Number(project.budget).toLocaleString()}` : 'N/A'}</span>
+                            </div>
+                            <div class="info-row">
+                                <span class="info-label">Manager:</span>
+                                <span class="info-value">${project.manager_name || 'N/A'}</span>
+                            </div>
                         </div>
 
                         <div class="info-section">
-                            <h4>Timeline</h4>
-                            <p><strong>Start Date:</strong> ${project.start_date ? formatDate(new Date(project.start_date)) : 'N/A'}</p>
-                            <p><strong>End Date:</strong> ${project.end_date ? formatDate(new Date(project.end_date)) : 'N/A'}</p>
-                            <p><strong>Current Assignments:</strong> ${project.assignmentCount || 0}</p>
+                            <h4>Timeline & Progress</h4>
+                            <div class="info-row">
+                                <span class="info-label">Start Date:</span>
+                                <span class="info-value">${project.start_date ? formatDate(new Date(project.start_date)) : 'N/A'}</span>
+                            </div>
+                            <div class="info-row">
+                                <span class="info-label">End Date:</span>
+                                <span class="info-value">${project.end_date ? formatDate(new Date(project.end_date)) : 'N/A'}</span>
+                            </div>
+                            <div class="info-row">
+                                <span class="info-label">Current Staff:</span>
+                                <span class="info-value">${project.currentAssignments || 0}</span>
+                            </div>
+                            <div class="info-row">
+                                <span class="info-label">Total Assignments:</span>
+                                <span class="info-value">${project.totalAssignments || 0}</span>
+                            </div>
                         </div>
                     </div>
 
                     ${assignmentsHTML}
 
                     <div class="project-actions">
-                        <button type="button" class="btn btn-secondary" onclick="viewProjectCalendar('${projectId}')">View in Calendar</button>
-                        ${currentUser && currentUser.role === 'manager' ?
-                            `<button type="button" class="btn btn-warning" onclick="editProject('${projectId}')">Edit Project</button>` :
-                            ''
-                        }
-                        <button type="button" class="btn btn-primary" onclick="exportProjectReport('${projectId}')">Export Report</button>
+                        <button type="button" class="btn btn-secondary" onclick="viewProjectCalendar('${projectId}')">
+                            <i class="icon-calendar"></i> View in Calendar
+                        </button>
+                        <button type="button" class="btn btn-primary" onclick="exportProjectReport('${projectId}')">
+                            <i class="icon-download"></i> Export Report
+                        </button>
+                        ${currentUser && currentUser.role === 'manager' ? `
+                            <button type="button" class="btn btn-warning" onclick="editProject('${projectId}')">
+                                <i class="icon-edit"></i> Edit Project
+                            </button>
+                            <button type="button" class="btn btn-danger" onclick="deleteProject('${projectId}')">
+                                <i class="icon-delete"></i> Delete Project
+                            </button>
+                        ` : ''}
                     </div>
                 </div>
             `;
@@ -556,6 +995,21 @@ function hideCreateProjectModal() {
             createBtn.textContent = 'Create Project';
             createBtn.onclick = createProject;
         }
+    }
+}
+
+/**
+ * Submit project (create or update based on form mode)
+ */
+async function submitProject() {
+    const form = document.getElementById('createProjectForm');
+    const mode = form.getAttribute('data-mode') || 'create';
+    const projectId = form.getAttribute('data-project-id');
+
+    if (mode === 'edit' && projectId) {
+        await updateProject(projectId);
+    } else {
+        await createProject();
     }
 }
 

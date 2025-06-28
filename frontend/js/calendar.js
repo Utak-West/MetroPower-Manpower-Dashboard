@@ -21,6 +21,7 @@ document.addEventListener('DOMContentLoaded', async function() {
     initializeAuth();
     initializeCalendarControls();
     initializeDate();
+    initializeModalEventListeners();
 
     // Check authentication and load data
     await checkAuthentication();
@@ -429,37 +430,91 @@ function showAssignmentDetails(dateStr) {
         return;
     }
 
+    // Sort assignments by project name
+    const sortedAssignments = [...assignments].sort((a, b) => {
+        const projectA = a.project ? a.project.name : 'Unknown Project';
+        const projectB = b.project ? b.project.name : 'Unknown Project';
+        return projectA.localeCompare(projectB);
+    });
+
     // Update modal content
     updateElement('modalDate', `Assignments for ${formatDate(new Date(dateStr))}`);
 
-    const assignmentsHTML = assignments.map(assignment => {
-        const employeeName = assignment.employee ?
-            `${assignment.employee.first_name || ''} ${assignment.employee.last_name || ''}`.trim() || 'Unknown Employee' :
-            'Unknown Employee';
-        const projectName = assignment.project ? assignment.project.name : 'Unknown Project';
-        const position = assignment.employee ? assignment.employee.position : 'N/A';
-        const taskDescription = assignment.task_description || 'No task description';
-        const location = assignment.location || 'No location specified';
-
-        return `
-            <div class="assignment-detail">
-                <div class="assignment-header">
-                    <strong>${employeeName}</strong> - ${projectName}
-                </div>
-                <div class="assignment-info">
-                    <small>Position: ${position}</small><br>
-                    <small>Task: ${taskDescription}</small><br>
-                    <small>Location: ${location}</small>
-                </div>
-            </div>
-        `;
-    }).join('');
+    // Group assignments by project for better organization
+    const groupedAssignments = groupAssignmentsByProject(sortedAssignments);
+    const assignmentsHTML = renderGroupedAssignments(groupedAssignments);
 
     updateElementHTML('modalAssignmentContent', assignmentsHTML);
 
     // Show modal
     const modal = document.getElementById('assignmentModal');
     if (modal) modal.style.display = 'flex';
+}
+
+/**
+ * Group assignments by project
+ */
+function groupAssignmentsByProject(assignments) {
+    const grouped = {};
+
+    assignments.forEach(assignment => {
+        const projectName = assignment.project ? assignment.project.name : 'Unknown Project';
+        if (!grouped[projectName]) {
+            grouped[projectName] = [];
+        }
+        grouped[projectName].push(assignment);
+    });
+
+    return grouped;
+}
+
+/**
+ * Render grouped assignments HTML
+ */
+function renderGroupedAssignments(groupedAssignments) {
+    let html = '';
+
+    Object.keys(groupedAssignments).sort().forEach(projectName => {
+        const projectAssignments = groupedAssignments[projectName];
+
+        html += `
+            <div class="project-group">
+                <div class="project-group-header">
+                    <h4>${projectName}</h4>
+                    <span class="assignment-count">${projectAssignments.length} assignment${projectAssignments.length !== 1 ? 's' : ''}</span>
+                </div>
+                <div class="project-assignments">
+        `;
+
+        projectAssignments.forEach(assignment => {
+            const employeeName = assignment.employee ?
+                `${assignment.employee.first_name || ''} ${assignment.employee.last_name || ''}`.trim() || 'Unknown Employee' :
+                'Unknown Employee';
+            const position = assignment.employee ? assignment.employee.position : 'N/A';
+            const taskDescription = assignment.task_description || 'No task description';
+            const location = assignment.location || 'No location specified';
+
+            html += `
+                <div class="assignment-detail">
+                    <div class="assignment-header">
+                        <strong>${employeeName}</strong>
+                        <span class="employee-position">${position}</span>
+                    </div>
+                    <div class="assignment-info">
+                        <div class="assignment-task">${taskDescription}</div>
+                        <div class="assignment-location">${location}</div>
+                    </div>
+                </div>
+            `;
+        });
+
+        html += `
+                </div>
+            </div>
+        `;
+    });
+
+    return html;
 }
 
 /**
@@ -576,6 +631,28 @@ function showContextMenu(event, dateStr) {
 function closeAssignmentModal() {
     const modal = document.getElementById('assignmentModal');
     if (modal) modal.style.display = 'none';
+}
+
+/**
+ * Initialize modal event listeners for better UX
+ */
+function initializeModalEventListeners() {
+    const modal = document.getElementById('assignmentModal');
+    if (!modal) return;
+
+    // Close modal when clicking outside
+    modal.addEventListener('click', function(event) {
+        if (event.target === modal) {
+            closeAssignmentModal();
+        }
+    });
+
+    // Close modal with Escape key
+    document.addEventListener('keydown', function(event) {
+        if (event.key === 'Escape' && modal.style.display === 'flex') {
+            closeAssignmentModal();
+        }
+    });
 }
 
 /**
