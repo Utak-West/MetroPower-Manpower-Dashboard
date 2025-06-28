@@ -201,16 +201,19 @@ async function generateExcel(data, headers, sheetName = 'Data', options = {}) {
  * Generate PDF document from data with enhanced formatting and branding
  */
 function generatePDF(data, headers, title = 'Report', options = {}) {
-  // PDF Layout Constants
+  // PDF Layout Constants - Improved spacing and margins
   const PAGE_WIDTH = 595.28  // A4 width in points
   const PAGE_HEIGHT = 841.89 // A4 height in points
-  const MARGIN = 40
-  const HEADER_HEIGHT = 75
-  const FOOTER_HEIGHT = 25
-  const TABLE_HEADER_HEIGHT = 22
-  const ROW_HEIGHT = 16
-  const MIN_COLUMN_WIDTH = 50
-  const MAX_COLUMN_WIDTH = 120
+  const MARGIN = 45          // Increased margin for better spacing
+  const HEADER_HEIGHT = 80   // Slightly increased for better header spacing
+  const FOOTER_HEIGHT = 30   // Increased for better footer spacing
+  const TABLE_HEADER_HEIGHT = 32  // Increased for better header readability
+  const ROW_HEIGHT = 26      // Significantly increased for better row spacing
+  const ROW_SPACING = 2      // Additional space between rows
+  const CELL_PADDING = 6     // Increased internal cell padding
+  const MIN_COLUMN_WIDTH = 60    // Increased minimum width
+  const MAX_COLUMN_WIDTH = 180   // Increased maximum width to accommodate email addresses
+  const COLUMN_SPACING = 2   // Space between columns
 
   const doc = new PDFDocument({
     margin: MARGIN,
@@ -232,91 +235,115 @@ function generatePDF(data, headers, title = 'Report', options = {}) {
 
   let currentPage = 1
 
-  // Calculate optimal column widths
+  // Calculate optimal column widths with improved distribution
   function calculateOptimalColumnWidths() {
     const columnWidths = []
     let totalContentWidth = 0
 
-    // First pass: calculate content-based widths
+    // First pass: calculate content-based widths with column-specific optimization
     headers.forEach((header, index) => {
-      let maxWidth = header.length * 6 // Base width on header length
+      let maxWidth = header.length * 7 // Base width multiplier
 
-      // Sample data to determine content width (check first 20 rows for performance)
-      const sampleSize = Math.min(data.length, 20)
+      // Column-specific width optimization with Department removed for email space
+      const headerLower = header.toLowerCase()
+      if (headerLower.includes('id')) {
+        maxWidth = Math.min(maxWidth, 75) // Slightly increased ID column width
+      } else if (headerLower.includes('email')) {
+        maxWidth = Math.max(maxWidth, 170) // Significantly increased email column width for full display
+      } else if (headerLower.includes('phone')) {
+        maxWidth = Math.max(maxWidth, 110) // Increased phone column width
+      } else if (headerLower.includes('first') || headerLower.includes('last')) {
+        maxWidth = Math.max(maxWidth, 85) // Ensure adequate space for names
+      } else if (headerLower.includes('position')) {
+        maxWidth = Math.max(maxWidth, 95) // Ensure adequate space for position titles
+      }
+
+      // Sample data to determine content width (check first 30 rows for better accuracy)
+      const sampleSize = Math.min(data.length, 30)
       for (let i = 0; i < sampleSize; i++) {
         const key = header.toLowerCase().replace(/\s+/g, '_')
         const value = (data[i][key] || '').toString()
-        maxWidth = Math.max(maxWidth, value.length * 5)
+        // Improved width calculation considering character width variations
+        maxWidth = Math.max(maxWidth, value.length * 6.5)
       }
 
-      // Apply min/max constraints
+      // Apply min/max constraints with better distribution
       maxWidth = Math.max(MIN_COLUMN_WIDTH, Math.min(maxWidth, MAX_COLUMN_WIDTH))
       columnWidths[index] = maxWidth
       totalContentWidth += maxWidth
     })
 
-    // Second pass: scale to fit available width
-    if (totalContentWidth !== contentWidth) {
-      const scaleFactor = contentWidth / totalContentWidth
+    // Account for column spacing in total width calculation
+    const totalSpacing = (headers.length - 1) * COLUMN_SPACING
+    const availableContentWidth = contentWidth - totalSpacing
+
+    // Second pass: scale to fit available width with spacing consideration
+    if (totalContentWidth !== availableContentWidth) {
+      const scaleFactor = availableContentWidth / totalContentWidth
       for (let i = 0; i < columnWidths.length; i++) {
         columnWidths[i] = Math.floor(columnWidths[i] * scaleFactor)
       }
 
       // Adjust last column to ensure exact fit
       const currentTotal = columnWidths.reduce((sum, width) => sum + width, 0)
-      columnWidths[columnWidths.length - 1] += (contentWidth - currentTotal)
+      const adjustment = availableContentWidth - currentTotal
+      columnWidths[columnWidths.length - 1] += adjustment
     }
 
     return columnWidths
   }
 
-  // Optimized header function
+  // Optimized header function with proper spacing between all elements
   function addOptimizedPageHeader() {
     const headerY = MARGIN
 
-    // Add logo if available
+    // Add logo if available with proper positioning and spacing
     try {
       if (fs.existsSync(LOGO_PATH)) {
-        doc.image(LOGO_PATH, MARGIN, headerY, { width: 50, height: 25 })
+        doc.image(LOGO_PATH, MARGIN, headerY + 3, { width: 50, height: 25 })
       }
     } catch (error) {
       logger.warn('Could not load logo for PDF export:', error.message)
     }
 
-    // MetroPower Header - more compact
+    // MetroPower Header with proper spacing from logo
     doc.fontSize(16).font('Helvetica-Bold').fillColor(METROPOWER_COLORS.primary)
-       .text('MetroPower', MARGIN + 60, headerY + 2)
+       .text('MetroPower', MARGIN + 65, headerY + 8)
 
+    // Subtitle with adequate spacing from main title
     doc.fontSize(10).font('Helvetica').fillColor('#000000')
-       .text('Tucker Branch - Manpower Dashboard', MARGIN + 60, headerY + 20)
+       .text('Tucker Branch - Manpower Dashboard', MARGIN + 65, headerY + 28)
 
-    // Title and info on right side - more compact
-    const rightX = PAGE_WIDTH - MARGIN - 140
+    // Title and info on right side with proper alignment and spacing
+    const rightX = PAGE_WIDTH - MARGIN - 160
     doc.fontSize(12).font('Helvetica-Bold').fillColor('#000000')
-       .text(title, rightX, headerY + 2, { align: 'right', width: 140 })
+       .text(title, rightX, headerY + 8, { align: 'right', width: 160 })
 
+    // Generated date and page info with proper vertical spacing
     doc.fontSize(8).font('Helvetica').fillColor('#666666')
-       .text(`Generated: ${new Date().toLocaleDateString()}`, rightX, headerY + 18, { align: 'right', width: 140 })
-       .text(`Page ${currentPage} of ${totalPages}`, rightX, headerY + 30, { align: 'right', width: 140 })
+       .text(`Generated: ${new Date().toLocaleDateString()}`, rightX, headerY + 26, { align: 'right', width: 160 })
+       .text(`Page ${currentPage} of ${totalPages}`, rightX, headerY + 40, { align: 'right', width: 160 })
 
-    // Header line - thinner and closer
+    // Header line with proper spacing from content above
     doc.strokeColor(METROPOWER_COLORS.primary).lineWidth(1)
-       .moveTo(MARGIN, headerY + 45).lineTo(PAGE_WIDTH - MARGIN, headerY + 45).stroke()
+       .moveTo(MARGIN, headerY + 55).lineTo(PAGE_WIDTH - MARGIN, headerY + 55).stroke()
 
     return headerY + HEADER_HEIGHT
   }
 
-  // Optimized footer function
+  // Optimized footer function with improved spacing
   function addOptimizedPageFooter() {
     const footerY = PAGE_HEIGHT - MARGIN - FOOTER_HEIGHT
 
+    // Footer line with better positioning
     doc.strokeColor(METROPOWER_COLORS.tableBorder).lineWidth(0.5)
-       .moveTo(MARGIN, footerY).lineTo(PAGE_WIDTH - MARGIN, footerY).stroke()
+       .moveTo(MARGIN, footerY + 5).lineTo(PAGE_WIDTH - MARGIN, footerY + 5).stroke()
 
-    doc.fontSize(7).font('Helvetica').fillColor('#666666')
-       .text('© 2025 MetroPower - Confidential', MARGIN, footerY + 8, { align: 'left' })
-       .text(`Total Records: ${data.length}`, 0, footerY + 8, { align: 'center', width: PAGE_WIDTH })
-       .text('MetroPower Dashboard System', 0, footerY + 8, { align: 'right', width: PAGE_WIDTH - MARGIN })
+    // Footer text with improved spacing and alignment
+    doc.fontSize(8).font('Helvetica').fillColor('#666666')
+       .text('© 2025 MetroPower - Confidential', MARGIN, footerY + 12, { align: 'left' })
+       .text(`Total Records: ${data.length}`, 0, footerY + 12, { align: 'center', width: PAGE_WIDTH })
+       .text('MetroPower Dashboard System', 0, footerY + 12, { align: 'right', width: PAGE_WIDTH - MARGIN })
   }
 
   // Get optimal column widths
@@ -325,23 +352,35 @@ function generatePDF(data, headers, title = 'Report', options = {}) {
   // Start first page
   let currentY = addOptimizedPageHeader()
 
-  // Function to add table header
+  // Function to add table header with improved spacing
   function addTableHeader() {
-    // Header background with better styling
+    // Header background with better styling and spacing
     doc.rect(MARGIN, currentY, contentWidth, TABLE_HEADER_HEIGHT)
        .fillAndStroke(METROPOWER_COLORS.headerBg, METROPOWER_COLORS.tableBorder)
 
-    // Header text with better alignment
-    doc.fontSize(9).font('Helvetica-Bold').fillColor('#000000')
+    // Draw column separators in header for consistency
+    let separatorX = MARGIN
+    for (let i = 0; i < columnWidths.length - 1; i++) {
+      separatorX += columnWidths[i] + COLUMN_SPACING
+      doc.strokeColor(METROPOWER_COLORS.tableBorder).lineWidth(0.5)
+         .moveTo(separatorX - COLUMN_SPACING/2, currentY)
+         .lineTo(separatorX - COLUMN_SPACING/2, currentY + TABLE_HEADER_HEIGHT)
+         .stroke()
+    }
+
+    // Header text with reduced font size for better information density
+    doc.fontSize(8).font('Helvetica-Bold').fillColor('#000000')
     let xPosition = MARGIN
     headers.forEach((header, index) => {
       const cellWidth = columnWidths[index]
-      doc.text(header, xPosition + 3, currentY + 6, {
-        width: cellWidth - 6,
+      // Improved vertical centering and padding with smaller font
+      const textY = currentY + (TABLE_HEADER_HEIGHT - 8) / 2 + 3
+      doc.text(header, xPosition + CELL_PADDING, textY, {
+        width: cellWidth - (CELL_PADDING * 2),
         align: 'center',
         ellipsis: true
       })
-      xPosition += cellWidth
+      xPosition += cellWidth + COLUMN_SPACING
     })
 
     currentY += TABLE_HEADER_HEIGHT
@@ -350,13 +389,13 @@ function generatePDF(data, headers, title = 'Report', options = {}) {
   // Add initial table header
   addTableHeader()
 
-  // Process data rows with optimized pagination
-  doc.fontSize(8).font('Helvetica')
+  // Process data rows with optimized pagination and reduced font size
+  doc.fontSize(7).font('Helvetica')
 
   data.forEach((row, rowIndex) => {
-    // Check if we need a new page (more precise calculation)
+    // Check if we need a new page with improved spacing calculation
     const remainingSpace = PAGE_HEIGHT - MARGIN - FOOTER_HEIGHT - currentY
-    if (remainingSpace < ROW_HEIGHT + 5) { // Small buffer for safety
+    if (remainingSpace < ROW_HEIGHT + ROW_SPACING + 15) { // Account for row spacing in page breaks
       addOptimizedPageFooter()
       doc.addPage()
       currentPage++
@@ -364,12 +403,22 @@ function generatePDF(data, headers, title = 'Report', options = {}) {
       addTableHeader()
     }
 
-    // Alternate row colors with subtle styling
+    // Alternate row colors with improved styling
     const rowColor = rowIndex % 2 === 0 ? '#FFFFFF' : '#F8F9FA'
     doc.rect(MARGIN, currentY, contentWidth, ROW_HEIGHT)
        .fillAndStroke(rowColor, METROPOWER_COLORS.tableBorder)
 
-    // Row data with improved formatting
+    // Draw column separators for better table structure
+    let separatorX = MARGIN
+    for (let i = 0; i < columnWidths.length - 1; i++) {
+      separatorX += columnWidths[i] + COLUMN_SPACING
+      doc.strokeColor(METROPOWER_COLORS.tableBorder).lineWidth(0.5)
+         .moveTo(separatorX - COLUMN_SPACING/2, currentY)
+         .lineTo(separatorX - COLUMN_SPACING/2, currentY + ROW_HEIGHT)
+         .stroke()
+    }
+
+    // Row data with enhanced formatting and spacing
     let xPosition = MARGIN
     headers.forEach((header, colIndex) => {
       const key = header.toLowerCase().replace(/\s+/g, '_')
@@ -388,21 +437,32 @@ function generatePDF(data, headers, title = 'Report', options = {}) {
         }
       }
 
-      // Better text handling with proper truncation
+      // Improved text handling with proper cell padding and alignment
       const cellWidth = columnWidths[colIndex]
-      const displayValue = value.toString()
+      let displayValue = value.toString()
 
-      doc.fillColor('#000000').text(displayValue, xPosition + 3, currentY + 4, {
-        width: cellWidth - 6,
+      // Special handling for email and phone fields to ensure single line display
+      const headerLower = header.toLowerCase()
+      if (headerLower.includes('email') || headerLower.includes('phone')) {
+        // Ensure no line breaks in email/phone fields
+        displayValue = displayValue.replace(/\s+/g, ' ').trim()
+      }
+
+      // Better vertical centering and horizontal padding with smaller font
+      const textY = currentY + (ROW_HEIGHT - 7) / 2 + 3
+      // Ensure all text uses regular font weight (no bold) and stays on one line
+      doc.font('Helvetica').fillColor('#000000').text(displayValue, xPosition + CELL_PADDING, textY, {
+        width: cellWidth - (CELL_PADDING * 2),
         align: 'left',
         ellipsis: true,
-        lineBreak: false
+        lineBreak: false,
+        continued: false
       })
 
-      xPosition += cellWidth
+      xPosition += cellWidth + COLUMN_SPACING
     })
 
-    currentY += ROW_HEIGHT
+    currentY += ROW_HEIGHT + ROW_SPACING  // Add spacing between rows
   })
 
   // Add footer to last page
@@ -568,7 +628,28 @@ router.get('/employees', authenticate, asyncHandler(async (req, res) => {
         await workbook.xlsx.write(res)
         res.end()
       } else if (format === 'pdf') {
-        const doc = generatePDF(exportData, headers, 'MetroPower Staff Directory', {
+        // Optimized data structure for PDF with prioritized columns (Department removed)
+        const pdfExportData = employees.map(employee => ({
+          employee_id: employee.employee_id,
+          first_name: employee.first_name,
+          last_name: employee.last_name,
+          email: employee.email,
+          phone: employee.phone,
+          position: employee.position
+          // Removed: department, hire_date, is_active, skills for better space utilization
+        }))
+
+        // Prioritized headers for PDF export (Department removed for email space)
+        const pdfHeaders = [
+          'Employee ID',
+          'First Name',
+          'Last Name',
+          'Email',
+          'Phone',
+          'Position'
+        ]
+
+        const doc = generatePDF(pdfExportData, pdfHeaders, 'MetroPower Staff Directory', {
           reportType: 'employees'
         })
 

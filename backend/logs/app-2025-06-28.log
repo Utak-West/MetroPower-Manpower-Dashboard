@@ -979,3 +979,271 @@
 2025-06-28 13:37:42 [INFO]: ::1 - - [28/Jun/2025:17:37:42 +0000] "GET /android-chrome-192x192.png HTTP/1.1" 200 25229 "-" "curl/8.7.1" {"service":"metropower-dashboard","environment":"development","version":"1.0.0"}
 2025-06-28 13:37:42 [INFO]: ::1 - - [28/Jun/2025:17:37:42 +0000] "GET /android-chrome-512x512.png HTTP/1.1" 200 90380 "-" "curl/8.7.1" {"service":"metropower-dashboard","environment":"development","version":"1.0.0"}
 2025-06-28 13:37:42 [INFO]: ::1 - - [28/Jun/2025:17:37:42 +0000] "GET /site.webmanifest HTTP/1.1" 200 589 "-" "curl/8.7.1" {"service":"metropower-dashboard","environment":"development","version":"1.0.0"}
+2025-06-28 13:46:26 [INFO]: Logger initialized {"service":"metropower-dashboard","environment":"development","version":"1.0.0","fileLogging":true}
+2025-06-28 13:46:26 [INFO]: Using in-memory database {"service":"metropower-dashboard","environment":"development","version":"1.0.0"}
+2025-06-28 13:46:26 [INFO]: Starting demo data initialization... {"service":"metropower-dashboard","environment":"development","version":"1.0.0"}
+2025-06-28 13:46:26 [INFO]: Creating password hashes... {"service":"metropower-dashboard","environment":"development","version":"1.0.0"}
+2025-06-28 13:46:26 [INFO]: Admin password hash created {"service":"metropower-dashboard","environment":"development","version":"1.0.0"}
+2025-06-28 13:46:26 [INFO]: Manager password hash created {"service":"metropower-dashboard","environment":"development","version":"1.0.0"}
+2025-06-28 13:46:26 [INFO]: Loading Excel data... {"service":"metropower-dashboard","environment":"development","version":"1.0.0"}
+2025-06-28 13:46:26 [INFO]: Excel data loaded: {"service":"metropower-dashboard","environment":"development","version":"1.0.0","hasData":true}
+2025-06-28 13:46:26 [INFO]: Demo data initialized successfully {"service":"metropower-dashboard","environment":"development","version":"1.0.0"}
+2025-06-28 13:46:26 [INFO]: Demo users: 2, Employees: 56, Projects: 4 {"service":"metropower-dashboard","environment":"development","version":"1.0.0"}
+2025-06-28 13:46:26 [INFO]: MetroPower Dashboard API Server running on http://localhost:3001 {"service":"metropower-dashboard","environment":"development","version":"1.0.0"}
+2025-06-28 13:46:26 [INFO]: Frontend Dashboard available at http://localhost:3001 {"service":"metropower-dashboard","environment":"development","version":"1.0.0"}
+2025-06-28 13:46:26 [INFO]: API Documentation available at http://localhost:3001/api-docs {"service":"metropower-dashboard","environment":"development","version":"1.0.0"}
+2025-06-28 13:46:26 [INFO]: Health check available at http://localhost:3001/health {"service":"metropower-dashboard","environment":"development","version":"1.0.0"}
+2025-06-28 13:46:26 [INFO]: Environment: development {"service":"metropower-dashboard","environment":"development","version":"1.0.0"}
+2025-06-28 13:46:26 [INFO]: Database connected - full functionality available {"service":"metropower-dashboard","environment":"development","version":"1.0.0"}
+2025-06-28 13:46:43 [INFO]: ::1 - - [28/Jun/2025:17:46:43 +0000] "GET / HTTP/1.1" 304 - "-" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/137.0.0.0 Safari/537.36" {"service":"metropower-dashboard","environment":"development","version":"1.0.0"}
+2025-06-28 13:46:43 [INFO]: ::1 - - [28/Jun/2025:17:46:43 +0000] "GET /css/dashboard.css HTTP/1.1" 304 - "-" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/137.0.0.0 Safari/537.36" {"service":"metropower-dashboard","environment":"development","version":"1.0.0"}
+2025-06-28 13:46:43 [INFO]: ::1 - - [28/Jun/2025:17:46:43 +0000] "GET /css/components.css HTTP/1.1" 304 - "-" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/137.0.0.0 Safari/537.36" {"service":"metropower-dashboard","environment":"development","version":"1.0.0"}
+2025-06-28 13:46:43 [INFO]: ::1 - - [28/Jun/2025:17:46:43 +0000] "GET /assets/images/metropower-logo.png HTTP/1.1" 304 - "-" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/137.0.0.0 Safari/537.36" {"service":"metropower-dashboard","environment":"development","version":"1.0.0"}
+2025-06-28 13:46:43 [INFO]: ::1 - - [28/Jun/2025:17:46:43 +0000] "GET /js/api.js HTTP/1.1" 304 - "-" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/137.0.0.0 Safari/537.36" {"service":"metropower-dashboard","environment":"development","version":"1.0.0"}
+2025-06-28 13:46:43 [INFO]: ::1 - - [28/Jun/2025:17:46:43 +0000] "GET /js/dashboard.js HTTP/1.1" 304 - "-" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/137.0.0.0 Safari/537.36" {"service":"metropower-dashboard","environment":"development","version":"1.0.0"}
+2025-06-28 13:46:43 [INFO]: ::1 - - [28/Jun/2025:17:46:43 +0000] "GET /js/components.js HTTP/1.1" 304 - "-" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/137.0.0.0 Safari/537.36" {"service":"metropower-dashboard","environment":"development","version":"1.0.0"}
+2025-06-28 13:46:43 [INFO]: ::1 - - [28/Jun/2025:17:46:43 +0000] "GET /assets/images/metropower-logo.png HTTP/1.1" 304 - "-" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/137.0.0.0 Safari/537.36" {"service":"metropower-dashboard","environment":"development","version":"1.0.0"}
+2025-06-28 13:46:43 [INFO]: API Request {"service":"metropower-dashboard","environment":"development","version":"1.0.0","method":"GET","url":"/api/auth/verify","statusCode":200,"duration":"2ms","userAgent":"Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/137.0.0.0 Safari/537.36","ip":"::1"}
+2025-06-28 13:46:43 [INFO]: ::1 - - [28/Jun/2025:17:46:43 +0000] "GET /api/auth/verify HTTP/1.1" 304 - "-" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/137.0.0.0 Safari/537.36" {"service":"metropower-dashboard","environment":"development","version":"1.0.0"}
+2025-06-28 13:46:43 [INFO]: API Request {"service":"metropower-dashboard","environment":"development","version":"1.0.0","method":"GET","url":"/api/dashboard/current","statusCode":200,"duration":"1ms","userAgent":"Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/137.0.0.0 Safari/537.36","ip":"::1","userId":2,"userRole":"Project Manager"}
+2025-06-28 13:46:43 [INFO]: ::1 - - [28/Jun/2025:17:46:43 +0000] "GET /api/dashboard/current HTTP/1.1" 304 - "-" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/137.0.0.0 Safari/537.36" {"service":"metropower-dashboard","environment":"development","version":"1.0.0"}
+2025-06-28 13:46:43 [INFO]: ::1 - - [28/Jun/2025:17:46:43 +0000] "GET /site.webmanifest HTTP/1.1" 304 - "-" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/137.0.0.0 Safari/537.36" {"service":"metropower-dashboard","environment":"development","version":"1.0.0"}
+2025-06-28 13:46:43 [INFO]: API Request {"service":"metropower-dashboard","environment":"development","version":"1.0.0","method":"GET","url":"/api/positions","statusCode":200,"duration":"1ms","userAgent":"Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/137.0.0.0 Safari/537.36","ip":"::1","userId":2,"userRole":"Project Manager"}
+2025-06-28 13:46:43 [INFO]: ::1 - - [28/Jun/2025:17:46:43 +0000] "GET /api/positions HTTP/1.1" 304 - "-" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/137.0.0.0 Safari/537.36" {"service":"metropower-dashboard","environment":"development","version":"1.0.0"}
+2025-06-28 13:46:43 [INFO]: ::1 - - [28/Jun/2025:17:46:43 +0000] "GET /android-chrome-192x192.png HTTP/1.1" 304 - "-" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/137.0.0.0 Safari/537.36" {"service":"metropower-dashboard","environment":"development","version":"1.0.0"}
+2025-06-28 13:47:03 [INFO]: API Request {"service":"metropower-dashboard","environment":"development","version":"1.0.0","method":"GET","url":"/api/exports/projects?format=pdf","statusCode":401,"duration":"1ms","userAgent":"curl/8.7.1","ip":"::1"}
+2025-06-28 13:47:03 [INFO]: ::1 - - [28/Jun/2025:17:47:03 +0000] "GET /api/exports/projects?format=pdf HTTP/1.1" 401 90 "-" "curl/8.7.1" {"service":"metropower-dashboard","environment":"development","version":"1.0.0"}
+2025-06-28 13:47:15 [INFO]: API Request {"service":"metropower-dashboard","environment":"development","version":"1.0.0","method":"GET","url":"/api/exports/employees?format=pdf","statusCode":401,"duration":"0ms","userAgent":"curl/8.7.1","ip":"::1"}
+2025-06-28 13:47:15 [INFO]: ::1 - - [28/Jun/2025:17:47:15 +0000] "GET /api/exports/employees?format=pdf HTTP/1.1" 401 90 "-" "curl/8.7.1" {"service":"metropower-dashboard","environment":"development","version":"1.0.0"}
+2025-06-28 13:48:01 [INFO]: Logger initialized {"service":"metropower-dashboard","environment":"development","version":"1.0.0","fileLogging":true}
+2025-06-28 13:48:01 [INFO]: Using in-memory database {"service":"metropower-dashboard","environment":"development","version":"1.0.0"}
+2025-06-28 13:48:01 [INFO]: Starting demo data initialization... {"service":"metropower-dashboard","environment":"development","version":"1.0.0"}
+2025-06-28 13:48:01 [INFO]: Creating password hashes... {"service":"metropower-dashboard","environment":"development","version":"1.0.0"}
+2025-06-28 13:48:01 [INFO]: Admin password hash created {"service":"metropower-dashboard","environment":"development","version":"1.0.0"}
+2025-06-28 13:48:01 [INFO]: Manager password hash created {"service":"metropower-dashboard","environment":"development","version":"1.0.0"}
+2025-06-28 13:48:01 [INFO]: Loading Excel data... {"service":"metropower-dashboard","environment":"development","version":"1.0.0"}
+2025-06-28 13:48:01 [INFO]: Excel data loaded: {"service":"metropower-dashboard","environment":"development","version":"1.0.0","hasData":true}
+2025-06-28 13:48:01 [INFO]: Demo data initialized successfully {"service":"metropower-dashboard","environment":"development","version":"1.0.0"}
+2025-06-28 13:48:01 [INFO]: Demo users: 2, Employees: 56, Projects: 4 {"service":"metropower-dashboard","environment":"development","version":"1.0.0"}
+2025-06-28 13:48:01 [INFO]: MetroPower Dashboard API Server running on http://localhost:3001 {"service":"metropower-dashboard","environment":"development","version":"1.0.0"}
+2025-06-28 13:48:01 [INFO]: Frontend Dashboard available at http://localhost:3001 {"service":"metropower-dashboard","environment":"development","version":"1.0.0"}
+2025-06-28 13:48:01 [INFO]: API Documentation available at http://localhost:3001/api-docs {"service":"metropower-dashboard","environment":"development","version":"1.0.0"}
+2025-06-28 13:48:01 [INFO]: Health check available at http://localhost:3001/health {"service":"metropower-dashboard","environment":"development","version":"1.0.0"}
+2025-06-28 13:48:01 [INFO]: Environment: development {"service":"metropower-dashboard","environment":"development","version":"1.0.0"}
+2025-06-28 13:48:01 [INFO]: Database connected - full functionality available {"service":"metropower-dashboard","environment":"development","version":"1.0.0"}
+2025-06-28 13:48:19 [INFO]: API Request {"service":"metropower-dashboard","environment":"development","version":"1.0.0","method":"GET","url":"/api/exports/employees?format=pdf","statusCode":401,"duration":"1ms","userAgent":"curl/8.7.1","ip":"::1"}
+2025-06-28 13:48:19 [INFO]: ::1 - - [28/Jun/2025:17:48:19 +0000] "GET /api/exports/employees?format=pdf HTTP/1.1" 401 90 "-" "curl/8.7.1" {"service":"metropower-dashboard","environment":"development","version":"1.0.0"}
+2025-06-28 13:48:57 [INFO]: Logger initialized {"service":"metropower-dashboard","environment":"development","version":"1.0.0","fileLogging":true}
+2025-06-28 13:48:57 [INFO]: Using in-memory database {"service":"metropower-dashboard","environment":"development","version":"1.0.0"}
+2025-06-28 13:48:57 [INFO]: Starting demo data initialization... {"service":"metropower-dashboard","environment":"development","version":"1.0.0"}
+2025-06-28 13:48:57 [INFO]: Creating password hashes... {"service":"metropower-dashboard","environment":"development","version":"1.0.0"}
+2025-06-28 13:48:57 [INFO]: Admin password hash created {"service":"metropower-dashboard","environment":"development","version":"1.0.0"}
+2025-06-28 13:48:57 [INFO]: Manager password hash created {"service":"metropower-dashboard","environment":"development","version":"1.0.0"}
+2025-06-28 13:48:57 [INFO]: Loading Excel data... {"service":"metropower-dashboard","environment":"development","version":"1.0.0"}
+2025-06-28 13:48:57 [INFO]: Excel data loaded: {"service":"metropower-dashboard","environment":"development","version":"1.0.0","hasData":true}
+2025-06-28 13:48:57 [INFO]: Demo data initialized successfully {"service":"metropower-dashboard","environment":"development","version":"1.0.0"}
+2025-06-28 13:48:57 [INFO]: Demo users: 2, Employees: 56, Projects: 4 {"service":"metropower-dashboard","environment":"development","version":"1.0.0"}
+2025-06-28 13:48:57 [INFO]: MetroPower Dashboard API Server running on http://localhost:3001 {"service":"metropower-dashboard","environment":"development","version":"1.0.0"}
+2025-06-28 13:48:57 [INFO]: Frontend Dashboard available at http://localhost:3001 {"service":"metropower-dashboard","environment":"development","version":"1.0.0"}
+2025-06-28 13:48:57 [INFO]: API Documentation available at http://localhost:3001/api-docs {"service":"metropower-dashboard","environment":"development","version":"1.0.0"}
+2025-06-28 13:48:57 [INFO]: Health check available at http://localhost:3001/health {"service":"metropower-dashboard","environment":"development","version":"1.0.0"}
+2025-06-28 13:48:57 [INFO]: Environment: development {"service":"metropower-dashboard","environment":"development","version":"1.0.0"}
+2025-06-28 13:48:57 [INFO]: Database connected - full functionality available {"service":"metropower-dashboard","environment":"development","version":"1.0.0"}
+2025-06-28 13:53:15 [INFO]: Employees exported {"service":"metropower-dashboard","environment":"development","version":"1.0.0","format":"pdf","count":56}
+2025-06-28 13:53:15 [INFO]: ::1 - - [28/Jun/2025:17:53:15 +0000] "GET /api/exports/employees?format=pdf HTTP/1.1" 200 - "-" "curl/8.7.1" {"service":"metropower-dashboard","environment":"development","version":"1.0.0"}
+2025-06-28 13:53:21 [INFO]: Projects exported {"service":"metropower-dashboard","environment":"development","version":"1.0.0","format":"pdf","count":4}
+2025-06-28 13:53:21 [INFO]: ::1 - - [28/Jun/2025:17:53:21 +0000] "GET /api/exports/projects?format=pdf HTTP/1.1" 200 - "-" "curl/8.7.1" {"service":"metropower-dashboard","environment":"development","version":"1.0.0"}
+2025-06-28 13:55:26 [INFO]: Logger initialized {"service":"metropower-dashboard","environment":"development","version":"1.0.0","fileLogging":true}
+2025-06-28 13:55:26 [INFO]: Using in-memory database {"service":"metropower-dashboard","environment":"development","version":"1.0.0"}
+2025-06-28 13:55:26 [INFO]: Starting demo data initialization... {"service":"metropower-dashboard","environment":"development","version":"1.0.0"}
+2025-06-28 13:55:26 [INFO]: Creating password hashes... {"service":"metropower-dashboard","environment":"development","version":"1.0.0"}
+2025-06-28 13:55:26 [INFO]: Admin password hash created {"service":"metropower-dashboard","environment":"development","version":"1.0.0"}
+2025-06-28 13:55:26 [INFO]: Manager password hash created {"service":"metropower-dashboard","environment":"development","version":"1.0.0"}
+2025-06-28 13:55:26 [INFO]: Loading Excel data... {"service":"metropower-dashboard","environment":"development","version":"1.0.0"}
+2025-06-28 13:55:26 [INFO]: Excel data loaded: {"service":"metropower-dashboard","environment":"development","version":"1.0.0","hasData":true}
+2025-06-28 13:55:26 [INFO]: Demo data initialized successfully {"service":"metropower-dashboard","environment":"development","version":"1.0.0"}
+2025-06-28 13:55:26 [INFO]: Demo users: 2, Employees: 56, Projects: 4 {"service":"metropower-dashboard","environment":"development","version":"1.0.0"}
+2025-06-28 13:55:26 [INFO]: MetroPower Dashboard API Server running on http://localhost:3001 {"service":"metropower-dashboard","environment":"development","version":"1.0.0"}
+2025-06-28 13:55:26 [INFO]: Frontend Dashboard available at http://localhost:3001 {"service":"metropower-dashboard","environment":"development","version":"1.0.0"}
+2025-06-28 13:55:26 [INFO]: API Documentation available at http://localhost:3001/api-docs {"service":"metropower-dashboard","environment":"development","version":"1.0.0"}
+2025-06-28 13:55:26 [INFO]: Health check available at http://localhost:3001/health {"service":"metropower-dashboard","environment":"development","version":"1.0.0"}
+2025-06-28 13:55:26 [INFO]: Environment: development {"service":"metropower-dashboard","environment":"development","version":"1.0.0"}
+2025-06-28 13:55:26 [INFO]: Database connected - full functionality available {"service":"metropower-dashboard","environment":"development","version":"1.0.0"}
+2025-06-28 13:55:43 [INFO]: Employees exported {"service":"metropower-dashboard","environment":"development","version":"1.0.0","format":"pdf","count":56}
+2025-06-28 13:55:43 [INFO]: ::1 - - [28/Jun/2025:17:55:43 +0000] "GET /api/exports/employees?format=pdf HTTP/1.1" 200 - "-" "curl/8.7.1" {"service":"metropower-dashboard","environment":"development","version":"1.0.0"}
+2025-06-28 13:55:49 [INFO]: Projects exported {"service":"metropower-dashboard","environment":"development","version":"1.0.0","format":"pdf","count":4}
+2025-06-28 13:55:49 [INFO]: ::1 - - [28/Jun/2025:17:55:49 +0000] "GET /api/exports/projects?format=pdf HTTP/1.1" 200 - "-" "curl/8.7.1" {"service":"metropower-dashboard","environment":"development","version":"1.0.0"}
+2025-06-28 14:01:23 [INFO]: Logger initialized {"service":"metropower-dashboard","environment":"development","version":"1.0.0","fileLogging":true}
+2025-06-28 14:01:23 [INFO]: Using in-memory database {"service":"metropower-dashboard","environment":"development","version":"1.0.0"}
+2025-06-28 14:01:23 [INFO]: Starting demo data initialization... {"service":"metropower-dashboard","environment":"development","version":"1.0.0"}
+2025-06-28 14:01:23 [INFO]: Creating password hashes... {"service":"metropower-dashboard","environment":"development","version":"1.0.0"}
+2025-06-28 14:01:23 [INFO]: Admin password hash created {"service":"metropower-dashboard","environment":"development","version":"1.0.0"}
+2025-06-28 14:01:23 [INFO]: Manager password hash created {"service":"metropower-dashboard","environment":"development","version":"1.0.0"}
+2025-06-28 14:01:23 [INFO]: Loading Excel data... {"service":"metropower-dashboard","environment":"development","version":"1.0.0"}
+2025-06-28 14:01:23 [INFO]: Excel data loaded: {"service":"metropower-dashboard","environment":"development","version":"1.0.0","hasData":true}
+2025-06-28 14:01:23 [INFO]: Demo data initialized successfully {"service":"metropower-dashboard","environment":"development","version":"1.0.0"}
+2025-06-28 14:01:23 [INFO]: Demo users: 2, Employees: 56, Projects: 4 {"service":"metropower-dashboard","environment":"development","version":"1.0.0"}
+2025-06-28 14:01:23 [INFO]: MetroPower Dashboard API Server running on http://localhost:3001 {"service":"metropower-dashboard","environment":"development","version":"1.0.0"}
+2025-06-28 14:01:23 [INFO]: Frontend Dashboard available at http://localhost:3001 {"service":"metropower-dashboard","environment":"development","version":"1.0.0"}
+2025-06-28 14:01:23 [INFO]: API Documentation available at http://localhost:3001/api-docs {"service":"metropower-dashboard","environment":"development","version":"1.0.0"}
+2025-06-28 14:01:23 [INFO]: Health check available at http://localhost:3001/health {"service":"metropower-dashboard","environment":"development","version":"1.0.0"}
+2025-06-28 14:01:23 [INFO]: Environment: development {"service":"metropower-dashboard","environment":"development","version":"1.0.0"}
+2025-06-28 14:01:23 [INFO]: Database connected - full functionality available {"service":"metropower-dashboard","environment":"development","version":"1.0.0"}
+2025-06-28 14:01:59 [INFO]: Logger initialized {"service":"metropower-dashboard","environment":"development","version":"1.0.0","fileLogging":true}
+2025-06-28 14:02:00 [INFO]: Using in-memory database {"service":"metropower-dashboard","environment":"development","version":"1.0.0"}
+2025-06-28 14:02:00 [INFO]: Starting demo data initialization... {"service":"metropower-dashboard","environment":"development","version":"1.0.0"}
+2025-06-28 14:02:00 [INFO]: Creating password hashes... {"service":"metropower-dashboard","environment":"development","version":"1.0.0"}
+2025-06-28 14:02:00 [INFO]: Admin password hash created {"service":"metropower-dashboard","environment":"development","version":"1.0.0"}
+2025-06-28 14:02:00 [INFO]: Manager password hash created {"service":"metropower-dashboard","environment":"development","version":"1.0.0"}
+2025-06-28 14:02:00 [INFO]: Loading Excel data... {"service":"metropower-dashboard","environment":"development","version":"1.0.0"}
+2025-06-28 14:02:00 [INFO]: Excel data loaded: {"service":"metropower-dashboard","environment":"development","version":"1.0.0","hasData":true}
+2025-06-28 14:02:00 [INFO]: Demo data initialized successfully {"service":"metropower-dashboard","environment":"development","version":"1.0.0"}
+2025-06-28 14:02:00 [INFO]: Demo users: 2, Employees: 56, Projects: 4 {"service":"metropower-dashboard","environment":"development","version":"1.0.0"}
+2025-06-28 14:02:00 [INFO]: MetroPower Dashboard API Server running on http://localhost:3001 {"service":"metropower-dashboard","environment":"development","version":"1.0.0"}
+2025-06-28 14:02:00 [INFO]: Frontend Dashboard available at http://localhost:3001 {"service":"metropower-dashboard","environment":"development","version":"1.0.0"}
+2025-06-28 14:02:00 [INFO]: API Documentation available at http://localhost:3001/api-docs {"service":"metropower-dashboard","environment":"development","version":"1.0.0"}
+2025-06-28 14:02:00 [INFO]: Health check available at http://localhost:3001/health {"service":"metropower-dashboard","environment":"development","version":"1.0.0"}
+2025-06-28 14:02:00 [INFO]: Environment: development {"service":"metropower-dashboard","environment":"development","version":"1.0.0"}
+2025-06-28 14:02:00 [INFO]: Database connected - full functionality available {"service":"metropower-dashboard","environment":"development","version":"1.0.0"}
+2025-06-28 14:02:17 [INFO]: API Request {"service":"metropower-dashboard","environment":"development","version":"1.0.0","method":"GET","url":"/api/exports/employees?format=pdf","statusCode":401,"duration":"1ms","userAgent":"curl/8.7.1","ip":"::1"}
+2025-06-28 14:02:17 [INFO]: ::1 - - [28/Jun/2025:18:02:17 +0000] "GET /api/exports/employees?format=pdf HTTP/1.1" 401 90 "-" "curl/8.7.1" {"service":"metropower-dashboard","environment":"development","version":"1.0.0"}
+2025-06-28 14:02:51 [INFO]: Logger initialized {"service":"metropower-dashboard","environment":"development","version":"1.0.0","fileLogging":true}
+2025-06-28 14:02:51 [INFO]: Using in-memory database {"service":"metropower-dashboard","environment":"development","version":"1.0.0"}
+2025-06-28 14:02:51 [INFO]: Starting demo data initialization... {"service":"metropower-dashboard","environment":"development","version":"1.0.0"}
+2025-06-28 14:02:51 [INFO]: Creating password hashes... {"service":"metropower-dashboard","environment":"development","version":"1.0.0"}
+2025-06-28 14:02:51 [INFO]: Admin password hash created {"service":"metropower-dashboard","environment":"development","version":"1.0.0"}
+2025-06-28 14:02:51 [INFO]: Manager password hash created {"service":"metropower-dashboard","environment":"development","version":"1.0.0"}
+2025-06-28 14:02:51 [INFO]: Loading Excel data... {"service":"metropower-dashboard","environment":"development","version":"1.0.0"}
+2025-06-28 14:02:51 [INFO]: Excel data loaded: {"service":"metropower-dashboard","environment":"development","version":"1.0.0","hasData":true}
+2025-06-28 14:02:51 [INFO]: Demo data initialized successfully {"service":"metropower-dashboard","environment":"development","version":"1.0.0"}
+2025-06-28 14:02:51 [INFO]: Demo users: 2, Employees: 56, Projects: 4 {"service":"metropower-dashboard","environment":"development","version":"1.0.0"}
+2025-06-28 14:02:51 [INFO]: MetroPower Dashboard API Server running on http://localhost:3001 {"service":"metropower-dashboard","environment":"development","version":"1.0.0"}
+2025-06-28 14:02:51 [INFO]: Frontend Dashboard available at http://localhost:3001 {"service":"metropower-dashboard","environment":"development","version":"1.0.0"}
+2025-06-28 14:02:51 [INFO]: API Documentation available at http://localhost:3001/api-docs {"service":"metropower-dashboard","environment":"development","version":"1.0.0"}
+2025-06-28 14:02:51 [INFO]: Health check available at http://localhost:3001/health {"service":"metropower-dashboard","environment":"development","version":"1.0.0"}
+2025-06-28 14:02:51 [INFO]: Environment: development {"service":"metropower-dashboard","environment":"development","version":"1.0.0"}
+2025-06-28 14:02:51 [INFO]: Database connected - full functionality available {"service":"metropower-dashboard","environment":"development","version":"1.0.0"}
+2025-06-28 14:03:09 [INFO]: Employees exported {"service":"metropower-dashboard","environment":"development","version":"1.0.0","format":"pdf","count":56}
+2025-06-28 14:03:09 [INFO]: ::1 - - [28/Jun/2025:18:03:09 +0000] "GET /api/exports/employees?format=pdf HTTP/1.1" 200 - "-" "curl/8.7.1" {"service":"metropower-dashboard","environment":"development","version":"1.0.0"}
+2025-06-28 14:03:17 [INFO]: API Request {"service":"metropower-dashboard","environment":"development","version":"1.0.0","method":"GET","url":"/api/exports/projects?format=pdf","statusCode":401,"duration":"1ms","userAgent":"curl/8.7.1","ip":"::1"}
+2025-06-28 14:03:17 [INFO]: ::1 - - [28/Jun/2025:18:03:17 +0000] "GET /api/exports/projects?format=pdf HTTP/1.1" 401 90 "-" "curl/8.7.1" {"service":"metropower-dashboard","environment":"development","version":"1.0.0"}
+2025-06-28 14:03:45 [INFO]: Logger initialized {"service":"metropower-dashboard","environment":"development","version":"1.0.0","fileLogging":true}
+2025-06-28 14:03:45 [INFO]: Using in-memory database {"service":"metropower-dashboard","environment":"development","version":"1.0.0"}
+2025-06-28 14:03:45 [INFO]: Starting demo data initialization... {"service":"metropower-dashboard","environment":"development","version":"1.0.0"}
+2025-06-28 14:03:45 [INFO]: Creating password hashes... {"service":"metropower-dashboard","environment":"development","version":"1.0.0"}
+2025-06-28 14:03:46 [INFO]: Admin password hash created {"service":"metropower-dashboard","environment":"development","version":"1.0.0"}
+2025-06-28 14:03:46 [INFO]: Manager password hash created {"service":"metropower-dashboard","environment":"development","version":"1.0.0"}
+2025-06-28 14:03:46 [INFO]: Loading Excel data... {"service":"metropower-dashboard","environment":"development","version":"1.0.0"}
+2025-06-28 14:03:46 [INFO]: Excel data loaded: {"service":"metropower-dashboard","environment":"development","version":"1.0.0","hasData":true}
+2025-06-28 14:03:46 [INFO]: Demo data initialized successfully {"service":"metropower-dashboard","environment":"development","version":"1.0.0"}
+2025-06-28 14:03:46 [INFO]: Demo users: 2, Employees: 56, Projects: 4 {"service":"metropower-dashboard","environment":"development","version":"1.0.0"}
+2025-06-28 14:03:46 [INFO]: MetroPower Dashboard API Server running on http://localhost:3001 {"service":"metropower-dashboard","environment":"development","version":"1.0.0"}
+2025-06-28 14:03:46 [INFO]: Frontend Dashboard available at http://localhost:3001 {"service":"metropower-dashboard","environment":"development","version":"1.0.0"}
+2025-06-28 14:03:46 [INFO]: API Documentation available at http://localhost:3001/api-docs {"service":"metropower-dashboard","environment":"development","version":"1.0.0"}
+2025-06-28 14:03:46 [INFO]: Health check available at http://localhost:3001/health {"service":"metropower-dashboard","environment":"development","version":"1.0.0"}
+2025-06-28 14:03:46 [INFO]: Environment: development {"service":"metropower-dashboard","environment":"development","version":"1.0.0"}
+2025-06-28 14:03:46 [INFO]: Database connected - full functionality available {"service":"metropower-dashboard","environment":"development","version":"1.0.0"}
+2025-06-28 14:04:06 [INFO]: Projects exported {"service":"metropower-dashboard","environment":"development","version":"1.0.0","format":"pdf","count":4}
+2025-06-28 14:04:07 [INFO]: ::1 - - [28/Jun/2025:18:04:07 +0000] "GET /api/exports/projects?format=pdf HTTP/1.1" 200 - "-" "curl/8.7.1" {"service":"metropower-dashboard","environment":"development","version":"1.0.0"}
+2025-06-28 14:06:59 [INFO]: Logger initialized {"service":"metropower-dashboard","environment":"development","version":"1.0.0","fileLogging":true}
+2025-06-28 14:07:00 [INFO]: Using in-memory database {"service":"metropower-dashboard","environment":"development","version":"1.0.0"}
+2025-06-28 14:07:00 [INFO]: Starting demo data initialization... {"service":"metropower-dashboard","environment":"development","version":"1.0.0"}
+2025-06-28 14:07:00 [INFO]: Creating password hashes... {"service":"metropower-dashboard","environment":"development","version":"1.0.0"}
+2025-06-28 14:07:00 [INFO]: Admin password hash created {"service":"metropower-dashboard","environment":"development","version":"1.0.0"}
+2025-06-28 14:07:00 [INFO]: Manager password hash created {"service":"metropower-dashboard","environment":"development","version":"1.0.0"}
+2025-06-28 14:07:00 [INFO]: Loading Excel data... {"service":"metropower-dashboard","environment":"development","version":"1.0.0"}
+2025-06-28 14:07:00 [INFO]: Excel data loaded: {"service":"metropower-dashboard","environment":"development","version":"1.0.0","hasData":true}
+2025-06-28 14:07:00 [INFO]: Demo data initialized successfully {"service":"metropower-dashboard","environment":"development","version":"1.0.0"}
+2025-06-28 14:07:00 [INFO]: Demo users: 2, Employees: 56, Projects: 4 {"service":"metropower-dashboard","environment":"development","version":"1.0.0"}
+2025-06-28 14:07:00 [INFO]: MetroPower Dashboard API Server running on http://localhost:3001 {"service":"metropower-dashboard","environment":"development","version":"1.0.0"}
+2025-06-28 14:07:00 [INFO]: Frontend Dashboard available at http://localhost:3001 {"service":"metropower-dashboard","environment":"development","version":"1.0.0"}
+2025-06-28 14:07:00 [INFO]: API Documentation available at http://localhost:3001/api-docs {"service":"metropower-dashboard","environment":"development","version":"1.0.0"}
+2025-06-28 14:07:00 [INFO]: Health check available at http://localhost:3001/health {"service":"metropower-dashboard","environment":"development","version":"1.0.0"}
+2025-06-28 14:07:00 [INFO]: Environment: development {"service":"metropower-dashboard","environment":"development","version":"1.0.0"}
+2025-06-28 14:07:00 [INFO]: Database connected - full functionality available {"service":"metropower-dashboard","environment":"development","version":"1.0.0"}
+2025-06-28 14:07:51 [INFO]: Logger initialized {"service":"metropower-dashboard","environment":"development","version":"1.0.0","fileLogging":true}
+2025-06-28 14:07:51 [INFO]: Using in-memory database {"service":"metropower-dashboard","environment":"development","version":"1.0.0"}
+2025-06-28 14:07:51 [INFO]: Starting demo data initialization... {"service":"metropower-dashboard","environment":"development","version":"1.0.0"}
+2025-06-28 14:07:51 [INFO]: Creating password hashes... {"service":"metropower-dashboard","environment":"development","version":"1.0.0"}
+2025-06-28 14:07:51 [INFO]: Admin password hash created {"service":"metropower-dashboard","environment":"development","version":"1.0.0"}
+2025-06-28 14:07:51 [INFO]: Manager password hash created {"service":"metropower-dashboard","environment":"development","version":"1.0.0"}
+2025-06-28 14:07:51 [INFO]: Loading Excel data... {"service":"metropower-dashboard","environment":"development","version":"1.0.0"}
+2025-06-28 14:07:51 [INFO]: Excel data loaded: {"service":"metropower-dashboard","environment":"development","version":"1.0.0","hasData":true}
+2025-06-28 14:07:51 [INFO]: Demo data initialized successfully {"service":"metropower-dashboard","environment":"development","version":"1.0.0"}
+2025-06-28 14:07:51 [INFO]: Demo users: 2, Employees: 56, Projects: 4 {"service":"metropower-dashboard","environment":"development","version":"1.0.0"}
+2025-06-28 14:07:51 [INFO]: MetroPower Dashboard API Server running on http://localhost:3001 {"service":"metropower-dashboard","environment":"development","version":"1.0.0"}
+2025-06-28 14:07:51 [INFO]: Frontend Dashboard available at http://localhost:3001 {"service":"metropower-dashboard","environment":"development","version":"1.0.0"}
+2025-06-28 14:07:51 [INFO]: API Documentation available at http://localhost:3001/api-docs {"service":"metropower-dashboard","environment":"development","version":"1.0.0"}
+2025-06-28 14:07:51 [INFO]: Health check available at http://localhost:3001/health {"service":"metropower-dashboard","environment":"development","version":"1.0.0"}
+2025-06-28 14:07:51 [INFO]: Environment: development {"service":"metropower-dashboard","environment":"development","version":"1.0.0"}
+2025-06-28 14:07:51 [INFO]: Database connected - full functionality available {"service":"metropower-dashboard","environment":"development","version":"1.0.0"}
+2025-06-28 14:08:10 [INFO]: Employees exported {"service":"metropower-dashboard","environment":"development","version":"1.0.0","format":"pdf","count":56}
+2025-06-28 14:08:10 [INFO]: ::1 - - [28/Jun/2025:18:08:10 +0000] "GET /api/exports/employees?format=pdf HTTP/1.1" 200 - "-" "curl/8.7.1" {"service":"metropower-dashboard","environment":"development","version":"1.0.0"}
+2025-06-28 14:11:23 [INFO]: Logger initialized {"service":"metropower-dashboard","environment":"development","version":"1.0.0","fileLogging":true}
+2025-06-28 14:11:23 [INFO]: Using in-memory database {"service":"metropower-dashboard","environment":"development","version":"1.0.0"}
+2025-06-28 14:11:23 [INFO]: Starting demo data initialization... {"service":"metropower-dashboard","environment":"development","version":"1.0.0"}
+2025-06-28 14:11:23 [INFO]: Creating password hashes... {"service":"metropower-dashboard","environment":"development","version":"1.0.0"}
+2025-06-28 14:11:24 [INFO]: Admin password hash created {"service":"metropower-dashboard","environment":"development","version":"1.0.0"}
+2025-06-28 14:11:24 [INFO]: Manager password hash created {"service":"metropower-dashboard","environment":"development","version":"1.0.0"}
+2025-06-28 14:11:24 [INFO]: Loading Excel data... {"service":"metropower-dashboard","environment":"development","version":"1.0.0"}
+2025-06-28 14:11:24 [INFO]: Excel data loaded: {"service":"metropower-dashboard","environment":"development","version":"1.0.0","hasData":true}
+2025-06-28 14:11:24 [INFO]: Demo data initialized successfully {"service":"metropower-dashboard","environment":"development","version":"1.0.0"}
+2025-06-28 14:11:24 [INFO]: Demo users: 2, Employees: 56, Projects: 4 {"service":"metropower-dashboard","environment":"development","version":"1.0.0"}
+2025-06-28 14:11:24 [INFO]: MetroPower Dashboard API Server running on http://localhost:3001 {"service":"metropower-dashboard","environment":"development","version":"1.0.0"}
+2025-06-28 14:11:24 [INFO]: Frontend Dashboard available at http://localhost:3001 {"service":"metropower-dashboard","environment":"development","version":"1.0.0"}
+2025-06-28 14:11:24 [INFO]: API Documentation available at http://localhost:3001/api-docs {"service":"metropower-dashboard","environment":"development","version":"1.0.0"}
+2025-06-28 14:11:24 [INFO]: Health check available at http://localhost:3001/health {"service":"metropower-dashboard","environment":"development","version":"1.0.0"}
+2025-06-28 14:11:24 [INFO]: Environment: development {"service":"metropower-dashboard","environment":"development","version":"1.0.0"}
+2025-06-28 14:11:24 [INFO]: Database connected - full functionality available {"service":"metropower-dashboard","environment":"development","version":"1.0.0"}
+2025-06-28 14:12:15 [INFO]: Logger initialized {"service":"metropower-dashboard","environment":"development","version":"1.0.0","fileLogging":true}
+2025-06-28 14:12:15 [INFO]: Using in-memory database {"service":"metropower-dashboard","environment":"development","version":"1.0.0"}
+2025-06-28 14:12:15 [INFO]: Starting demo data initialization... {"service":"metropower-dashboard","environment":"development","version":"1.0.0"}
+2025-06-28 14:12:15 [INFO]: Creating password hashes... {"service":"metropower-dashboard","environment":"development","version":"1.0.0"}
+2025-06-28 14:12:15 [INFO]: Admin password hash created {"service":"metropower-dashboard","environment":"development","version":"1.0.0"}
+2025-06-28 14:12:16 [INFO]: Manager password hash created {"service":"metropower-dashboard","environment":"development","version":"1.0.0"}
+2025-06-28 14:12:16 [INFO]: Loading Excel data... {"service":"metropower-dashboard","environment":"development","version":"1.0.0"}
+2025-06-28 14:12:16 [INFO]: Excel data loaded: {"service":"metropower-dashboard","environment":"development","version":"1.0.0","hasData":true}
+2025-06-28 14:12:16 [INFO]: Demo data initialized successfully {"service":"metropower-dashboard","environment":"development","version":"1.0.0"}
+2025-06-28 14:12:16 [INFO]: Demo users: 2, Employees: 56, Projects: 4 {"service":"metropower-dashboard","environment":"development","version":"1.0.0"}
+2025-06-28 14:12:16 [INFO]: MetroPower Dashboard API Server running on http://localhost:3001 {"service":"metropower-dashboard","environment":"development","version":"1.0.0"}
+2025-06-28 14:12:16 [INFO]: Frontend Dashboard available at http://localhost:3001 {"service":"metropower-dashboard","environment":"development","version":"1.0.0"}
+2025-06-28 14:12:16 [INFO]: API Documentation available at http://localhost:3001/api-docs {"service":"metropower-dashboard","environment":"development","version":"1.0.0"}
+2025-06-28 14:12:16 [INFO]: Health check available at http://localhost:3001/health {"service":"metropower-dashboard","environment":"development","version":"1.0.0"}
+2025-06-28 14:12:16 [INFO]: Environment: development {"service":"metropower-dashboard","environment":"development","version":"1.0.0"}
+2025-06-28 14:12:16 [INFO]: Database connected - full functionality available {"service":"metropower-dashboard","environment":"development","version":"1.0.0"}
+2025-06-28 14:12:35 [INFO]: Employees exported {"service":"metropower-dashboard","environment":"development","version":"1.0.0","format":"pdf","count":56}
+2025-06-28 14:12:35 [INFO]: ::1 - - [28/Jun/2025:18:12:35 +0000] "GET /api/exports/employees?format=pdf HTTP/1.1" 200 - "-" "curl/8.7.1" {"service":"metropower-dashboard","environment":"development","version":"1.0.0"}
+2025-06-28 14:14:53 [INFO]: Logger initialized {"service":"metropower-dashboard","environment":"development","version":"1.0.0","fileLogging":true}
+2025-06-28 14:14:53 [INFO]: Using in-memory database {"service":"metropower-dashboard","environment":"development","version":"1.0.0"}
+2025-06-28 14:14:53 [INFO]: Starting demo data initialization... {"service":"metropower-dashboard","environment":"development","version":"1.0.0"}
+2025-06-28 14:14:53 [INFO]: Creating password hashes... {"service":"metropower-dashboard","environment":"development","version":"1.0.0"}
+2025-06-28 14:14:54 [INFO]: Admin password hash created {"service":"metropower-dashboard","environment":"development","version":"1.0.0"}
+2025-06-28 14:14:54 [INFO]: Manager password hash created {"service":"metropower-dashboard","environment":"development","version":"1.0.0"}
+2025-06-28 14:14:54 [INFO]: Loading Excel data... {"service":"metropower-dashboard","environment":"development","version":"1.0.0"}
+2025-06-28 14:14:54 [INFO]: Excel data loaded: {"service":"metropower-dashboard","environment":"development","version":"1.0.0","hasData":true}
+2025-06-28 14:14:54 [INFO]: Demo data initialized successfully {"service":"metropower-dashboard","environment":"development","version":"1.0.0"}
+2025-06-28 14:14:54 [INFO]: Demo users: 2, Employees: 56, Projects: 4 {"service":"metropower-dashboard","environment":"development","version":"1.0.0"}
+2025-06-28 14:14:54 [INFO]: MetroPower Dashboard API Server running on http://localhost:3001 {"service":"metropower-dashboard","environment":"development","version":"1.0.0"}
+2025-06-28 14:14:54 [INFO]: Frontend Dashboard available at http://localhost:3001 {"service":"metropower-dashboard","environment":"development","version":"1.0.0"}
+2025-06-28 14:14:54 [INFO]: API Documentation available at http://localhost:3001/api-docs {"service":"metropower-dashboard","environment":"development","version":"1.0.0"}
+2025-06-28 14:14:54 [INFO]: Health check available at http://localhost:3001/health {"service":"metropower-dashboard","environment":"development","version":"1.0.0"}
+2025-06-28 14:14:54 [INFO]: Environment: development {"service":"metropower-dashboard","environment":"development","version":"1.0.0"}
+2025-06-28 14:14:54 [INFO]: Database connected - full functionality available {"service":"metropower-dashboard","environment":"development","version":"1.0.0"}
+2025-06-28 14:15:46 [INFO]: Logger initialized {"service":"metropower-dashboard","environment":"development","version":"1.0.0","fileLogging":true}
+2025-06-28 14:15:47 [INFO]: Using in-memory database {"service":"metropower-dashboard","environment":"development","version":"1.0.0"}
+2025-06-28 14:15:47 [INFO]: Starting demo data initialization... {"service":"metropower-dashboard","environment":"development","version":"1.0.0"}
+2025-06-28 14:15:47 [INFO]: Creating password hashes... {"service":"metropower-dashboard","environment":"development","version":"1.0.0"}
+2025-06-28 14:15:47 [INFO]: Admin password hash created {"service":"metropower-dashboard","environment":"development","version":"1.0.0"}
+2025-06-28 14:15:47 [INFO]: Manager password hash created {"service":"metropower-dashboard","environment":"development","version":"1.0.0"}
+2025-06-28 14:15:47 [INFO]: Loading Excel data... {"service":"metropower-dashboard","environment":"development","version":"1.0.0"}
+2025-06-28 14:15:47 [INFO]: Excel data loaded: {"service":"metropower-dashboard","environment":"development","version":"1.0.0","hasData":true}
+2025-06-28 14:15:47 [INFO]: Demo data initialized successfully {"service":"metropower-dashboard","environment":"development","version":"1.0.0"}
+2025-06-28 14:15:47 [INFO]: Demo users: 2, Employees: 56, Projects: 4 {"service":"metropower-dashboard","environment":"development","version":"1.0.0"}
+2025-06-28 14:15:47 [INFO]: MetroPower Dashboard API Server running on http://localhost:3001 {"service":"metropower-dashboard","environment":"development","version":"1.0.0"}
+2025-06-28 14:15:47 [INFO]: Frontend Dashboard available at http://localhost:3001 {"service":"metropower-dashboard","environment":"development","version":"1.0.0"}
+2025-06-28 14:15:47 [INFO]: API Documentation available at http://localhost:3001/api-docs {"service":"metropower-dashboard","environment":"development","version":"1.0.0"}
+2025-06-28 14:15:47 [INFO]: Health check available at http://localhost:3001/health {"service":"metropower-dashboard","environment":"development","version":"1.0.0"}
+2025-06-28 14:15:47 [INFO]: Environment: development {"service":"metropower-dashboard","environment":"development","version":"1.0.0"}
+2025-06-28 14:15:47 [INFO]: Database connected - full functionality available {"service":"metropower-dashboard","environment":"development","version":"1.0.0"}
+2025-06-28 14:16:07 [INFO]: Employees exported {"service":"metropower-dashboard","environment":"development","version":"1.0.0","format":"pdf","count":56}
+2025-06-28 14:16:07 [INFO]: ::1 - - [28/Jun/2025:18:16:07 +0000] "GET /api/exports/employees?format=pdf HTTP/1.1" 200 - "-" "curl/8.7.1" {"service":"metropower-dashboard","environment":"development","version":"1.0.0"}
