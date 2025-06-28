@@ -165,6 +165,17 @@ body {
     align-items: center;
 }
 
+/* Desktop login button spacing for better visual hierarchy */
+.login-btn {
+    margin-left: var(--spacing-lg); /* 20px spacing from date display */
+    margin-right: var(--spacing-lg); /* 20px spacing from header edge */
+}
+
+.logout-btn {
+    margin-left: var(--spacing-md); /* 16px spacing from user info */
+    margin-right: var(--spacing-lg); /* 20px spacing from header edge */
+}
+
 /* Navigation Bar */
 .header-nav {
     background-color: var(--light-gray);
@@ -318,11 +329,23 @@ body {
         flex-shrink: 0; /* Prevent shrinking */
     }
 
-    /* Login button spacing for mobile accessibility */
+    /* Login button spacing for mobile accessibility - override desktop margins */
     .login-btn {
+        margin-left: 0; /* Reset desktop left margin */
         margin-right: var(--spacing-lg); /* 20px spacing from adjacent elements */
         padding: var(--spacing-xs) var(--spacing-sm);
         font-size: var(--font-size-sm);
+    }
+
+    .logout-btn {
+        margin-left: 0; /* Reset desktop left margin */
+        margin-right: var(--spacing-lg); /* 20px spacing from adjacent elements */
+    }
+
+    /* Mobile user actions spacing - override desktop margins */
+    .user-actions {
+        margin-left: 0; /* Reset desktop left margin for mobile */
+        gap: var(--spacing-xs); /* Tighter spacing on mobile */
     }
 
     /* Hide manage button on mobile to save space */
@@ -595,9 +618,15 @@ body {
 
     /* Login button with proper spacing for mobile accessibility */
     .login-btn {
+        margin-left: 0; /* Reset desktop left margin */
+        margin-right: var(--spacing-lg); /* 20px spacing from adjacent elements */
         padding: var(--spacing-xs) var(--spacing-sm);
         font-size: var(--font-size-xs);
         min-height: 36px; /* Smaller but still accessible */
+    }
+
+    .logout-btn {
+        margin-left: 0; /* Reset desktop left margin */
         margin-right: var(--spacing-lg); /* 20px spacing from adjacent elements */
     }
 
@@ -652,10 +681,12 @@ body {
     line-height: 1.2;
 }
 
+/* Desktop user actions spacing for professional layout */
 .user-actions {
     display: flex;
     align-items: center;
     gap: var(--spacing-sm);
+    margin-left: var(--spacing-md); /* 16px spacing from user info */
 }
 
 /* Buttons */
