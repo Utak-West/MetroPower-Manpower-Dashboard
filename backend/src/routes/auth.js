@@ -219,4 +219,85 @@ router.post('/refresh', asyncHandler(async (req, res) => {
   }
 }))
 
+/**
+ * @route   GET /api/auth/demo-bypass
+ * @desc    Demo bypass login - automatically login as admin for development
+ * @access  Public
+ */
+router.get('/demo-bypass', asyncHandler(async (req, res) => {
+  try {
+    if (!global.isDemoMode) {
+      return res.status(403).json({
+        error: 'Demo bypass disabled',
+        message: 'Demo bypass is only available in demo mode'
+      })
+    }
+
+    // Find the admin user for demo bypass
+    const demoService = require('../services/demoService')
+
+    // Debug: Try to find any user first
+    logger.info('Attempting to find demo user...')
+    let adminUser = await demoService.findUserByIdentifier('antione.harrell@metropower.com')
+
+    if (!adminUser) {
+      // Try the admin user as fallback
+      logger.info('Manager user not found, trying admin user...')
+      adminUser = await demoService.findUserByIdentifier('admin@metropower.com')
+    }
+
+    if (!adminUser) {
+      logger.error('No demo users found')
+      return res.status(500).json({
+        error: 'Demo setup error',
+        message: 'Demo admin user not found'
+      })
+    }
+
+    // Generate tokens for the admin user
+    const accessToken = await User.generateAccessToken({
+      user_id: adminUser.user_id,
+      username: adminUser.username,
+      email: adminUser.email,
+      role: adminUser.role
+    })
+
+    const refreshToken = await User.generateRefreshToken({
+      user_id: adminUser.user_id,
+      username: adminUser.username
+    })
+
+    // Update last login
+    await demoService.updateUserLastLogin(adminUser.user_id)
+
+    logger.info('Demo bypass login successful', {
+      userId: adminUser.user_id,
+      email: adminUser.email
+    })
+
+    res.json({
+      success: true,
+      message: 'Demo login successful',
+      accessToken,
+      refreshToken,
+      user: {
+        user_id: adminUser.user_id,
+        username: adminUser.username,
+        email: adminUser.email,
+        first_name: adminUser.first_name,
+        last_name: adminUser.last_name,
+        role: adminUser.role,
+        is_active: adminUser.is_active,
+        last_login: new Date().toISOString()
+      }
+    })
+  } catch (error) {
+    logger.error('Demo bypass error:', error)
+    res.status(500).json({
+      error: 'Demo bypass failed',
+      message: 'An error occurred during demo bypass login'
+    })
+  }
+}))
+
 module.exports = router

@@ -179,11 +179,23 @@ async function checkAuthentication() {
         let user = await getCurrentUser();
         console.log('User retrieved:', user);
 
-        // If no user found, redirect to login
+        // If no user found, try demo bypass first
         if (!user) {
-            console.log('No user found, redirecting to login page...');
-            window.location.href = '/index.html';
-            return;
+            console.log('No user found, attempting demo bypass...');
+            try {
+                const response = await api.demoBypass();
+                console.log('Demo bypass successful:', response);
+                user = response.user;
+
+                if (typeof showNotification === 'function') {
+                    showNotification('Demo login successful', 'success');
+                }
+            } catch (demoError) {
+                console.error('Demo bypass failed:', demoError);
+                console.log('Redirecting to login page...');
+                window.location.href = '/index.html';
+                return;
+            }
         }
 
         // Store current user
@@ -248,11 +260,28 @@ async function loadProjects() {
         console.log('About to hide loading state and show projects...');
         hideLoadingState();
 
+        // Show success notification
+        if (typeof showNotification === 'function' && projects.length > 0) {
+            showNotification(`Successfully loaded ${projects.length} project${projects.length === 1 ? '' : 's'}`, 'success', 3000);
+        }
+
     } catch (error) {
         console.error('Error loading projects:', error);
         console.error('Error details:', error.message, error.stack);
         hideLoadingState();
-        showErrorState();
+
+        let errorMessage = 'Failed to load projects. Please check your connection and try again.';
+        if (error.message.includes('Authentication')) {
+            errorMessage = 'Authentication failed. Please refresh the page to log in again.';
+        } else if (error.message.includes('Network')) {
+            errorMessage = 'Network error. Please check your internet connection.';
+        }
+
+        showErrorState(errorMessage);
+
+        if (typeof showNotification === 'function') {
+            showNotification(errorMessage, 'error');
+        }
     }
 }
 
@@ -265,7 +294,14 @@ function showLoadingState() {
     const tableView = document.getElementById('tableView');
     const errorState = document.getElementById('errorState');
 
-    if (loadingState) loadingState.style.display = 'block';
+    if (loadingState) {
+        loadingState.style.display = 'block';
+        loadingState.innerHTML = `
+            <div class="loading-spinner"></div>
+            <p>Loading projects...</p>
+            <small>Please wait while we fetch your project data</small>
+        `;
+    }
     if (cardView) cardView.style.display = 'none';
     if (tableView) tableView.style.display = 'none';
     if (errorState) errorState.style.display = 'none';
@@ -294,12 +330,23 @@ function hideLoadingState() {
 /**
  * Show error state
  */
-function showErrorState() {
+function showErrorState(message = 'Failed to load projects. Please try again.') {
     const errorState = document.getElementById('errorState');
     const cardView = document.getElementById('cardView');
     const tableView = document.getElementById('tableView');
 
-    if (errorState) errorState.style.display = 'block';
+    if (errorState) {
+        errorState.style.display = 'block';
+        errorState.innerHTML = `
+            <div class="error-icon">⚠️</div>
+            <h3>Oops! Something went wrong</h3>
+            <p>${message}</p>
+            <div class="error-actions">
+                <button type="button" class="btn btn-primary" onclick="loadProjects()">Try Again</button>
+                <button type="button" class="btn btn-secondary" onclick="window.location.reload()">Refresh Page</button>
+            </div>
+        `;
+    }
     if (cardView) cardView.style.display = 'none';
     if (tableView) tableView.style.display = 'none';
 }

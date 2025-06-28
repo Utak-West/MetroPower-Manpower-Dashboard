@@ -213,10 +213,57 @@
             color: #666;
         }
 
+        .loading-state .loading-spinner {
+            width: 40px;
+            height: 40px;
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #dc3545;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 1rem auto;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .loading-state small {
+            display: block;
+            margin-top: 0.5rem;
+            font-size: 0.875rem;
+            opacity: 0.7;
+        }
+
         .error-state {
             text-align: center;
             padding: 3rem;
             color: #dc3545;
+        }
+
+        .error-state .error-icon {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+        }
+
+        .error-state h3 {
+            color: #dc3545;
+            margin-bottom: 1rem;
+        }
+
+        .error-state p {
+            color: #666;
+            margin-bottom: 2rem;
+            max-width: 400px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .error-actions {
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+            flex-wrap: wrap;
         }
 
         .empty-state {

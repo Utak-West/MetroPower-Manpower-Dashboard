@@ -119,7 +119,9 @@ router.get('/:id', asyncHandler(async (req, res) => {
       weekEnd.setDate(weekStart.getDate() + 6)
 
       const weekAssignments = await demoService.getWeekAssignments(weekStart.toISOString().split('T')[0])
-      const projectAssignments = Object.values(weekAssignments).flat().filter(a => a.project_id.toString() === projectId)
+      const projectAssignments = weekAssignments
+        .flatMap(day => day.assignments)
+        .filter(a => a.project_id && a.project_id.toString() === projectId)
 
       return res.json({
         success: true,
