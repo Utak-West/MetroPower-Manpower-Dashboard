@@ -162,6 +162,17 @@ function showAuthenticatedState(user) {
     }
 
     // Show navigation tabs for authenticated users
+    const navProjectsTab = document.getElementById('navProjectsTab');
+    const navCalendarTab = document.getElementById('navCalendarTab');
+
+    if (navProjectsTab && user && ['Project Manager', 'Admin', 'Super Admin'].includes(user.role)) {
+        navProjectsTab.style.display = 'inline-block';
+    }
+
+    if (navCalendarTab && user && ['Project Manager', 'Admin', 'Super Admin'].includes(user.role)) {
+        navCalendarTab.style.display = 'inline-block';
+    }
+
     if (navAssignmentsTab && user && ['Project Manager', 'Admin', 'Super Admin'].includes(user.role)) {
         navAssignmentsTab.style.display = 'inline-block';
     }

@@ -532,6 +532,38 @@ const getProjects = async () => {
   return demoProjects;
 };
 
+/**
+ * Get projects with assignment statistics
+ */
+const getProjectsWithStats = async () => {
+  const today = new Date().toISOString().split('T')[0];
+
+  return demoProjects.map(project => {
+    // Count current assignments for this project
+    const currentAssignments = demoAssignments.filter(a =>
+      a.project_id === project.project_id && a.date === today
+    );
+
+    // Count total assignments for this project
+    const totalAssignments = demoAssignments.filter(a =>
+      a.project_id === project.project_id
+    );
+
+    // Get unique employees assigned to this project
+    const uniqueEmployees = [...new Set(totalAssignments.map(a => a.employee_id))];
+
+    return {
+      ...project,
+      currentAssignments: currentAssignments.length,
+      totalAssignments: totalAssignments.length,
+      uniqueEmployees: uniqueEmployees.length,
+      lastAssignmentDate: totalAssignments.length > 0
+        ? Math.max(...totalAssignments.map(a => new Date(a.date).getTime()))
+        : null
+    };
+  });
+};
+
 // Demo data will be initialized explicitly by the server
 
 module.exports = {
@@ -543,6 +575,7 @@ module.exports = {
   getUnassignedEmployees,
   getActiveProjects,
   getProjects,
+  getProjectsWithStats,
   getWeekAssignments,
   getDashboardMetrics,
   getAssignments,

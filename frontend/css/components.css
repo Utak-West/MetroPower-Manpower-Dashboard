@@ -33,6 +33,10 @@
     animation: modalSlideIn 0.3s ease-out;
 }
 
+.large-modal {
+    max-width: 800px;
+}
+
 @keyframes modalSlideIn {
     from {
         opacity: 0;

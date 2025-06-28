@@ -190,6 +190,7 @@ app.use('/api/projects', authMiddleware, projectRoutes);
 app.use('/api/positions', authMiddleware, positionRoutes);
 app.use('/api/assignments', authMiddleware, assignmentRoutes);
 app.use('/api/dashboard', authMiddleware, dashboardRoutes);
+app.use('/api/calendar', authMiddleware, require('./src/routes/calendar'));
 app.use('/api/exports', authMiddleware, exportRoutes);
 app.use('/api/archives', authMiddleware, archiveRoutes);
 app.use('/api/notifications', authMiddleware, notificationRoutes);

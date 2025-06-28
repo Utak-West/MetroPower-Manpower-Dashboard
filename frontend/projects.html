@@ -1,0 +1,388 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MetroPower Projects - Dashboard</title>
+    <link rel="stylesheet" href="/css/dashboard.css">
+    <link rel="stylesheet" href="/css/components.css">
+    <style>
+        .projects-container {
+            padding: 2rem;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .projects-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+            padding-bottom: 1rem;
+            border-bottom: 2px solid #e9ecef;
+        }
+
+        .projects-title {
+            font-size: 2rem;
+            font-weight: 600;
+            color: #333;
+            margin: 0;
+        }
+
+        .projects-actions {
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+        }
+
+        .view-toggle {
+            display: flex;
+            background: #f8f9fa;
+            border-radius: 8px;
+            padding: 4px;
+        }
+
+        .view-toggle button {
+            padding: 8px 16px;
+            border: none;
+            background: transparent;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .view-toggle button.active {
+            background: white;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .projects-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .project-card {
+            background: white;
+            border-radius: 12px;
+            padding: 1.5rem;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            transition: transform 0.2s, box-shadow 0.2s;
+            cursor: pointer;
+        }
+
+        .project-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 16px rgba(0,0,0,0.15);
+        }
+
+        .project-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 1rem;
+        }
+
+        .project-name {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: #333;
+            margin: 0 0 0.5rem 0;
+        }
+
+        .project-number {
+            font-size: 0.9rem;
+            color: #666;
+            margin: 0;
+        }
+
+        .project-status {
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 500;
+            text-transform: uppercase;
+        }
+
+        .status-active {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .status-completed {
+            background: #cce5ff;
+            color: #004085;
+        }
+
+        .status-on-hold {
+            background: #fff3cd;
+            color: #856404;
+        }
+
+        .project-details {
+            margin-bottom: 1rem;
+        }
+
+        .project-detail {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 0.5rem;
+            font-size: 0.9rem;
+        }
+
+        .project-detail-label {
+            color: #666;
+            font-weight: 500;
+        }
+
+        .project-detail-value {
+            color: #333;
+            font-weight: 600;
+        }
+
+        .project-metrics {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 1rem;
+            margin-top: 1rem;
+            padding-top: 1rem;
+            border-top: 1px solid #e9ecef;
+        }
+
+        .metric {
+            text-align: center;
+        }
+
+        .metric-value {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: #dc3545;
+            margin: 0;
+        }
+
+        .metric-label {
+            font-size: 0.8rem;
+            color: #666;
+            margin: 0;
+        }
+
+        .projects-table {
+            background: white;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+        .table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .table th,
+        .table td {
+            padding: 1rem;
+            text-align: left;
+            border-bottom: 1px solid #e9ecef;
+        }
+
+        .table th {
+            background: #f8f9fa;
+            font-weight: 600;
+            color: #333;
+        }
+
+        .table tbody tr:hover {
+            background: #f8f9fa;
+        }
+
+        .loading-state {
+            text-align: center;
+            padding: 3rem;
+            color: #666;
+        }
+
+        .error-state {
+            text-align: center;
+            padding: 3rem;
+            color: #dc3545;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 3rem;
+            color: #666;
+        }
+
+        .project-detail-content {
+            padding: 1rem;
+        }
+
+        .project-info-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+            margin-bottom: 2rem;
+        }
+
+        .info-section h4 {
+            color: #dc3545;
+            margin-bottom: 1rem;
+            font-size: 1.1rem;
+        }
+
+        .info-section p {
+            margin-bottom: 0.5rem;
+            line-height: 1.5;
+        }
+
+        .current-assignments {
+            margin-bottom: 2rem;
+        }
+
+        .current-assignments h4 {
+            color: #dc3545;
+            margin-bottom: 1rem;
+        }
+
+        .assignments-list {
+            display: grid;
+            gap: 0.5rem;
+        }
+
+        .assignment-item {
+            background: #f8f9fa;
+            padding: 0.75rem;
+            border-radius: 6px;
+            border-left: 3px solid #dc3545;
+        }
+
+        .project-actions {
+            display: flex;
+            gap: 1rem;
+            justify-content: flex-end;
+            padding-top: 1rem;
+            border-top: 1px solid #e9ecef;
+        }
+
+        @media (max-width: 768px) {
+            .projects-container {
+                padding: 1rem;
+            }
+
+            .projects-header {
+                flex-direction: column;
+                gap: 1rem;
+                align-items: stretch;
+            }
+
+            .projects-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .project-metrics {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .project-info-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .project-actions {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <header class="header">
+        <h1>MetroPower Projects</h1>
+        <div class="user-info">
+            <span id="userDisplay">Loading...</span>
+            <button type="button" class="logout-btn" onclick="logout()">Logout</button>
+        </div>
+    </header>
+
+    <!-- Navigation -->
+    <div class="nav-container">
+        <div class="nav-tabs">
+            <a href="/index.html" class="nav-tab">Dashboard</a>
+            <a href="/projects.html" class="nav-tab active">Projects</a>
+            <a href="/calendar.html" class="nav-tab">Calendar</a>
+            <a href="/assignments.html" class="nav-tab">Assignments</a>
+            <a href="/staff.html" class="nav-tab">Staff Directory</a>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <main class="projects-container">
+        <div class="projects-header">
+            <h2 class="projects-title">Project Overview</h2>
+            <div class="projects-actions">
+                <div class="view-toggle">
+                    <button type="button" id="cardViewBtn" class="active">Card View</button>
+                    <button type="button" id="tableViewBtn">Table View</button>
+                </div>
+                <button type="button" class="btn btn-primary" onclick="exportProjects()">Export Projects</button>
+            </div>
+        </div>
+
+        <!-- Loading State -->
+        <div id="loadingState" class="loading-state">
+            <div class="loading-spinner"></div>
+            <p>Loading projects...</p>
+        </div>
+
+        <!-- Error State -->
+        <div id="errorState" class="error-state" style="display: none;">
+            <p>Failed to load projects. Please try again.</p>
+            <button type="button" class="btn btn-secondary" onclick="loadProjects()">Retry</button>
+        </div>
+
+        <!-- Card View -->
+        <div id="cardView" class="projects-grid" style="display: none;">
+            <!-- Project cards will be populated here -->
+        </div>
+
+        <!-- Table View -->
+        <div id="tableView" class="projects-table" style="display: none;">
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>Project Name</th>
+                        <th>Number</th>
+                        <th>Status</th>
+                        <th>Location</th>
+                        <th>Current Staff</th>
+                        <th>Total Assignments</th>
+                        <th>Budget</th>
+                    </tr>
+                </thead>
+                <tbody id="projectsTableBody">
+                    <!-- Table rows will be populated here -->
+                </tbody>
+            </table>
+        </div>
+    </main>
+
+    <!-- Project Detail Modal -->
+    <div class="modal-overlay" id="projectModal" style="display: none;">
+        <div class="modal large-modal">
+            <div class="modal-header">
+                <h2 id="modalProjectName">Project Details</h2>
+                <button type="button" class="modal-close" onclick="closeProjectModal()">&times;</button>
+            </div>
+            <div class="modal-body" id="modalProjectContent">
+                <!-- Project details will be populated here -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="/js/api.js"></script>
+    <script src="/js/auth.js"></script>
+    <script src="/js/components.js"></script>
+    <script src="/js/projects.js"></script>
+</body>
+</html>

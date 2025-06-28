@@ -285,8 +285,46 @@ class APIClient {
     /**
      * Get all projects
      */
-    async getProjects() {
-        return this.get('/projects');
+    async getProjects(params = {}) {
+        const queryString = new URLSearchParams(params).toString();
+        const url = queryString ? `/projects?${queryString}` : '/projects';
+        return this.get(url);
+    }
+
+    /**
+     * Get project details by ID
+     */
+    async getProjectDetails(projectId) {
+        return this.get(`/projects/${projectId}`);
+    }
+
+    /**
+     * Get project assignments
+     */
+    async getProjectAssignments(projectId, startDate, endDate) {
+        const params = new URLSearchParams({ startDate, endDate });
+        return this.get(`/projects/${projectId}/assignments?${params}`);
+    }
+
+    /**
+     * Get calendar data for month
+     */
+    async getCalendarMonth(year, month) {
+        return this.get(`/calendar/month/${year}/${month}`);
+    }
+
+    /**
+     * Get calendar data for week
+     */
+    async getCalendarWeek(date) {
+        return this.get(`/calendar/week/${date}`);
+    }
+
+    /**
+     * Check calendar conflicts
+     */
+    async getCalendarConflicts(date) {
+        return this.get(`/calendar/conflicts/${date}`);
     }
 }
 
