@@ -83,6 +83,13 @@ body {
     position: sticky;
     top: 0;
     z-index: 100;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 var(--spacing-lg);
+    height: 70px;
+    max-width: 1200px;
+    margin: 0 auto;
 }
 
 .header-container {
@@ -95,10 +102,61 @@ body {
     height: 70px;
 }
 
-.header-left .logo {
+.header-left {
     display: flex;
     align-items: center;
     gap: var(--spacing-md);
+}
+
+.header-left .logo {
+    height: 40px;
+    width: auto;
+}
+
+.header-left h1 {
+    font-size: var(--font-size-xl);
+    font-weight: 600;
+    color: var(--black);
+    margin: 0;
+}
+
+.header-left .branch-name {
+    font-size: var(--font-size-sm);
+    color: var(--gray-600);
+    font-weight: 400;
+}
+
+.header-nav {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-lg);
+}
+
+.nav-link {
+    text-decoration: none;
+    color: var(--gray-600);
+    font-weight: 500;
+    font-size: var(--font-size-base);
+    padding: var(--spacing-sm) var(--spacing-md);
+    border-radius: var(--border-radius);
+    transition: all 0.2s ease;
+}
+
+.nav-link:hover {
+    color: var(--primary-color);
+    background-color: var(--gray-50);
+}
+
+.nav-link.active {
+    color: var(--primary-color);
+    background-color: var(--primary-light);
+    font-weight: 600;
+}
+
+.logo {
+    height: 50px;
+    width: auto;
+    max-width: 200px;
 }
 
 .metro-logo {
@@ -121,34 +179,52 @@ body {
     font-weight: 500;
 }
 
-/* Responsive logo adjustments */
+/* Responsive header adjustments */
 @media (max-width: 768px) {
-    .metro-logo {
+    .header {
+        padding: 0 var(--spacing-md);
+        height: 60px;
+    }
+
+    .logo, .metro-logo {
         height: 40px;
         max-width: 150px;
     }
 
-    .logo-text h1 {
+    .header-left h1 {
         font-size: var(--font-size-lg);
     }
 
-    .logo-text .branch-name {
+    .header-left .branch-name {
         font-size: var(--font-size-xs);
+    }
+
+    .header-nav {
+        gap: var(--spacing-md);
+    }
+
+    .nav-link {
+        padding: var(--spacing-xs) var(--spacing-sm);
+        font-size: var(--font-size-sm);
     }
 }
 
 @media (max-width: 480px) {
-    .header-left .logo {
+    .header-left {
         gap: var(--spacing-sm);
     }
 
-    .metro-logo {
+    .logo, .metro-logo {
         height: 35px;
         max-width: 120px;
     }
 
-    .logo-text h1 {
+    .header-left h1 {
         font-size: var(--font-size-base);
+    }
+
+    .header-nav {
+        display: none; /* Hide navigation on very small screens */
     }
 }
 

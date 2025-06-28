@@ -119,7 +119,7 @@ function switchView(view) {
     // Show/hide views
     if (monthView && weekView) {
         monthView.style.display = view === 'month' ? 'block' : 'none';
-        weekView.classList.toggle('active', view === 'week');
+        weekView.style.display = view === 'week' ? 'block' : 'none';
     }
 
     // Load data for the current view
@@ -215,9 +215,23 @@ async function loadMonthView() {
  */
 async function loadWeekView() {
     const dateStr = currentDate.toISOString().split('T')[0];
-    
+
     const response = await api.getCalendarWeek(dateStr);
-    calendarData = response.data;
+    const rawData = response.data;
+
+    // Normalize week data structure to match month view format
+    const normalizedAssignments = {};
+    if (rawData.assignments && Array.isArray(rawData.assignments)) {
+        rawData.assignments.forEach(dayData => {
+            normalizedAssignments[dayData.date] = dayData.assignments || [];
+        });
+    }
+
+    calendarData = {
+        weekStart: rawData.weekStart,
+        weekEnd: rawData.weekEnd,
+        assignments: normalizedAssignments
+    };
 
     // Update period display
     const weekStart = new Date(calendarData.weekStart);
@@ -271,8 +285,8 @@ function renderMonthCalendar() {
             
             const dayNumberClass = `day-number ${!isCurrentMonth ? 'other-month' : ''} ${isToday ? 'today' : ''}`;
             
-            const assignmentsHTML = dayAssignments.slice(0, 3).map(assignment => 
-                `<div class="assignment-item" onclick="showAssignmentDetails('${dateStr}')">${assignment.employee.name}</div>`
+            const assignmentsHTML = dayAssignments.slice(0, 3).map(assignment =>
+                `<div class="assignment-item" onclick="showAssignmentDetails('${dateStr}')">${assignment.employee ? assignment.employee.name : 'Unknown'}</div>`
             ).join('');
             
             const moreCount = dayAssignments.length > 3 ? dayAssignments.length - 3 : 0;
@@ -291,9 +305,6 @@ function renderMonthCalendar() {
     }).join('');
 
     monthCalendar.innerHTML = weeksHTML;
-    
-    const monthView = document.getElementById('monthView');
-    if (monthView) monthView.style.display = 'block';
 }
 
 /**
@@ -305,7 +316,7 @@ function renderWeekCalendar() {
 
     const weekStart = new Date(calendarData.weekStart);
     const days = [];
-    
+
     // Generate 7 days of the week
     for (let i = 0; i < 7; i++) {
         const date = new Date(weekStart);
@@ -313,32 +324,34 @@ function renderWeekCalendar() {
         days.push(date);
     }
 
-    // Create header row
-    const headerHTML = `
-        <div class="time-slot"></div>
-        ${days.map(date => `
-            <div class="day-header">
-                ${getDayName(date.getDay())} ${date.getDate()}
-            </div>
-        `).join('')}
+    // Create week grid with proper structure
+    const weekHTML = `
+        <div class="week-header">
+            ${days.map(date => `
+                <div class="week-day-header">
+                    <div class="day-name">${getDayName(date.getDay())}</div>
+                    <div class="day-number">${date.getDate()}</div>
+                </div>
+            `).join('')}
+        </div>
+        <div class="week-content">
+            ${days.map(date => {
+                const dateStr = date.toISOString().split('T')[0];
+                const dayAssignments = calendarData.assignments[dateStr] || [];
+
+                const assignmentsContent = dayAssignments.map(assignment =>
+                    `<div class="assignment-item" onclick="showAssignmentDetails('${dateStr}')">
+                        <div class="assignment-employee">${assignment.employee ? assignment.employee.name : 'Unknown'}</div>
+                        <div class="assignment-project">${assignment.project ? assignment.project.name : 'Unknown Project'}</div>
+                    </div>`
+                ).join('');
+
+                return `<div class="week-day-column">${assignmentsContent}</div>`;
+            }).join('')}
+        </div>
     `;
 
-    // Create time slots (simplified - just showing assignments)
-    const assignmentsHTML = `
-        <div class="time-slot">Assignments</div>
-        ${days.map(date => {
-            const dateStr = date.toISOString().split('T')[0];
-            const dayAssignments = calendarData.assignments[dateStr] || [];
-            
-            const assignmentsContent = dayAssignments.map(assignment => 
-                `<div class="assignment-item" onclick="showAssignmentDetails('${dateStr}')">${assignment.employee.name} - ${assignment.project.name}</div>`
-            ).join('');
-
-            return `<div class="day-column">${assignmentsContent}</div>`;
-        }).join('')}
-    `;
-
-    weekGrid.innerHTML = headerHTML + assignmentsHTML;
+    weekGrid.innerHTML = weekHTML;
 }
 
 /**
@@ -362,6 +375,18 @@ function showLoadingState() {
 function hideLoadingState() {
     const loadingState = document.getElementById('loadingState');
     if (loadingState) loadingState.style.display = 'none';
+
+    // Show the appropriate view
+    const monthView = document.getElementById('monthView');
+    const weekView = document.getElementById('weekView');
+
+    if (currentView === 'month') {
+        if (monthView) monthView.style.display = 'block';
+        if (weekView) weekView.style.display = 'none';
+    } else {
+        if (monthView) monthView.style.display = 'none';
+        if (weekView) weekView.style.display = 'block';
+    }
 }
 
 /**
@@ -547,6 +572,14 @@ function getMonthName(monthIndex) {
         'July', 'August', 'September', 'October', 'November', 'December'
     ];
     return months[monthIndex];
+}
+
+/**
+ * Get day name
+ */
+function getDayName(dayIndex) {
+    const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+    return days[dayIndex];
 }
 
 /**

@@ -229,8 +229,13 @@ class APIClient {
     /**
      * Get projects
      */
-    async getProjects() {
-        return this.get('/projects');
+    async getProjects(options = {}) {
+        const params = new URLSearchParams();
+        if (options.withStats) {
+            params.append('withStats', 'true');
+        }
+        const queryString = params.toString();
+        return this.get(`/projects${queryString ? '?' + queryString : ''}`);
     }
 
     /**

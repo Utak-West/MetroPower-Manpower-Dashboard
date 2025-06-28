@@ -174,6 +174,18 @@ function showLoadingState() {
 function hideLoadingState() {
     const loadingState = document.getElementById('loadingState');
     if (loadingState) loadingState.style.display = 'none';
+
+    // Show the appropriate view
+    const cardView = document.getElementById('cardView');
+    const tableView = document.getElementById('tableView');
+
+    if (currentView === 'card') {
+        if (cardView) cardView.style.display = 'grid';
+        if (tableView) tableView.style.display = 'none';
+    } else {
+        if (cardView) cardView.style.display = 'none';
+        if (tableView) tableView.style.display = 'block';
+    }
 }
 
 /**

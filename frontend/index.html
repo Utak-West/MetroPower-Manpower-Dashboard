@@ -39,49 +39,34 @@
 <body>
     <!-- Header -->
     <header class="header">
-        <div class="header-container">
-            <div class="header-left">
-                <div class="logo">
-                    <img src="/assets/images/metro-logo.svg" alt="MetroPower" class="metro-logo">
-                    <div class="logo-text">
-                        <h1>Dashboard</h1>
-                        <span class="branch-name">Tucker Branch</span>
-                    </div>
-                </div>
+        <div class="header-left">
+            <img src="/assets/images/metro-logo.svg" alt="MetroPower Logo" class="logo">
+            <h1>Dashboard</h1>
+            <span class="branch-name">Tucker Branch</span>
+        </div>
+        <nav class="header-nav">
+            <a href="/index.html" class="nav-link active">Dashboard</a>
+            <a href="/assignments.html" class="nav-link" id="navAssignmentsTab" style="display: none;">Assignments</a>
+            <a href="/staff.html" class="nav-link" id="navStaffTab" style="display: none;">Staff</a>
+            <a href="/projects.html" class="nav-link" id="navProjectsTab" style="display: none;">Projects</a>
+            <a href="/calendar.html" class="nav-link" id="navCalendarTab" style="display: none;">Calendar</a>
+            <a href="/manager.html" class="nav-link" id="navManagerTab" style="display: none;">Manager</a>
+        </nav>
+        <div class="header-right">
+            <div class="current-date" id="currentDate"></div>
+            <div class="user-info" id="userInfo" style="display: none;">
+                <span class="user-name" id="userName">Loading...</span>
+                <span class="user-role" id="userRole">Loading...</span>
+                <button class="manage-btn" id="manageAssignmentsBtn" style="display: none;">Manage Assignments</button>
+                <button class="logout-btn" id="logoutButton">Logout</button>
             </div>
-
-            <div class="header-center">
-                <div class="current-date" id="currentDate"></div>
-            </div>
-
-            <div class="header-right">
-                <div class="user-info" id="userInfo" style="display: none;">
-                    <div class="user-details">
-                        <span class="user-name" id="userName">Loading...</span>
-                        <span class="user-role" id="userRole">Loading...</span>
-                    </div>
-                    <div class="header-actions">
-                        <button class="manage-btn" id="manageAssignmentsBtn" style="display: none;">Manage Assignments</button>
-                        <button class="logout-btn" id="logoutButton">Logout</button>
-                    </div>
-                </div>
-                <button class="login-btn" id="headerLoginButton" style="display: none;">Login</button>
-            </div>
+            <button class="login-btn" id="headerLoginButton" style="display: none;">Login</button>
         </div>
     </header>
 
     <!-- Main Content -->
     <main class="main-content">
-        <!-- Navigation -->
-        <div class="nav-container">
-            <div class="nav-tabs">
-                <a href="/index.html" class="nav-tab active">Dashboard</a>
-                <a href="/projects.html" class="nav-tab" id="navProjectsTab" style="display: none;">Projects</a>
-                <a href="/calendar.html" class="nav-tab" id="navCalendarTab" style="display: none;">Calendar</a>
-                <a href="/assignments.html" class="nav-tab" id="navAssignmentsTab" style="display: none;">Assignments</a>
-                <a href="/staff.html" class="nav-tab" id="navStaffTab" style="display: none;">Staff Directory</a>
-            </div>
-        </div>
+
 
         <!-- Loading Indicator -->
         <div class="loading-overlay" id="loadingOverlay" style="display: none;">

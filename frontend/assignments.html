@@ -3,7 +3,38 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MetroPower Assignment Manager - MVP</title>
+    <title>MetroPower Assignments - Dashboard</title>
+    <meta name="description" content="Assignment management for MetroPower Tucker Branch operations">
+    <meta name="author" content="The HigherSelf Network">
+
+    <!-- Open Graph Meta Tags -->
+    <meta property="og:title" content="MetroPower Assignments - Dashboard">
+    <meta property="og:description" content="Assignment management and tracking for MetroPower Tucker Branch operations">
+    <meta property="og:image" content="/assets/images/metro-logo.svg">
+    <meta property="og:image:width" content="1024">
+    <meta property="og:image:height" content="400">
+    <meta property="og:image:type" content="image/svg+xml">
+    <meta property="og:url" content="https://metropower-dashboard.com/assignments">
+    <meta property="og:type" content="website">
+    <meta property="og:site_name" content="MetroPower Dashboard">
+
+    <!-- Twitter Card Meta Tags -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="MetroPower Assignments - Dashboard">
+    <meta name="twitter:description" content="Assignment management and tracking for MetroPower Tucker Branch operations">
+    <meta name="twitter:image" content="/assets/images/metro-logo.svg">
+
+    <!-- Favicon -->
+    <link rel="icon" type="image/svg+xml" href="/assets/images/favicon.svg">
+
+    <!-- Stylesheets -->
+    <link rel="stylesheet" href="/css/dashboard.css">
+    <link rel="stylesheet" href="/css/components.css">
+
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
         * {
             margin: 0;
@@ -18,40 +49,7 @@
             line-height: 1.6;
         }
 
-        .header {
-            background: linear-gradient(135deg, #dc3545, #c82333);
-            color: white;
-            padding: 1rem 2rem;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .header h1 {
-            font-size: 1.5rem;
-            font-weight: 600;
-        }
-
-        .user-info {
-            display: flex;
-            align-items: center;
-            gap: 1rem;
-        }
-
-        .logout-btn {
-            background: rgba(255,255,255,0.2);
-            border: 1px solid rgba(255,255,255,0.3);
-            color: white;
-            padding: 0.5rem 1rem;
-            border-radius: 4px;
-            cursor: pointer;
-            transition: background-color 0.2s;
-        }
-
-        .logout-btn:hover {
-            background: rgba(255,255,255,0.3);
-        }
+        /* Additional page-specific styles */
 
         .container {
             max-width: 1200px;
@@ -405,10 +403,23 @@
 <body>
     <!-- Header -->
     <header class="header">
-        <h1>MetroPower Assignment Manager</h1>
-        <div class="user-info">
-            <span id="userDisplay">Loading...</span>
-            <button type="button" class="logout-btn" onclick="logout()">Logout</button>
+        <div class="header-left">
+            <img src="/assets/images/metro-logo.svg" alt="MetroPower Logo" class="logo">
+            <h1>Assignments</h1>
+        </div>
+        <nav class="header-nav">
+            <a href="/index.html" class="nav-link">Dashboard</a>
+            <a href="/assignments.html" class="nav-link active">Assignments</a>
+            <a href="/staff.html" class="nav-link">Staff</a>
+            <a href="/projects.html" class="nav-link">Projects</a>
+            <a href="/calendar.html" class="nav-link">Calendar</a>
+            <a href="/manager.html" class="nav-link">Manager</a>
+        </nav>
+        <div class="header-right">
+            <div class="user-info">
+                <span class="user-name" id="userDisplay">Loading...</span>
+                <button type="button" class="logout-btn" onclick="logout()">Logout</button>
+            </div>
         </div>
     </header>
 

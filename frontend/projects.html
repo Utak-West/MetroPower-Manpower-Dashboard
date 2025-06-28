@@ -308,26 +308,24 @@
 <body>
     <!-- Header -->
     <header class="header">
-        <div class="header-container">
-            <div class="header-left">
-                <div class="logo">
-                    <img src="/assets/images/metro-logo.svg" alt="MetroPower" class="metro-logo">
-                    <div class="logo-text">
-                        <h1>Projects</h1>
-                        <span class="branch-name">Tucker Branch</span>
-                    </div>
-                </div>
-            </div>
-
-            <div class="header-center">
-                <div class="current-date" id="currentDate"></div>
-            </div>
-
-            <div class="header-right">
-                <div class="user-info">
-                    <span id="userDisplay">Loading...</span>
-                    <button type="button" class="logout-btn" onclick="logout()">Logout</button>
-                </div>
+        <div class="header-left">
+            <img src="/assets/images/metro-logo.svg" alt="MetroPower Logo" class="logo">
+            <h1>Projects</h1>
+            <span class="branch-name">Tucker Branch</span>
+        </div>
+        <nav class="header-nav">
+            <a href="/index.html" class="nav-link">Dashboard</a>
+            <a href="/assignments.html" class="nav-link">Assignments</a>
+            <a href="/staff.html" class="nav-link">Staff</a>
+            <a href="/projects.html" class="nav-link active">Projects</a>
+            <a href="/calendar.html" class="nav-link">Calendar</a>
+            <a href="/manager.html" class="nav-link">Manager</a>
+        </nav>
+        <div class="header-right">
+            <div class="current-date" id="currentDate"></div>
+            <div class="user-info">
+                <span class="user-name" id="userDisplay">Loading...</span>
+                <button type="button" class="logout-btn" onclick="logout()">Logout</button>
             </div>
         </div>
     </header>

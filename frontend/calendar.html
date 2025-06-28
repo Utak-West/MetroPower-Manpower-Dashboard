@@ -198,11 +198,73 @@
             display: block;
         }
 
+        .week-view {
+            display: none;
+        }
+
         .week-grid {
+            background: white;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .week-header {
             display: grid;
-            grid-template-columns: 100px repeat(7, 1fr);
-            gap: 1px;
-            background: #e9ecef;
+            grid-template-columns: repeat(7, 1fr);
+            background: #f8f9fa;
+            border-bottom: 1px solid #dee2e6;
+        }
+
+        .week-day-header {
+            padding: 1rem;
+            text-align: center;
+            border-right: 1px solid #dee2e6;
+        }
+
+        .week-day-header:last-child {
+            border-right: none;
+        }
+
+        .day-name {
+            font-weight: 600;
+            color: #333;
+            font-size: 0.9rem;
+        }
+
+        .day-number {
+            font-size: 1.2rem;
+            font-weight: 700;
+            color: #dc3545;
+            margin-top: 0.25rem;
+        }
+
+        .week-content {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            min-height: 400px;
+        }
+
+        .week-day-column {
+            padding: 1rem;
+            border-right: 1px solid #dee2e6;
+            background: white;
+        }
+
+        .week-day-column:last-child {
+            border-right: none;
+        }
+
+        .assignment-employee {
+            font-weight: 600;
+            color: #333;
+            font-size: 0.9rem;
+        }
+
+        .assignment-project {
+            color: #666;
+            font-size: 0.8rem;
+            margin-top: 0.25rem;
         }
 
         .time-slot {
@@ -292,26 +354,24 @@
 <body>
     <!-- Header -->
     <header class="header">
-        <div class="header-container">
-            <div class="header-left">
-                <div class="logo">
-                    <img src="/assets/images/metro-logo.svg" alt="MetroPower" class="metro-logo">
-                    <div class="logo-text">
-                        <h1>Calendar</h1>
-                        <span class="branch-name">Tucker Branch</span>
-                    </div>
-                </div>
-            </div>
-
-            <div class="header-center">
-                <div class="current-date" id="currentDate"></div>
-            </div>
-
-            <div class="header-right">
-                <div class="user-info">
-                    <span id="userDisplay">Loading...</span>
-                    <button type="button" class="logout-btn" onclick="logout()">Logout</button>
-                </div>
+        <div class="header-left">
+            <img src="/assets/images/metro-logo.svg" alt="MetroPower Logo" class="logo">
+            <h1>Calendar</h1>
+            <span class="branch-name">Tucker Branch</span>
+        </div>
+        <nav class="header-nav">
+            <a href="/index.html" class="nav-link">Dashboard</a>
+            <a href="/assignments.html" class="nav-link">Assignments</a>
+            <a href="/staff.html" class="nav-link">Staff</a>
+            <a href="/projects.html" class="nav-link">Projects</a>
+            <a href="/calendar.html" class="nav-link active">Calendar</a>
+            <a href="/manager.html" class="nav-link">Manager</a>
+        </nav>
+        <div class="header-right">
+            <div class="current-date" id="currentDate"></div>
+            <div class="user-info">
+                <span class="user-name" id="userDisplay">Loading...</span>
+                <button type="button" class="logout-btn" onclick="logout()">Logout</button>
             </div>
         </div>
     </header>
