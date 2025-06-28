@@ -104,6 +104,8 @@ function showAuthenticatedState(user) {
     const userName = document.getElementById('userName');
     const userRole = document.getElementById('userRole');
     const manageAssignmentsBtn = document.getElementById('manageAssignmentsBtn');
+    const navAssignmentsTab = document.getElementById('navAssignmentsTab');
+    const navStaffTab = document.getElementById('navStaffTab');
 
     if (userInfo) userInfo.style.display = 'flex';
     if (loginButton) loginButton.style.display = 'none';
@@ -120,6 +122,15 @@ function showAuthenticatedState(user) {
     if (manageAssignmentsBtn && user && ['Project Manager', 'Admin', 'Super Admin'].includes(user.role)) {
         manageAssignmentsBtn.style.display = 'inline-block';
     }
+
+    // Show navigation tabs for authenticated users
+    if (navAssignmentsTab && user && ['Project Manager', 'Admin', 'Super Admin'].includes(user.role)) {
+        navAssignmentsTab.style.display = 'inline-block';
+    }
+
+    if (navStaffTab && user && ['Project Manager', 'Admin', 'Super Admin'].includes(user.role)) {
+        navStaffTab.style.display = 'inline-block';
+    }
 }
 
 /**
@@ -129,10 +140,16 @@ function showUnauthenticatedState() {
     const userInfo = document.getElementById('userInfo');
     const loginButton = document.getElementById('headerLoginButton');
     const manageAssignmentsBtn = document.getElementById('manageAssignmentsBtn');
+    const navAssignmentsTab = document.getElementById('navAssignmentsTab');
+    const navStaffTab = document.getElementById('navStaffTab');
 
     if (userInfo) userInfo.style.display = 'none';
     if (loginButton) loginButton.style.display = 'block';
     if (manageAssignmentsBtn) manageAssignmentsBtn.style.display = 'none';
+
+    // Hide navigation tabs for unauthenticated users
+    if (navAssignmentsTab) navAssignmentsTab.style.display = 'none';
+    if (navStaffTab) navStaffTab.style.display = 'none';
 
     showLoginModal();
 }
