@@ -150,10 +150,14 @@ body {
     justify-content: center;
 }
 
-.header-center .current-date {
-    font-size: var(--font-size-lg);
+/* Desktop date display - repositioned to right side */
+.header-user .current-date {
+    font-size: var(--font-size-base); /* Reduced from large to medium */
     font-weight: 600;
     color: var(--black);
+    margin-right: var(--spacing-md); /* Space between date and other elements */
+    white-space: nowrap; /* Prevent date from wrapping */
+    flex-shrink: 0; /* Prevent date from shrinking */
 }
 
 .header-user {
@@ -228,18 +232,33 @@ body {
     font-weight: 500;
 }
 
-/* Responsive header adjustments */
+/* Desktop Navigation - Default (>768px) */
+.hamburger-menu {
+    display: none;
+}
+
+.header-nav {
+    display: block;
+}
+
+/* Tablet and Mobile Navigation (≤768px) */
 @media (max-width: 768px) {
+    /* Show hamburger menu, hide desktop navigation */
+    .hamburger-menu {
+        display: flex !important;
+    }
+
+    .header-nav {
+        display: none !important;
+    }
+
+    /* Header adjustments for tablet/mobile */
     .header-top {
         padding: 0 var(--spacing-md);
     }
 
     .header-top-container {
         height: 50px;
-    }
-
-    .header-nav {
-        padding: 0 var(--spacing-md);
     }
 
     .nav-container {
@@ -266,12 +285,6 @@ body {
     .user-details {
         display: none;
     }
-
-    .nav-link {
-        padding: var(--spacing-xs) var(--spacing-sm);
-        font-size: var(--font-size-sm);
-        margin-right: var(--spacing-sm);
-    }
 }
 
 /* Hamburger Menu Styles */
@@ -279,27 +292,39 @@ body {
     display: none;
     flex-direction: column;
     justify-content: space-around;
+    align-items: center;
     width: 30px;
     height: 30px;
+    min-width: 44px; /* Minimum touch target size for accessibility */
+    min-height: 44px;
     background: transparent;
     border: none;
     cursor: pointer;
-    padding: 0;
+    padding: 8px;
     z-index: 1001;
     transition: all 0.3s ease;
+    border-radius: 4px;
+    position: relative;
 }
 
 .hamburger-menu:hover {
-    transform: scale(1.1);
+    background-color: var(--primary-light);
+    transform: scale(1.05);
+}
+
+.hamburger-menu:focus {
+    outline: 2px solid var(--primary-color);
+    outline-offset: 2px;
 }
 
 .hamburger-menu .bar {
-    width: 100%;
+    width: 24px;
     height: 3px;
     background-color: var(--primary-color);
     border-radius: 2px;
     transition: all 0.3s ease;
     transform-origin: center;
+    display: block;
 }
 
 .hamburger-menu.active .bar:nth-child(1) {
@@ -320,12 +345,13 @@ body {
     top: 0;
     left: 0;
     width: 100%;
-    height: 100%;
+    height: 100vh; /* Use viewport height for better mobile support */
     background-color: rgba(0, 0, 0, 0.5);
     z-index: 999;
     opacity: 0;
     visibility: hidden;
     transition: all 0.3s ease;
+    -webkit-overflow-scrolling: touch; /* Smooth scrolling on iOS */
 }
 
 .mobile-nav-overlay.active {
@@ -336,14 +362,16 @@ body {
 .mobile-nav-menu {
     position: fixed;
     top: 0;
-    right: -300px;
-    width: 280px;
-    height: 100%;
+    right: -320px; /* Start off-screen */
+    width: 300px;
+    max-width: 85vw; /* Responsive width for smaller screens */
+    height: 100vh;
     background-color: var(--white);
-    box-shadow: -2px 0 10px rgba(0, 0, 0, 0.1);
+    box-shadow: -4px 0 20px rgba(0, 0, 0, 0.15);
     z-index: 1000;
-    transition: right 0.3s ease;
+    transition: right 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94); /* Smooth easing */
     overflow-y: auto;
+    -webkit-overflow-scrolling: touch; /* Smooth scrolling on iOS */
 }
 
 .mobile-nav-menu.active {
@@ -386,19 +414,29 @@ body {
 
 .mobile-nav-link {
     display: block;
-    padding: var(--spacing-md) var(--spacing-lg);
+    padding: 16px 24px; /* Minimum 44px touch target height */
     text-decoration: none;
     color: var(--dark-gray);
     font-weight: 500;
     font-size: var(--font-size-base);
     border-bottom: 1px solid var(--border-color);
     transition: all 0.2s ease;
+    min-height: 44px; /* Ensure minimum touch target size */
+    display: flex;
+    align-items: center;
+    position: relative;
 }
 
-.mobile-nav-link:hover {
+.mobile-nav-link:hover,
+.mobile-nav-link:focus {
     background-color: var(--primary-light);
     color: var(--primary-color);
-    padding-left: calc(var(--spacing-lg) + var(--spacing-sm));
+    padding-left: 32px;
+}
+
+.mobile-nav-link:focus {
+    outline: 2px solid var(--primary-color);
+    outline-offset: -2px;
 }
 
 .mobile-nav-link.active {
@@ -412,44 +450,149 @@ body {
     color: var(--white);
 }
 
-@media (max-width: 768px) {
-    .hamburger-menu {
-        display: flex;
+/* Tablet Specific Adjustments (481px-768px) */
+@media (min-width: 481px) and (max-width: 768px) {
+    /* Header layout optimizations for tablets */
+    .header-top-container {
+        height: 55px;
+        padding: 0 var(--spacing-md);
     }
 
-    .header-nav {
-        display: none;
-    }
-}
-
-@media (max-width: 480px) {
-    .header-left {
-        gap: var(--spacing-sm);
+    /* Logo and branding for tablets */
+    .header-brand {
+        gap: var(--spacing-md);
     }
 
     .logo, .metro-logo {
-        height: 35px;
-        max-width: 120px;
+        height: 38px;
+        max-width: 140px;
     }
 
-    .header-left h1 {
-        font-size: var(--font-size-base);
+    .brand-info h1 {
+        font-size: var(--font-size-lg);
     }
 
+    /* Date display optimization for tablets - repositioned to right */
+    .header-user .current-date {
+        font-size: var(--font-size-sm);
+        font-weight: 500;
+        margin-right: var(--spacing-sm); /* Ensure 8px spacing from hamburger menu */
+    }
+
+    /* User section optimization */
+    .header-user {
+        gap: var(--spacing-sm);
+    }
+
+    .user-actions .manage-btn {
+        font-size: var(--font-size-sm);
+        padding: var(--spacing-xs) var(--spacing-sm);
+    }
+
+    /* Mobile navigation for tablets */
+    .mobile-nav-menu {
+        width: 320px; /* Slightly wider for tablets */
+    }
+
+    /* Hamburger menu spacing */
     .hamburger-menu {
-        display: flex;
+        margin-left: var(--spacing-sm);
+    }
+}
+
+/* Mobile Phone Specific Adjustments (≤480px) */
+@media (max-width: 480px) {
+    /* Optimize header layout for very small screens */
+    .header-top {
+        padding: 0 var(--spacing-sm); /* Reduce padding */
     }
 
+    .header-top-container {
+        height: 50px; /* Slightly taller for better touch targets */
+        gap: var(--spacing-xs); /* Minimum spacing between elements */
+    }
+
+    /* Logo and branding optimizations */
+    .header-brand {
+        gap: var(--spacing-sm);
+        flex-shrink: 0; /* Prevent logo from shrinking */
+    }
+
+    .logo, .metro-logo {
+        height: 32px;
+        max-width: 100px;
+    }
+
+    .brand-info h1 {
+        font-size: var(--font-size-sm);
+        line-height: 1.2;
+    }
+
+    .brand-info .branch-name {
+        font-size: var(--font-size-xs);
+    }
+
+    /* Date display for mobile phones - repositioned and minimized */
+    .header-user .current-date {
+        font-size: var(--font-size-xs); /* Extra small font size */
+        font-weight: 500;
+        color: var(--dark-gray);
+        margin-right: var(--spacing-xs); /* Minimum spacing from hamburger menu */
+        order: 10; /* Position before hamburger menu */
+    }
+
+    /* Keep header-center empty but visible for layout */
+    .header-center {
+        flex: 1; /* Allow it to take remaining space */
+    }
+
+    /* Optimize user section for mobile */
+    .header-user {
+        gap: var(--spacing-xs);
+        flex-shrink: 0;
+    }
+
+    /* Hide all non-essential user elements */
+    .user-info {
+        display: none !important;
+    }
+
+    .login-btn {
+        padding: var(--spacing-xs) var(--spacing-sm);
+        font-size: var(--font-size-xs);
+        min-height: 36px; /* Smaller but still accessible */
+    }
+
+    /* Mobile navigation adjustments */
+    .mobile-nav-menu {
+        width: 280px;
+        max-width: 90vw; /* More space on small screens */
+    }
+
+    .mobile-nav-link {
+        padding: 14px 20px; /* Slightly smaller but still accessible */
+        font-size: var(--font-size-sm);
+    }
+
+    /* Ensure hamburger menu is properly sized for mobile */
+    .hamburger-menu {
+        width: 32px;
+        height: 32px;
+        min-width: 44px; /* Minimum touch target size */
+        min-height: 44px;
+        display: flex !important;
+        align-items: center;
+        justify-content: center;
+        margin-left: var(--spacing-xs); /* Ensure proper spacing */
+    }
+
+    /* Ensure desktop nav is hidden on mobile */
     .header-nav {
-        display: none;
+        display: none !important;
     }
 }
 
-.header-center .current-date {
-    font-size: var(--font-size-lg);
-    font-weight: 600;
-    color: var(--black);
-}
+/* Duplicate rule removed - handled in responsive sections */
 
 .header-right {
     display: flex;
@@ -461,6 +604,51 @@ body {
     display: flex;
     align-items: center;
     gap: var(--spacing-md);
+}
+
+/* Mobile Header Optimizations */
+@media (max-width: 768px) {
+    .header-user {
+        gap: var(--spacing-xs); /* Reduce gap on mobile for better spacing */
+    }
+
+    /* Repositioned date display for tablets/mobile */
+    .header-user .current-date {
+        font-size: var(--font-size-sm);
+        font-weight: 500;
+        color: var(--dark-gray);
+        margin-right: var(--spacing-sm); /* Ensure 8px spacing from hamburger menu */
+        order: 10; /* Position before hamburger menu */
+    }
+
+    /* Hide non-essential user details */
+    .user-details {
+        display: none;
+    }
+
+    /* Optimize user actions for mobile */
+    .user-actions {
+        display: flex;
+        gap: var(--spacing-xs);
+    }
+
+    .user-actions .manage-btn {
+        display: none; /* Hide manage button on mobile to save space */
+    }
+
+    /* Ensure proper spacing between interactive elements */
+    .login-btn,
+    .logout-btn {
+        margin-right: var(--spacing-sm);
+        padding: var(--spacing-xs) var(--spacing-sm);
+        font-size: var(--font-size-sm);
+    }
+
+    /* Hamburger menu positioning and spacing */
+    .hamburger-menu {
+        margin-left: var(--spacing-sm); /* Ensure minimum 8px gap */
+        order: 20; /* Position after date */
+    }
 }
 
 .user-info {
