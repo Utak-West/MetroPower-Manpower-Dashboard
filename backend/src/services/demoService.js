@@ -564,6 +564,57 @@ const getProjectsWithStats = async () => {
   });
 };
 
+/**
+ * Add a new project
+ */
+const addProject = async (projectData) => {
+  try {
+    // Check if project ID already exists
+    const existingProject = demoProjects.find(p => p.project_id === projectData.project_id);
+    if (existingProject) {
+      logger.warn(`Project ID ${projectData.project_id} already exists`);
+      return false;
+    }
+
+    // Add the new project
+    demoProjects.push(projectData);
+    logger.info(`Project added: ${projectData.project_id}`);
+    return true;
+  } catch (error) {
+    logger.error('Error adding project:', error);
+    return false;
+  }
+};
+
+/**
+ * Update an existing project
+ */
+const updateProject = async (projectId, updatedData) => {
+  try {
+    const projectIndex = demoProjects.findIndex(p => p.project_id === projectId);
+    if (projectIndex === -1) {
+      logger.warn(`Project ${projectId} not found for update`);
+      return false;
+    }
+
+    // Preserve original creation data
+    const originalProject = demoProjects[projectIndex];
+    demoProjects[projectIndex] = {
+      ...originalProject,
+      ...updatedData,
+      project_id: projectId, // Ensure ID doesn't change
+      created_at: originalProject.created_at, // Preserve creation date
+      created_by: originalProject.created_by // Preserve creator
+    };
+
+    logger.info(`Project updated: ${projectId}`);
+    return true;
+  } catch (error) {
+    logger.error('Error updating project:', error);
+    return false;
+  }
+};
+
 // Demo data will be initialized explicitly by the server
 
 module.exports = {
@@ -576,6 +627,8 @@ module.exports = {
   getActiveProjects,
   getProjects,
   getProjectsWithStats,
+  addProject,
+  updateProject,
   getWeekAssignments,
   getDashboardMetrics,
   getAssignments,

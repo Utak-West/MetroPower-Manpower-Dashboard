@@ -307,6 +307,20 @@ class APIClient {
     }
 
     /**
+     * Create a new project
+     */
+    async createProject(projectData) {
+        return this.post('/projects', projectData);
+    }
+
+    /**
+     * Update an existing project
+     */
+    async updateProject(projectId, projectData) {
+        return this.put(`/projects/${projectId}`, projectData);
+    }
+
+    /**
      * Get calendar data for month
      */
     async getCalendarMonth(year, month) {

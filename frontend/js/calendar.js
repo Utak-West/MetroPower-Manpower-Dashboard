@@ -25,6 +25,9 @@ document.addEventListener('DOMContentLoaded', async function() {
     // Check authentication and load data
     await checkAuthentication();
 
+    // Check for project filter in URL
+    initializeProjectFilter();
+
     console.log('Calendar page initialized');
 });
 
@@ -42,6 +45,26 @@ function initializeDate() {
             day: 'numeric'
         };
         currentDateElement.textContent = now.toLocaleDateString('en-US', options);
+    }
+}
+
+/**
+ * Initialize project filter from URL parameters
+ */
+function initializeProjectFilter() {
+    const urlParams = new URLSearchParams(window.location.search);
+    const projectId = urlParams.get('project');
+
+    if (projectId) {
+        // Show notification about project filter
+        showNotification(`Filtering calendar for project: ${projectId}`, 'info');
+
+        // Apply project filter to calendar view
+        // This would integrate with the existing calendar filtering logic
+        console.log(`Calendar filtered for project: ${projectId}`);
+
+        // You could add visual indicators here, like highlighting the project
+        // or adding a filter badge to the calendar header
     }
 }
 

@@ -95,17 +95,61 @@ body {
     height: 70px;
 }
 
-.header-left .logo h1 {
+.header-left .logo {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-md);
+}
+
+.metro-logo {
+    height: 50px;
+    width: auto;
+    max-width: 200px;
+}
+
+.logo-text h1 {
     font-size: var(--font-size-xl);
     font-weight: 700;
     color: var(--primary-color);
+    margin: 0;
     margin-bottom: var(--spacing-xs);
 }
 
-.header-left .logo .branch-name {
+.logo-text .branch-name {
     font-size: var(--font-size-sm);
     color: var(--dark-gray);
     font-weight: 500;
+}
+
+/* Responsive logo adjustments */
+@media (max-width: 768px) {
+    .metro-logo {
+        height: 40px;
+        max-width: 150px;
+    }
+
+    .logo-text h1 {
+        font-size: var(--font-size-lg);
+    }
+
+    .logo-text .branch-name {
+        font-size: var(--font-size-xs);
+    }
+}
+
+@media (max-width: 480px) {
+    .header-left .logo {
+        gap: var(--spacing-sm);
+    }
+
+    .metro-logo {
+        height: 35px;
+        max-width: 120px;
+    }
+
+    .logo-text h1 {
+        font-size: var(--font-size-base);
+    }
 }
 
 .header-center .current-date {

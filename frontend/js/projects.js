@@ -11,6 +11,7 @@ console.log('Projects.js file loaded');
 // Global variables
 let projects = [];
 let currentView = 'card';
+let currentUser = null;
 
 // Initialize projects page when DOM is loaded
 document.addEventListener('DOMContentLoaded', async function() {
@@ -99,14 +100,20 @@ function switchView(view) {
 async function checkAuthentication() {
     try {
         const user = await getCurrentUser();
-        
+
         if (!user) {
             window.location.href = '/index.html';
             return;
         }
 
+        // Store current user
+        currentUser = user;
+
         // Update user display
         updateElement('userDisplay', `${user.first_name} ${user.last_name} (${user.role})`);
+
+        // Initialize project management features
+        initializeProjectManagement();
 
         // Load projects data
         await loadProjects();
@@ -389,6 +396,10 @@ async function loadProjectDetails(projectId) {
 
                     <div class="project-actions">
                         <button type="button" class="btn btn-secondary" onclick="viewProjectCalendar('${projectId}')">View in Calendar</button>
+                        ${currentUser && currentUser.role === 'manager' ?
+                            `<button type="button" class="btn btn-warning" onclick="editProject('${projectId}')">Edit Project</button>` :
+                            ''
+                        }
                         <button type="button" class="btn btn-primary" onclick="exportProjectReport('${projectId}')">Export Report</button>
                     </div>
                 </div>
@@ -425,6 +436,13 @@ async function exportProjects() {
  * View project in calendar
  */
 function viewProjectCalendar(projectId) {
+    // Find project name for better UX
+    const project = projects.find(p => p.project_id === projectId);
+    const projectName = project ? project.name : projectId;
+
+    // Show notification about navigation
+    showNotification(`Opening calendar view for ${projectName}...`, 'info');
+
     // Navigate to calendar view with project filter
     window.location.href = `/calendar.html?project=${projectId}`;
 }
@@ -443,5 +461,231 @@ async function exportProjectReport(projectId) {
     } catch (error) {
         console.error('Error exporting project report:', error);
         showNotification('Failed to export project report', 'error');
+    }
+}
+
+/**
+ * Show create project modal
+ */
+function showCreateProjectModal() {
+    // Check if user is a manager
+    if (!currentUser || currentUser.role !== 'manager') {
+        showNotification('Only managers can create projects', 'error');
+        return;
+    }
+
+    const modal = document.getElementById('createProjectModal');
+    if (modal) {
+        modal.style.display = 'flex';
+
+        // Set default values
+        const today = new Date().toISOString().split('T')[0];
+        document.getElementById('projectStartDate').value = today;
+
+        // Clear form
+        document.getElementById('createProjectForm').reset();
+        document.getElementById('projectStartDate').value = today;
+    }
+}
+
+/**
+ * Hide create project modal
+ */
+function hideCreateProjectModal() {
+    const modal = document.getElementById('createProjectModal');
+    if (modal) {
+        modal.style.display = 'none';
+        document.getElementById('createProjectForm').reset();
+
+        // Reset modal to create mode
+        const modalTitle = document.querySelector('#createProjectModal .modal-header h2');
+        if (modalTitle) {
+            modalTitle.textContent = 'Create New Project';
+        }
+
+        // Reset project ID field
+        const projectIdField = document.getElementById('projectId');
+        if (projectIdField) {
+            projectIdField.readOnly = false;
+        }
+
+        // Reset create button
+        const createBtn = document.querySelector('#createProjectModal .modal-footer .btn-primary');
+        if (createBtn) {
+            createBtn.textContent = 'Create Project';
+            createBtn.onclick = createProject;
+        }
+    }
+}
+
+/**
+ * Create new project
+ */
+async function createProject() {
+    try {
+        const form = document.getElementById('createProjectForm');
+        const formData = new FormData(form);
+
+        // Convert FormData to object
+        const projectData = {};
+        for (let [key, value] of formData.entries()) {
+            if (value.trim()) {
+                projectData[key] = value.trim();
+            }
+        }
+
+        // Validate required fields
+        if (!projectData.name || !projectData.location || !projectData.start_date) {
+            showNotification('Please fill in all required fields', 'error');
+            return;
+        }
+
+        // Validate dates
+        if (projectData.end_date && new Date(projectData.start_date) > new Date(projectData.end_date)) {
+            showNotification('Start date cannot be after end date', 'error');
+            return;
+        }
+
+        // Show loading
+        showLoading(true);
+
+        // Create project via API
+        const response = await api.post('/projects', projectData);
+
+        if (response.success) {
+            showNotification('Project created successfully', 'success');
+            hideCreateProjectModal();
+
+            // Reload projects to show the new one
+            await loadProjects();
+        } else {
+            showNotification(response.message || 'Failed to create project', 'error');
+        }
+
+    } catch (error) {
+        console.error('Error creating project:', error);
+        showNotification(`Failed to create project: ${error.message}`, 'error');
+    } finally {
+        showLoading(false);
+    }
+}
+
+/**
+ * Edit existing project
+ */
+async function editProject(projectId) {
+    try {
+        // Check if user is a manager
+        if (!currentUser || currentUser.role !== 'manager') {
+            showNotification('Only managers can edit projects', 'error');
+            return;
+        }
+
+        // Find the project data
+        const project = projects.find(p => p.project_id === projectId);
+        if (!project) {
+            showNotification('Project not found', 'error');
+            return;
+        }
+
+        // Show the create modal but populate it with existing data
+        showCreateProjectModal();
+
+        // Change modal title
+        const modalTitle = document.querySelector('#createProjectModal .modal-header h2');
+        if (modalTitle) {
+            modalTitle.textContent = 'Edit Project';
+        }
+
+        // Populate form with existing data
+        document.getElementById('projectName').value = project.name || '';
+        document.getElementById('projectId').value = project.project_id || '';
+        document.getElementById('projectId').readOnly = true; // Don't allow changing project ID
+        document.getElementById('projectDescription').value = project.description || '';
+        document.getElementById('projectLocation').value = project.location || '';
+        document.getElementById('projectStatus').value = project.status || 'Active';
+        document.getElementById('projectStartDate').value = project.start_date || '';
+        document.getElementById('projectEndDate').value = project.end_date || '';
+        document.getElementById('projectBudget').value = project.budget || '';
+        document.getElementById('projectManager').value = project.project_manager || '';
+        document.getElementById('projectNotes').value = project.notes || '';
+
+        // Change the create button to update
+        const createBtn = document.querySelector('#createProjectModal .modal-footer .btn-primary');
+        if (createBtn) {
+            createBtn.textContent = 'Update Project';
+            createBtn.onclick = () => updateProject(projectId);
+        }
+
+    } catch (error) {
+        console.error('Error editing project:', error);
+        showNotification('Failed to load project for editing', 'error');
+    }
+}
+
+/**
+ * Update existing project
+ */
+async function updateProject(projectId) {
+    try {
+        const form = document.getElementById('createProjectForm');
+        const formData = new FormData(form);
+
+        // Convert FormData to object
+        const projectData = {};
+        for (let [key, value] of formData.entries()) {
+            if (value.trim()) {
+                projectData[key] = value.trim();
+            }
+        }
+
+        // Validate required fields
+        if (!projectData.name || !projectData.location || !projectData.start_date) {
+            showNotification('Please fill in all required fields', 'error');
+            return;
+        }
+
+        // Validate dates
+        if (projectData.end_date && new Date(projectData.start_date) > new Date(projectData.end_date)) {
+            showNotification('Start date cannot be after end date', 'error');
+            return;
+        }
+
+        // Show loading
+        showLoading(true);
+
+        // Update project via API
+        const response = await api.updateProject(projectId, projectData);
+
+        if (response.success) {
+            showNotification('Project updated successfully', 'success');
+            hideCreateProjectModal();
+
+            // Reload projects to show the updated data
+            await loadProjects();
+        } else {
+            showNotification(response.message || 'Failed to update project', 'error');
+        }
+
+    } catch (error) {
+        console.error('Error updating project:', error);
+        showNotification(`Failed to update project: ${error.message}`, 'error');
+    } finally {
+        showLoading(false);
+    }
+}
+
+/**
+ * Initialize project management features
+ */
+function initializeProjectManagement() {
+    // Show/hide create button based on user role
+    const createBtn = document.getElementById('createProjectBtn');
+    if (createBtn && currentUser) {
+        if (currentUser.role === 'manager') {
+            createBtn.style.display = 'inline-flex';
+        } else {
+            createBtn.style.display = 'none';
+        }
     }
 }

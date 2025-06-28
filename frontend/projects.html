@@ -4,6 +4,17 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>MetroPower Projects - Dashboard</title>
+
+    <!-- Open Graph Meta Tags -->
+    <meta property="og:title" content="MetroPower Projects - Dashboard">
+    <meta property="og:description" content="Project management and tracking for MetroPower Tucker Branch operations">
+    <meta property="og:image" content="/assets/images/metro-logo.svg">
+    <meta property="og:image:width" content="1024">
+    <meta property="og:image:height" content="400">
+    <meta property="og:image:type" content="image/svg+xml">
+    <meta property="og:url" content="https://metropower-dashboard.com/projects">
+    <meta property="og:type" content="website">
+
     <link rel="stylesheet" href="/css/dashboard.css">
     <link rel="stylesheet" href="/css/components.css">
     <style>
@@ -300,8 +311,11 @@
         <div class="header-container">
             <div class="header-left">
                 <div class="logo">
-                    <h1>MetroPower Projects</h1>
-                    <span class="branch-name">Tucker Branch</span>
+                    <img src="/assets/images/metro-logo.svg" alt="MetroPower" class="metro-logo">
+                    <div class="logo-text">
+                        <h1>Projects</h1>
+                        <span class="branch-name">Tucker Branch</span>
+                    </div>
                 </div>
             </div>
 
@@ -338,7 +352,10 @@
                     <button type="button" id="cardViewBtn" class="active">Card View</button>
                     <button type="button" id="tableViewBtn">Table View</button>
                 </div>
-                <button type="button" class="btn btn-primary" onclick="exportProjects()">Export Projects</button>
+                <div class="project-actions">
+                    <button type="button" class="btn btn-success" id="createProjectBtn" onclick="showCreateProjectModal()">+ Create New Project</button>
+                    <button type="button" class="btn btn-primary" onclick="exportProjects()">Export Projects</button>
+                </div>
             </div>
         </div>
 
@@ -389,6 +406,82 @@
             </div>
             <div class="modal-body" id="modalProjectContent">
                 <!-- Project details will be populated here -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Create Project Modal -->
+    <div class="modal-overlay" id="createProjectModal" style="display: none;">
+        <div class="modal large-modal">
+            <div class="modal-header">
+                <h2>Create New Project</h2>
+                <button class="modal-close" onclick="hideCreateProjectModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form id="createProjectForm">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="projectName">Project Name *</label>
+                            <input type="text" id="projectName" name="name" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="projectId">Project ID</label>
+                            <input type="text" id="projectId" name="project_id" placeholder="Auto-generated if empty">
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="projectDescription">Description</label>
+                        <textarea id="projectDescription" name="description" rows="3"></textarea>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="projectLocation">Location *</label>
+                            <input type="text" id="projectLocation" name="location" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="projectStatus">Status</label>
+                            <select id="projectStatus" name="status">
+                                <option value="Active">Active</option>
+                                <option value="Planned">Planned</option>
+                                <option value="On Hold">On Hold</option>
+                                <option value="Completed">Completed</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="projectStartDate">Start Date *</label>
+                            <input type="date" id="projectStartDate" name="start_date" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="projectEndDate">End Date</label>
+                            <input type="date" id="projectEndDate" name="end_date">
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="projectBudget">Budget</label>
+                            <input type="number" id="projectBudget" name="budget" step="0.01" placeholder="0.00">
+                        </div>
+                        <div class="form-group">
+                            <label for="projectManager">Project Manager</label>
+                            <input type="text" id="projectManager" name="project_manager" placeholder="Auto-filled with current user">
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="projectNotes">Notes/Comments</label>
+                        <textarea id="projectNotes" name="notes" rows="3"></textarea>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" onclick="hideCreateProjectModal()">Cancel</button>
+                <button type="button" class="btn btn-primary" onclick="createProject()">Create Project</button>
             </div>
         </div>
     </div>
