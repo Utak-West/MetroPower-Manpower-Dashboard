@@ -117,9 +117,14 @@ router.post('/', requireManager, asyncHandler(async (req, res) => {
     }
 
     if (global.isDemoMode) {
-      return res.status(501).json({
-        error: 'Not implemented',
-        message: 'Employee creation not available in demo mode'
+      const demoService = require('../services/demoService')
+      const newEmployee = await demoService.addEmployee(employeeData)
+
+      return res.status(201).json({
+        success: true,
+        message: 'Employee created successfully',
+        data: newEmployee,
+        isDemoMode: true
       })
     }
 
@@ -145,9 +150,21 @@ router.post('/', requireManager, asyncHandler(async (req, res) => {
 router.put('/:id', requireManager, asyncHandler(async (req, res) => {
   try {
     if (global.isDemoMode) {
-      return res.status(501).json({
-        error: 'Not implemented',
-        message: 'Employee updates not available in demo mode'
+      const demoService = require('../services/demoService')
+      const updatedEmployee = await demoService.updateEmployee(req.params.id, req.body)
+
+      if (!updatedEmployee) {
+        return res.status(404).json({
+          error: 'Employee not found',
+          message: 'Employee not found for update'
+        })
+      }
+
+      return res.json({
+        success: true,
+        message: 'Employee updated successfully',
+        data: updatedEmployee,
+        isDemoMode: true
       })
     }
 

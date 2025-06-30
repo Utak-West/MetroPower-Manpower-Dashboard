@@ -271,6 +271,15 @@
     padding: var(--spacing-lg);
     border-bottom: 1px solid var(--border-color);
     background-color: var(--light-gray);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.card-header-actions {
+    display: flex;
+    gap: var(--spacing-sm);
+    align-items: center;
 }
 
 .card-title {

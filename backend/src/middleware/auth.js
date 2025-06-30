@@ -63,7 +63,9 @@ const authenticate = async (req, res, next) => {
       user_id: decoded.user_id,
       username: decoded.username,
       email: decoded.email,
-      role: decoded.role
+      role: decoded.role,
+      first_name: user.first_name,
+      last_name: user.last_name
     }
 
     next()
@@ -148,7 +150,9 @@ const optionalAuth = async (req, res, next) => {
           user_id: decoded.user_id,
           username: decoded.username,
           email: decoded.email,
-          role: decoded.role
+          role: decoded.role,
+          first_name: user.first_name,
+          last_name: user.last_name
         }
       }
     }

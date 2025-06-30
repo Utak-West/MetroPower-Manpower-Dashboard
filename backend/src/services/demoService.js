@@ -615,6 +615,80 @@ const updateProject = async (projectId, updatedData) => {
   }
 };
 
+/**
+ * Add a new employee
+ */
+const addEmployee = async (employeeData) => {
+  try {
+    // Generate employee ID if not provided
+    const employeeId = employeeData.employee_id || (demoEmployees.length + 1);
+
+    // Generate employee number if not provided
+    const employeeNumber = employeeData.employee_number || `EMP${String(demoEmployees.length + 1).padStart(4, '0')}`;
+
+    // Create new employee object
+    const newEmployee = {
+      employee_id: employeeId,
+      name: `${employeeData.first_name} ${employeeData.last_name}`,
+      first_name: employeeData.first_name,
+      last_name: employeeData.last_name,
+      trade: employeeData.trade || employeeData.position,
+      level: employeeData.level || 'Entry',
+      hourly_rate: parseFloat(employeeData.hourly_rate) || 25.00,
+      status: employeeData.status || 'Active',
+      employee_number: employeeNumber,
+      hire_date: employeeData.hire_date || new Date().toISOString().split('T')[0],
+      phone: employeeData.phone || '(555) 000-0000',
+      email: employeeData.email || `${employeeData.first_name?.toLowerCase()}.${employeeData.last_name?.toLowerCase()}@metropower.com`,
+      notes: employeeData.notes || '',
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString()
+    };
+
+    // Add to demo employees array
+    demoEmployees.push(newEmployee);
+
+    logger.info(`Employee added: ${newEmployee.name} (${newEmployee.employee_id})`);
+    return newEmployee;
+  } catch (error) {
+    logger.error('Error adding employee:', error);
+    throw error;
+  }
+};
+
+/**
+ * Update an existing employee
+ */
+const updateEmployee = async (employeeId, updatedData) => {
+  try {
+    const employeeIndex = demoEmployees.findIndex(e => e.employee_id == employeeId);
+    if (employeeIndex === -1) {
+      logger.warn(`Employee ${employeeId} not found for update`);
+      return false;
+    }
+
+    // Update the employee
+    const updatedEmployee = {
+      ...demoEmployees[employeeIndex],
+      ...updatedData,
+      updated_at: new Date().toISOString()
+    };
+
+    // Update name if first_name or last_name changed
+    if (updatedData.first_name || updatedData.last_name) {
+      updatedEmployee.name = `${updatedEmployee.first_name} ${updatedEmployee.last_name}`;
+    }
+
+    demoEmployees[employeeIndex] = updatedEmployee;
+
+    logger.info(`Employee updated: ${updatedEmployee.name} (${employeeId})`);
+    return updatedEmployee;
+  } catch (error) {
+    logger.error('Error updating employee:', error);
+    throw error;
+  }
+};
+
 // Demo data will be initialized explicitly by the server
 
 module.exports = {
@@ -629,6 +703,8 @@ module.exports = {
   getProjectsWithStats,
   addProject,
   updateProject,
+  addEmployee,
+  updateEmployee,
   getWeekAssignments,
   getDashboardMetrics,
   getAssignments,

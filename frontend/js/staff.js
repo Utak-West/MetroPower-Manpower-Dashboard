@@ -838,5 +838,92 @@ async function saveEmployeeChanges() {
     }
 }
 
+/**
+ * Open create employee modal
+ */
+function openCreateEmployeeModal() {
+    // Check if user has permission
+    if (!currentUser || !['Project Manager', 'Admin', 'Super Admin'].includes(currentUser.role)) {
+        showError('You do not have permission to create employees.');
+        return;
+    }
+
+    const modal = document.getElementById('createEmployeeModal');
+    if (modal) {
+        // Reset form
+        document.getElementById('createEmployeeForm').reset();
+
+        // Set default hire date to today
+        const today = new Date().toISOString().split('T')[0];
+        document.getElementById('employeeHireDate').value = today;
+
+        // Show modal
+        modal.style.display = 'flex';
+    }
+}
+
+/**
+ * Close create employee modal
+ */
+function closeCreateEmployeeModal() {
+    const modal = document.getElementById('createEmployeeModal');
+    if (modal) {
+        modal.style.display = 'none';
+        document.getElementById('createEmployeeForm').reset();
+    }
+}
+
+/**
+ * Create new employee
+ */
+async function createEmployee() {
+    try {
+        const form = document.getElementById('createEmployeeForm');
+        const formData = new FormData(form);
+        const employeeData = Object.fromEntries(formData.entries());
+
+        // Validate required fields
+        const requiredFields = ['first_name', 'last_name', 'trade', 'hourly_rate'];
+        const missingFields = requiredFields.filter(field => !employeeData[field]);
+
+        if (missingFields.length > 0) {
+            showError(`Please fill in all required fields: ${missingFields.join(', ')}`);
+            return;
+        }
+
+        // Show loading state
+        const createButton = document.querySelector('#createEmployeeModal .btn-primary');
+        const originalText = createButton.textContent;
+        createButton.textContent = 'Creating...';
+        createButton.disabled = true;
+
+        // Make API call
+        const response = await api.post('/employees', employeeData);
+
+        if (response.success) {
+            showMessage('Employee created successfully!', 'success');
+            closeCreateEmployeeModal();
+
+            // Refresh the staff list
+            await loadEmployees();
+            await updateStaffDisplay();
+            await updateStatistics();
+        } else {
+            throw new Error(response.message || 'Failed to create employee');
+        }
+
+    } catch (error) {
+        console.error('Error creating employee:', error);
+        showError('Failed to create employee: ' + error.message);
+    } finally {
+        // Reset button state
+        const createButton = document.querySelector('#createEmployeeModal .btn-primary');
+        if (createButton) {
+            createButton.textContent = 'Create Employee';
+            createButton.disabled = false;
+        }
+    }
+}
+
 // Initialize page when DOM is loaded
 document.addEventListener('DOMContentLoaded', initializePage);
