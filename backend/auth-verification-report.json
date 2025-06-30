@@ -1,0 +1,103 @@
+{
+  "summary": {
+    "total": 15,
+    "passed": 15,
+    "failed": 0,
+    "warnings": 0,
+    "skipped": 0,
+    "successRate": "100.0"
+  },
+  "results": [
+    {
+      "test": "User Account Exists",
+      "status": "PASS",
+      "message": "Found user: Antione Harrell (antione.harrell@metropower.com)",
+      "timestamp": "2025-06-30T23:29:08.308Z"
+    },
+    {
+      "test": "Email Verification",
+      "status": "PASS",
+      "message": "Email matches expected value",
+      "timestamp": "2025-06-30T23:29:08.309Z"
+    },
+    {
+      "test": "Role Verification",
+      "status": "PASS",
+      "message": "Role is Project Manager",
+      "timestamp": "2025-06-30T23:29:08.309Z"
+    },
+    {
+      "test": "Account Status",
+      "status": "PASS",
+      "message": "Account is active",
+      "timestamp": "2025-06-30T23:29:08.309Z"
+    },
+    {
+      "test": "Password Authentication",
+      "status": "PASS",
+      "message": "Authentication successful",
+      "timestamp": "2025-06-30T23:29:08.510Z"
+    },
+    {
+      "test": "Auth Response Structure",
+      "status": "PASS",
+      "message": "Response contains user and tokens",
+      "timestamp": "2025-06-30T23:29:08.510Z"
+    },
+    {
+      "test": "Access Token Generation",
+      "status": "PASS",
+      "message": "Access token generated successfully",
+      "timestamp": "2025-06-30T23:29:08.511Z"
+    },
+    {
+      "test": "Refresh Token Generation",
+      "status": "PASS",
+      "message": "Refresh token generated successfully",
+      "timestamp": "2025-06-30T23:29:08.511Z"
+    },
+    {
+      "test": "Token Verification",
+      "status": "PASS",
+      "message": "Token verified successfully",
+      "timestamp": "2025-06-30T23:29:08.512Z"
+    },
+    {
+      "test": "Token User ID",
+      "status": "PASS",
+      "message": "User ID matches",
+      "timestamp": "2025-06-30T23:29:08.512Z"
+    },
+    {
+      "test": "Token Email",
+      "status": "PASS",
+      "message": "Email matches",
+      "timestamp": "2025-06-30T23:29:08.512Z"
+    },
+    {
+      "test": "Manager Access",
+      "status": "PASS",
+      "message": "User has Project Manager role with manager access",
+      "timestamp": "2025-06-30T23:29:08.512Z"
+    },
+    {
+      "test": "Token Refresh",
+      "status": "PASS",
+      "message": "Refresh token works correctly",
+      "timestamp": "2025-06-30T23:29:08.728Z"
+    },
+    {
+      "test": "Demo Service User Lookup",
+      "status": "PASS",
+      "message": "Demo service can find user",
+      "timestamp": "2025-06-30T23:29:08.728Z"
+    },
+    {
+      "test": "Last Login Update",
+      "status": "PASS",
+      "message": "Last login timestamp updated",
+      "timestamp": "2025-06-30T23:29:08.728Z"
+    }
+  ],
+  "timestamp": "2025-06-30T23:29:08.728Z"
+}

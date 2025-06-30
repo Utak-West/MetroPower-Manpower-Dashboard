@@ -264,7 +264,7 @@ body {
         height: 36px;
         min-width: 44px; /* Minimum touch target size for accessibility */
         min-height: 44px;
-        margin-left: var(--spacing-sm); /* Ensure proper spacing from other elements */
+        margin-left: 20px; /* Ensure 20px spacing from adjacent elements */
         order: 30; /* Position at the end of header-user */
         flex-shrink: 0; /* Prevent shrinking */
         background: transparent;
@@ -274,6 +274,7 @@ body {
         border-radius: var(--radius-sm);
         transition: var(--transition);
         position: relative;
+        z-index: 100; /* Ensure hamburger is always visible */
     }
 
     .header-nav {
@@ -286,8 +287,10 @@ body {
     }
 
     .header-top-container {
-        height: 50px;
-        gap: var(--spacing-xs); /* Reduce gap between elements */
+        height: 55px; /* Increased height for better touch targets */
+        gap: var(--spacing-sm); /* Improved spacing between elements */
+        align-items: center;
+        justify-content: space-between;
     }
 
     .nav-container {
@@ -297,6 +300,7 @@ body {
     .logo, .metro-logo {
         height: 35px;
         max-width: 120px;
+        flex-shrink: 0; /* Prevent logo from shrinking */
     }
 
     /* Hide brand text on mobile to prioritize hamburger menu */
@@ -315,8 +319,29 @@ body {
 
     /* Optimize header-user layout for mobile */
     .header-user {
-        gap: var(--spacing-xs); /* Reduce gap on mobile for better spacing */
+        gap: var(--spacing-sm); /* Improved spacing for better touch accessibility */
         flex-shrink: 0; /* Prevent shrinking */
+        align-items: center;
+        justify-content: flex-end;
+    }
+
+    /* Ensure current date has proper spacing */
+    .current-date {
+        margin-right: 20px; /* 20px spacing from hamburger menu */
+        font-size: var(--font-size-sm);
+        white-space: nowrap;
+    }
+
+    /* Ensure login button has proper spacing */
+    .login-btn {
+        margin-right: 20px; /* 20px spacing from hamburger menu */
+    }
+
+    /* Ensure manage button has proper spacing */
+    .manage-btn {
+        margin-right: 20px; /* 20px spacing from hamburger menu */
+        font-size: var(--font-size-sm);
+        padding: var(--spacing-xs) var(--spacing-sm);
     }
 
     /* Minimize date display on mobile */
@@ -581,8 +606,10 @@ body {
     }
 
     .header-top-container {
-        height: 50px; /* Slightly taller for better touch targets */
-        gap: var(--spacing-xs); /* Minimum spacing between elements */
+        height: 55px; /* Adequate height for touch targets */
+        gap: 8px; /* Minimum 8px spacing between elements */
+        align-items: center;
+        justify-content: space-between;
     }
 
     /* Logo and branding optimizations */
@@ -603,6 +630,65 @@ body {
 
     .brand-info .branch-name {
         display: none;
+    }
+
+    /* Mobile-specific hamburger menu prominence */
+    .header .hamburger-menu {
+        width: 40px; /* Slightly larger for easier tapping */
+        height: 40px;
+        min-width: 44px;
+        min-height: 44px;
+        margin-left: 20px; /* Consistent 20px spacing */
+        z-index: 1001; /* Higher z-index for mobile */
+    }
+
+    /* Hide date display on very small screens to save space */
+    .current-date {
+        display: none;
+    }
+
+    /* Optimize user actions for mobile */
+    .user-actions {
+        gap: 8px; /* Minimum spacing between buttons */
+    }
+
+    .user-actions .btn {
+        font-size: var(--font-size-xs);
+        padding: var(--spacing-xs);
+        min-height: 44px; /* Ensure touch target size */
+    }
+
+    /* Ensure login button is properly sized for mobile */
+    .login-btn {
+        font-size: var(--font-size-sm);
+        padding: var(--spacing-xs) var(--spacing-sm);
+        min-height: 44px;
+        margin-right: 20px; /* Consistent spacing from hamburger */
+    }
+
+    /* Mobile navigation menu optimizations */
+    .mobile-nav-menu {
+        width: 280px; /* Slightly narrower for small screens */
+        max-width: 90vw; /* Ensure it doesn't overflow */
+    }
+
+    /* Improve mobile navigation header */
+    .mobile-nav-header {
+        padding: var(--spacing-md);
+        min-height: 60px;
+    }
+
+    .mobile-nav-header .logo {
+        height: 35px;
+    }
+
+    /* Mobile navigation links optimization */
+    .mobile-nav-link {
+        padding: var(--spacing-md) var(--spacing-lg);
+        font-size: var(--font-size-base);
+        min-height: 48px; /* Adequate touch target */
+        display: flex;
+        align-items: center;
     }
 
     /* Date display for mobile phones - repositioned and minimized */

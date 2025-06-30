@@ -592,24 +592,94 @@
 @media (max-width: 1024px) {
     .export-buttons {
         flex-direction: column;
-        gap: 0.5rem;
+        gap: 0.75rem;
+        align-items: stretch;
     }
 
     .export-buttons .btn {
         width: 100%;
+        min-height: 48px; /* Adequate touch target for mobile */
+        font-size: var(--font-size-base);
+        padding: var(--spacing-md);
     }
 
     .export-format-options {
         flex-direction: column;
+        gap: 0.5rem;
     }
 
     .export-format-options .btn {
         min-width: auto;
         width: 100%;
+        min-height: 44px;
     }
 
     .export-section {
         padding: 1rem;
         margin-bottom: 1rem;
+    }
+
+    /* Improve export modal on mobile */
+    .modal {
+        margin: var(--spacing-md);
+        max-height: calc(100vh - 2rem);
+        overflow-y: auto;
+    }
+
+    .modal-body {
+        max-height: calc(100vh - 200px);
+        overflow-y: auto;
+    }
+}
+
+/* Mobile-specific export improvements */
+@media (max-width: 480px) {
+    .export-buttons {
+        gap: 1rem;
+    }
+
+    .export-buttons .btn {
+        min-height: 52px; /* Larger touch targets for mobile */
+        font-size: var(--font-size-lg);
+        font-weight: 600;
+    }
+
+    .export-section {
+        padding: 0.75rem;
+        margin-bottom: 0.75rem;
+    }
+
+    .export-section h3 {
+        font-size: var(--font-size-lg);
+        margin-bottom: 0.75rem;
+    }
+
+    /* Full-screen modal on mobile */
+    .modal-overlay {
+        padding: 0;
+    }
+
+    .modal {
+        margin: 0;
+        border-radius: 0;
+        max-height: 100vh;
+        height: 100vh;
+        width: 100vw;
+    }
+
+    .modal-header {
+        padding: var(--spacing-lg) var(--spacing-md);
+        border-bottom: 2px solid var(--border-color);
+    }
+
+    .modal-body {
+        padding: var(--spacing-md);
+        max-height: calc(100vh - 140px);
+        overflow-y: auto;
+    }
+
+    .modal-footer {
+        padding: var(--spacing-md);
+        border-top: 2px solid var(--border-color);
     }
 }
