@@ -22,8 +22,18 @@ class User {
    */
   static async findById (userId) {
     try {
-      const demoService = require('../services/demoService')
-      return await demoService.findUserById(userId)
+      // Check if we're in demo mode or database mode
+      if (global.isDemoMode) {
+        const demoService = require('../services/demoService')
+        return await demoService.findUserById(userId)
+      } else {
+        // Use database query
+        const result = await query(
+          'SELECT user_id, username, email, first_name, last_name, role, is_active, created_at, updated_at, last_login FROM users WHERE user_id = $1',
+          [userId]
+        )
+        return result.rows.length > 0 ? result.rows[0] : null
+      }
     } catch (error) {
       logger.error('Error finding user by ID:', error)
       throw error
@@ -37,8 +47,37 @@ class User {
    */
   static async getByIdentifier (identifier) {
     try {
-      const demoService = require('../services/demoService')
-      return await demoService.findUserByIdentifier(identifier)
+      // Check if we're in demo mode or database mode
+      logger.info('User.getByIdentifier called', {
+        identifier,
+        isDemoMode: global.isDemoMode,
+        hasPostgresUrl: !!process.env.POSTGRES_URL,
+        demoModeEnabled: process.env.DEMO_MODE_ENABLED,
+        useMemoryDb: process.env.USE_MEMORY_DB
+      })
+
+      // For production with POSTGRES_URL, always use database
+      if (process.env.POSTGRES_URL && process.env.NODE_ENV === 'production') {
+        logger.info('Using database mode (production with POSTGRES_URL)')
+        // Use database query
+        const result = await query(
+          'SELECT user_id, username, email, password_hash, first_name, last_name, role, is_active, created_at, updated_at, last_login FROM users WHERE username = $1 OR email = $1',
+          [identifier]
+        )
+        return result.rows.length > 0 ? result.rows[0] : null
+      } else if (global.isDemoMode) {
+        logger.info('Using demo mode')
+        const demoService = require('../services/demoService')
+        return await demoService.findUserByIdentifier(identifier)
+      } else {
+        logger.info('Using database mode (default)')
+        // Use database query
+        const result = await query(
+          'SELECT user_id, username, email, password_hash, first_name, last_name, role, is_active, created_at, updated_at, last_login FROM users WHERE username = $1 OR email = $1',
+          [identifier]
+        )
+        return result.rows.length > 0 ? result.rows[0] : null
+      }
     } catch (error) {
       logger.error('Error finding user by identifier:', error)
       throw error
@@ -337,8 +376,22 @@ class User {
       }
 
       // Update last login
-      const demoService = require('../services/demoService')
-      await demoService.updateUserLastLogin(user.user_id)
+      if (process.env.POSTGRES_URL && process.env.NODE_ENV === 'production') {
+        // Update last login in database
+        await query(
+          'UPDATE users SET last_login = CURRENT_TIMESTAMP, updated_at = CURRENT_TIMESTAMP WHERE user_id = $1',
+          [user.user_id]
+        )
+      } else if (global.isDemoMode) {
+        const demoService = require('../services/demoService')
+        await demoService.updateUserLastLogin(user.user_id)
+      } else {
+        // Update last login in database
+        await query(
+          'UPDATE users SET last_login = CURRENT_TIMESTAMP, updated_at = CURRENT_TIMESTAMP WHERE user_id = $1',
+          [user.user_id]
+        )
+      }
 
       // Generate tokens
       const accessToken = this.generateAccessToken(user)

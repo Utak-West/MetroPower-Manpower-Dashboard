@@ -132,6 +132,12 @@ const connectDatabase = async () => {
  */
 const query = async (text, params = []) => {
   try {
+    // Auto-initialize database connection if not available
+    if (!pool && process.env.POSTGRES_URL) {
+      logger.info('Auto-initializing database connection for query')
+      await connectDatabase()
+    }
+
     // Check if we have a real database connection
     if (pool) {
       const client = await pool.connect()

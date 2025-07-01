@@ -38,6 +38,7 @@ app.get('/api/debug', async (req, res) => {
   try {
     // Check environment variables
     debug.checks.env_vars = {
+      POSTGRES_URL: !!process.env.POSTGRES_URL,
       DB_HOST: !!process.env.DB_HOST,
       DB_NAME: !!process.env.DB_NAME,
       DB_USER: !!process.env.DB_USER,
@@ -45,6 +46,7 @@ app.get('/api/debug', async (req, res) => {
       JWT_SECRET: !!process.env.JWT_SECRET,
       JWT_REFRESH_SECRET: !!process.env.JWT_REFRESH_SECRET,
       values: {
+        POSTGRES_URL: process.env.POSTGRES_URL ? process.env.POSTGRES_URL.substring(0, 30) + '...' : 'missing',
         DB_HOST: process.env.DB_HOST ? process.env.DB_HOST.substring(0, 20) + '...' : 'missing',
         DB_NAME: process.env.DB_NAME || 'missing',
         DB_USER: process.env.DB_USER || 'missing'
@@ -174,11 +176,13 @@ app.post('/api/debug/init-db', async (req, res) => {
 // Test login endpoint
 app.post('/api/debug/test-login', async (req, res) => {
   try {
-    const { identifier = 'admin@metropower.com', password = 'MetroPower2025!' } = req.body;
-    
+    const { identifier = 'antione.harrell@metropower.com', password = 'password123' } = req.body;
+
+    console.log('Test login attempt:', { identifier, password: '***' });
+
     const User = require('../backend/src/models/User');
     const authResult = await User.authenticate(identifier, password);
-    
+
     if (authResult) {
       res.json({
         success: true,
@@ -199,10 +203,91 @@ app.post('/api/debug/test-login', async (req, res) => {
     }
 
   } catch (error) {
+    console.error('Test login error:', error);
     res.status(500).json({
       success: false,
-      message: 'Login test failed',
-      error: error.message
+      message: 'Server error',
+      error: error.message,
+      stack: error.stack
+    });
+  }
+});
+
+// Test user lookup endpoint
+app.get('/api/debug/test-user', async (req, res) => {
+  try {
+    const identifier = req.query.identifier || 'antione.harrell@metropower.com';
+
+    console.log('Test user lookup:', { identifier });
+
+    const User = require('../backend/src/models/User');
+    const user = await User.getByIdentifier(identifier);
+
+    if (user) {
+      // Remove password hash for security
+      const { password_hash, ...userWithoutPassword } = user;
+      res.json({
+        success: true,
+        message: 'User found',
+        user: userWithoutPassword,
+        has_password_hash: !!password_hash,
+        password_hash_length: password_hash ? password_hash.length : 0
+      });
+    } else {
+      res.status(404).json({
+        success: false,
+        message: 'User not found'
+      });
+    }
+  } catch (error) {
+    console.error('Test user lookup error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Server error',
+      error: error.message,
+      stack: error.stack
+    });
+  }
+});
+
+// Test password verification endpoint
+app.get('/api/debug/test-password', async (req, res) => {
+  try {
+    const identifier = req.query.identifier || 'antione.harrell@metropower.com';
+    const password = req.query.password || 'password123';
+
+    console.log('Test password verification:', { identifier, password: '***' });
+
+    const bcrypt = require('bcryptjs');
+    const User = require('../backend/src/models/User');
+    const user = await User.getByIdentifier(identifier);
+
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: 'User not found'
+      });
+    }
+
+    const isValidPassword = await bcrypt.compare(password, user.password_hash);
+
+    res.json({
+      success: true,
+      message: 'Password verification test',
+      user_found: true,
+      has_password_hash: !!user.password_hash,
+      password_hash_starts_with: user.password_hash ? user.password_hash.substring(0, 10) : null,
+      password_valid: isValidPassword,
+      user_active: user.is_active
+    });
+
+  } catch (error) {
+    console.error('Test password verification error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Server error',
+      error: error.message,
+      stack: error.stack
     });
   }
 });
@@ -216,6 +301,58 @@ app.get('/api/debug/health', (req, res) => {
     timestamp: new Date().toISOString(),
     service: 'MetroPower Debug API'
   });
+});
+
+// Fix user passwords endpoint
+app.get('/api/debug/fix-passwords', async (req, res) => {
+  try {
+    console.log('Fixing user passwords...');
+
+    const bcrypt = require('bcryptjs');
+    const { query } = require('../backend/src/config/database');
+
+    // Auto-initialize database connection if not available
+    const { connectDatabase } = require('../backend/src/config/database');
+    await connectDatabase();
+
+    // Generate correct password hashes
+    const adminPasswordHash = await bcrypt.hash('MetroPower2025!', 12);
+    const managerPasswordHash = await bcrypt.hash('password123', 12);
+
+    console.log('Generated password hashes');
+
+    // Update admin user password
+    const adminResult = await query(
+      'UPDATE users SET password_hash = $1, updated_at = CURRENT_TIMESTAMP WHERE email = $2',
+      [adminPasswordHash, 'admin@metropower.com']
+    );
+
+    // Update manager user password
+    const managerResult = await query(
+      'UPDATE users SET password_hash = $1, updated_at = CURRENT_TIMESTAMP WHERE email = $2',
+      [managerPasswordHash, 'antione.harrell@metropower.com']
+    );
+
+    console.log('Updated user passwords');
+
+    res.json({
+      success: true,
+      message: 'User passwords fixed successfully',
+      admin_updated: adminResult.rowCount > 0,
+      manager_updated: managerResult.rowCount > 0,
+      admin_rows: adminResult.rowCount,
+      manager_rows: managerResult.rowCount
+    });
+
+  } catch (error) {
+    console.error('Fix passwords error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Server error',
+      error: error.message,
+      stack: error.stack
+    });
+  }
 });
 
 module.exports = app;
