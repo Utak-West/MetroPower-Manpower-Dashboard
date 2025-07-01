@@ -1,0 +1,37 @@
+VERCEL ENVIRONMENT VARIABLES - QUICK REFERENCE
+MetroPower Dashboard Production Deployment
+
+🚨 CRITICAL VARIABLES (Must be set for authentication to work):
+
+1. POSTGRES_URL
+   postgres://neondb_owner:npg_FIzeB8CoU3tM@ep-small-wildflower-a4s9we42-pooler.us-east-1.aws.neon.tech/neondb?sslmode=require
+
+2. NODE_ENV
+   production
+
+3. DEMO_MODE_ENABLED
+   false
+
+4. USE_MEMORY_DB
+   false
+
+5. JWT_SECRET
+   MetroPower2025-Production-JWT-Access-Token-Secret-Key-For-Dashboard-Authentication-System-Security
+
+6. JWT_REFRESH_SECRET
+   MetroPower2025-Production-JWT-Refresh-Token-Secret-Key-For-Dashboard-Session-Management-Security
+
+📋 STEPS TO ADD IN VERCEL:
+1. Go to vercel.com → Your Project → Settings → Environment Variables
+2. Click "Add New" for each variable above
+3. Set Environment to "Production"
+4. Click Save
+5. Redeploy after adding all variables
+
+🧪 TEST AFTER DEPLOYMENT:
+- Debug: https://your-app.vercel.app/api/debug
+- Login: https://your-app.vercel.app/api/auth/login
+
+👤 LOGIN CREDENTIALS:
+- Admin: admin@metropower.com / MetroPower2025!
+- Manager: antione.harrell@metropower.com / MetroPower2025!
