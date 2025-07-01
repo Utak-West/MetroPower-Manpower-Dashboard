@@ -171,10 +171,9 @@ module.exports = async (req, res) => {
     const userCount = parseInt(userCheck.rows[0].count);
     
     if (userCount === 0) {
-      // Generate password hashes
+      // Generate password hashes - Both users use MetroPower2025!
       const bcrypt = require('bcryptjs');
-      const adminPasswordHash = await bcrypt.hash('MetroPower2025!', 12);
-      const managerPasswordHash = await bcrypt.hash('password123', 12);
+      const passwordHash = await bcrypt.hash('MetroPower2025!', 12);
 
       // Insert admin user (password: MetroPower2025!)
       await pool.query(`
@@ -183,21 +182,21 @@ module.exports = async (req, res) => {
       `, [
         'admin',
         'admin@metropower.com',
-        adminPasswordHash,
+        passwordHash,
         'System',
         'Administrator',
         'Admin',
         true
       ]);
 
-      // Insert Antione Harrell (password: password123)
+      // Insert Antione Harrell (password: MetroPower2025!)
       await pool.query(`
         INSERT INTO users (username, email, password_hash, first_name, last_name, role, is_active)
         VALUES ($1, $2, $3, $4, $5, $6, $7)
       `, [
         'antione.harrell',
         'antione.harrell@metropower.com',
-        managerPasswordHash,
+        passwordHash,
         'Antione',
         'Harrell',
         'Project Manager',
@@ -251,7 +250,7 @@ module.exports = async (req, res) => {
         positions: 'created'
       },
       credentials: {
-        manager: 'antione.harrell@metropower.com / password123',
+        manager: 'antione.harrell@metropower.com / MetroPower2025!',
         admin: 'admin@metropower.com / MetroPower2025!'
       }
     });

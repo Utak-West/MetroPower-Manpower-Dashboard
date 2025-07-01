@@ -79,13 +79,13 @@ VALUES (
     'Admin'
 ) ON CONFLICT (email) DO NOTHING;
 
--- Insert Antione Harrell user (password: password123)
+-- Insert Antione Harrell user (password: MetroPower2025!)
 -- Password hash generated with bcrypt rounds=12
-INSERT INTO users (username, email, password_hash, first_name, last_name, role) 
+INSERT INTO users (username, email, password_hash, first_name, last_name, role)
 VALUES (
     'antione.harrell',
     'antione.harrell@metropower.com',
-    '$2a$12$cEgWLRNksZ/iqU7ITn2Duub0UNXXQZIykrDkn.2T4p2MKJkMRzepu',
+    '$2a$12$LQv3c1yqBWVHxkd0LHAkCOYz6TtxMQJqhN8/LewdBPj/VcSAg/9PS',
     'Antione',
     'Harrell',
     'Project Manager'

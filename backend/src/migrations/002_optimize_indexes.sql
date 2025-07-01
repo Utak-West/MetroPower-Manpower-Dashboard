@@ -13,7 +13,9 @@ CREATE INDEX IF NOT EXISTS idx_assignments_date_emp_proj ON assignments(assignme
 CREATE INDEX IF NOT EXISTS idx_assignments_emp_date_unique ON assignments(employee_id, assignment_date) WHERE assignment_date IS NOT NULL;
 
 -- Indexes for employee search functionality
-CREATE INDEX IF NOT EXISTS idx_employees_search_name ON employees USING gin(to_tsvector('english', name));
+-- Note: Full-text search index removed due to immutability requirements
+-- Use ILIKE queries for name searching instead
+CREATE INDEX IF NOT EXISTS idx_employees_name_text ON employees(LOWER(name));
 CREATE INDEX IF NOT EXISTS idx_employees_search_number ON employees(employee_number) WHERE employee_number IS NOT NULL;
 CREATE INDEX IF NOT EXISTS idx_employees_active_status ON employees(status) WHERE status = 'Active';
 
@@ -37,9 +39,10 @@ CREATE INDEX IF NOT EXISTS idx_notifications_sent_at_desc ON notifications(sent_
 CREATE INDEX IF NOT EXISTS idx_exports_user_status ON exports(user_id, status);
 CREATE INDEX IF NOT EXISTS idx_exports_created_desc ON exports(created_at DESC);
 
--- Partial indexes for common filtered queries
-CREATE INDEX IF NOT EXISTS idx_assignments_current_week ON assignments(assignment_date) 
-WHERE assignment_date >= CURRENT_DATE - INTERVAL '7 days' AND assignment_date <= CURRENT_DATE + INTERVAL '7 days';
+-- Partial indexes for common filtered queries (removed CURRENT_DATE due to immutability requirement)
+-- Note: Dynamic date filtering should be done at query time rather than in index predicates
+CREATE INDEX IF NOT EXISTS idx_assignments_recent ON assignments(assignment_date)
+WHERE assignment_date >= '2024-01-01';
 
 -- Index for weekly archive queries
 CREATE INDEX IF NOT EXISTS idx_weekly_archives_week_start ON weekly_archives(week_start_date DESC);
@@ -53,13 +56,13 @@ ALTER TABLE projects ALTER COLUMN name SET STATISTICS 1000;
 
 -- Create materialized view for assignment summary statistics (optional, for reporting)
 CREATE MATERIALIZED VIEW IF NOT EXISTS assignment_summary_stats AS
-SELECT 
+SELECT
     DATE_TRUNC('week', assignment_date) as week_start,
     COUNT(*) as total_assignments,
     COUNT(DISTINCT employee_id) as unique_employees,
     COUNT(DISTINCT project_id) as unique_projects
-FROM assignments 
-WHERE assignment_date >= CURRENT_DATE - INTERVAL '12 months'
+FROM assignments
+WHERE assignment_date >= '2024-01-01'
 GROUP BY DATE_TRUNC('week', assignment_date)
 ORDER BY week_start DESC;
 
@@ -77,5 +80,5 @@ $$ LANGUAGE plpgsql;
 -- Comments for documentation
 COMMENT ON INDEX idx_assignments_date_emp_proj IS 'Optimizes the main assignment query with date range and joins';
 COMMENT ON INDEX idx_assignments_emp_date_unique IS 'Optimizes conflict checking for double-booking prevention';
-COMMENT ON INDEX idx_employees_search_name IS 'Full-text search index for employee names';
+COMMENT ON INDEX idx_employees_name_text IS 'Case-insensitive text search index for employee names';
 COMMENT ON MATERIALIZED VIEW assignment_summary_stats IS 'Pre-computed assignment statistics for reporting dashboard';

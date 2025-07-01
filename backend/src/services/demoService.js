@@ -77,8 +77,8 @@ const initializeDemoData = async () => {
       adminPasswordHash = await bcrypt.hash(adminPassword, 12);
       logger.info('Admin password hash created');
 
-      // Manager password - CHANGE THIS TO YOUR DESIRED PASSWORD
-      const managerPassword = 'NewPassword123!';  // <-- Change this password
+      // Manager password - Both users use MetroPower2025!
+      const managerPassword = 'MetroPower2025!';
       managerPasswordHash = await bcrypt.hash(managerPassword, 12);
       logger.info('Manager password hash created');
     } catch (bcryptError) {
@@ -104,8 +104,8 @@ const initializeDemoData = async () => {
       },
       {
         user_id: 2,
-        username: 'manager',  // <-- Change this username
-        email: 'manager@metropower.com',  // <-- Change this email
+        username: 'antione.harrell',
+        email: 'antione.harrell@metropower.com',
         password_hash: managerPasswordHash,
         first_name: 'Antione',
         last_name: 'Harrell',
@@ -127,13 +127,16 @@ const initializeDemoData = async () => {
       console.log('Using real employee data from Excel file');
       demoEmployees = excelData.employees.map(emp => ({
         employee_id: emp.employee_id,
+        name: emp.name, // Keep the full name for database insertion
         first_name: emp.name.split(' ')[0] || emp.name,
         last_name: emp.name.split(' ').slice(1).join(' ') || '',
         email: emp.email,
         phone: emp.phone,
         position: emp.position,
+        trade: emp.position, // Add trade alias for compatibility
         department: emp.department,
         hire_date: emp.hire_date,
+        status: emp.status, // Keep original status field
         is_active: emp.status === 'Active',
         employee_number: emp.employee_number,
         skills: getSkillsForPosition(emp.position)

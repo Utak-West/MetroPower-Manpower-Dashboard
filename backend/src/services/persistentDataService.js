@@ -255,21 +255,20 @@ class PersistentDataService {
       
       logger.info('Creating initial users...');
       
-      // Create password hashes
-      const adminPasswordHash = await bcrypt.hash('MetroPower2025!', 12);
-      const managerPasswordHash = await bcrypt.hash('password123', 12);
-      
+      // Create password hash - Both users use MetroPower2025!
+      const passwordHash = await bcrypt.hash('MetroPower2025!', 12);
+
       // Insert admin user
       await query(`
         INSERT INTO users (username, email, password_hash, first_name, last_name, role, is_active)
         VALUES ($1, $2, $3, $4, $5, $6, $7)
-      `, ['admin', 'admin@metropower.com', adminPasswordHash, 'System', 'Administrator', 'Admin', true]);
-      
+      `, ['admin', 'admin@metropower.com', passwordHash, 'System', 'Administrator', 'Admin', true]);
+
       // Insert Antione Harrell
       await query(`
         INSERT INTO users (username, email, password_hash, first_name, last_name, role, is_active)
         VALUES ($1, $2, $3, $4, $5, $6, $7)
-      `, ['antione.harrell', 'antione.harrell@metropower.com', managerPasswordHash, 'Antione', 'Harrell', 'Project Manager', true]);
+      `, ['antione.harrell', 'antione.harrell@metropower.com', passwordHash, 'Antione', 'Harrell', 'Project Manager', true]);
       
       logger.info('Initial users created successfully');
     } catch (error) {
@@ -340,24 +339,35 @@ class PersistentDataService {
       
       // Insert employees
       for (const employee of demoEmployees) {
+        // Validate required fields
+        if (!employee.name || employee.name.trim() === '') {
+          logger.warn(`Skipping employee with missing name:`, employee);
+          continue;
+        }
+
         // Get position_id
         const positionResult = await query(
           'SELECT position_id FROM positions WHERE name = $1',
           [employee.position || employee.trade || 'General Laborer']
         );
-        
+
         const positionId = positionResult.rows.length > 0 ? positionResult.rows[0].position_id : 1;
-        
+
+        // Ensure all required fields have valid values
+        const employeeName = employee.name.trim();
+        const employeeId = employee.employee_id || `EMP${Date.now()}`;
+        const employeeNumber = employee.employee_number || employeeId;
+
         await query(`
           INSERT INTO employees (employee_id, name, position_id, status, employee_number, hire_date, phone, email, notes)
           VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
           ON CONFLICT (employee_id) DO NOTHING
         `, [
-          employee.employee_id,
-          employee.name,
+          employeeId,
+          employeeName,
           positionId,
           employee.status || 'Active',
-          employee.employee_number,
+          employeeNumber,
           employee.hire_date,
           employee.phone,
           employee.email,

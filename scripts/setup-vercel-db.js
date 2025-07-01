@@ -167,31 +167,35 @@ async function setupDatabase() {
     const userCount = parseInt(userCheck.rows[0].count);
     
     if (userCount === 0) {
+      // Generate password hash for MetroPower2025! (both users use same password)
+      const bcrypt = require('bcryptjs');
+      const passwordHash = await bcrypt.hash('MetroPower2025!', 12);
+
       // Insert admin user (password: MetroPower2025!)
       await pool.query(`
         INSERT INTO users (username, email, password_hash, first_name, last_name, role, is_active)
         VALUES ($1, $2, $3, $4, $5, $6, $7)
       `, [
-        'admin', 
-        'admin@metropower.com', 
-        '$2a$12$LQv3c1yqBWVHxkd0LHAkCOYz6TtxMQJqhN8/LewdBPj/VcSAg/9PS',
-        'System', 
-        'Administrator', 
-        'Admin', 
+        'admin',
+        'admin@metropower.com',
+        passwordHash,
+        'System',
+        'Administrator',
+        'Admin',
         true
       ]);
-      
-      // Insert Antione Harrell (password: password123)
+
+      // Insert Antione Harrell (password: MetroPower2025!)
       await pool.query(`
         INSERT INTO users (username, email, password_hash, first_name, last_name, role, is_active)
         VALUES ($1, $2, $3, $4, $5, $6, $7)
       `, [
-        'antione.harrell', 
-        'antione.harrell@metropower.com', 
-        '$2a$12$cEgWLRNksZ/iqU7ITn2Duub0UNXXQZIykrDkn.2T4p2MKJkMRzepu',
-        'Antione', 
-        'Harrell', 
-        'Project Manager', 
+        'antione.harrell',
+        'antione.harrell@metropower.com',
+        passwordHash,
+        'Antione',
+        'Harrell',
+        'Project Manager',
         true
       ]);
       
@@ -237,7 +241,7 @@ async function setupDatabase() {
     console.log('  ✅ Default positions created');
     console.log('');
     console.log('🔐 Login credentials:');
-    console.log('  Manager: antione.harrell@metropower.com / password123');
+    console.log('  Manager: antione.harrell@metropower.com / MetroPower2025!');
     console.log('  Admin: admin@metropower.com / MetroPower2025!');
     
   } catch (error) {

@@ -325,7 +325,7 @@ const seedDatabase = async () => {
     logger.info('Database seeding completed successfully!')
     logger.info('Default login credentials:')
     logger.info('  Admin: admin@metropower.com / MetroPower2025!')
-    logger.info('  Antione Harrell: antione.harrell@metropower.com / MetroPower2025!')
+    logger.info('  Manager: antione.harrell@metropower.com / MetroPower2025!')
   } catch (error) {
     logger.error('Database seeding failed:', error)
     process.exit(1)
