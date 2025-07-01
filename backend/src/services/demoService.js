@@ -72,15 +72,17 @@ const initializeDemoData = async () => {
     let adminPasswordHash, managerPasswordHash;
 
     try {
-      adminPasswordHash = await bcrypt.hash('MetroPower2025!', 12);
+      // Use the same secure password for both admin and manager users
+      const securePassword = 'MetroPower2025!';
+      adminPasswordHash = await bcrypt.hash(securePassword, 12);
       logger.info('Admin password hash created');
-      managerPasswordHash = await bcrypt.hash('password123', 12);
+      managerPasswordHash = await bcrypt.hash(securePassword, 12);
       logger.info('Manager password hash created');
     } catch (bcryptError) {
       logger.warn('Bcrypt failed, using pre-computed hashes:', bcryptError.message);
-      // Fallback to pre-computed hashes (from setup-vercel-db.sql)
+      // Fallback to pre-computed hashes - both using MetroPower2025!
       adminPasswordHash = '$2a$12$LQv3c1yqBWVHxkd0LHAkCOYz6TtxMQJqhN8/LewdBPj/VcSAg/9PS'; // MetroPower2025!
-      managerPasswordHash = '$2a$12$cEgWLRNksZ/iqU7ITn2Duub0UNXXQZIykrDkn.2T4p2MKJkMRzepu'; // password123
+      managerPasswordHash = '$2a$12$LQv3c1yqBWVHxkd0LHAkCOYz6TtxMQJqhN8/LewdBPj/VcSAg/9PS'; // MetroPower2025!
     }
 
     demoUsers = [
@@ -324,7 +326,7 @@ const initializeDemoData = async () => {
           user_id: 2,
           username: 'antione.harrell',
           email: 'antione.harrell@metropower.com',
-          password_hash: '$2a$12$cEgWLRNksZ/iqU7ITn2Duub0UNXXQZIykrDkn.2T4p2MKJkMRzepu',
+          password_hash: '$2a$12$LQv3c1yqBWVHxkd0LHAkCOYz6TtxMQJqhN8/LewdBPj/VcSAg/9PS', // MetroPower2025!
           first_name: 'Antione',
           last_name: 'Harrell',
           role: 'Project Manager',
