@@ -640,7 +640,6 @@
                 <a href="/staff.html" class="nav-link">Staff</a>
                 <a href="/projects.html" class="nav-link active">Projects</a>
                 <a href="/calendar.html" class="nav-link">Calendar</a>
-                <a href="/manager.html" class="nav-link">Manager</a>
             </div>
         </nav>
     </header>
@@ -658,7 +657,6 @@
                 <a href="/staff.html" class="mobile-nav-link">Staff</a>
                 <a href="/projects.html" class="mobile-nav-link active">Projects</a>
                 <a href="/calendar.html" class="mobile-nav-link">Calendar</a>
-                <a href="/manager.html" class="mobile-nav-link">Manager</a>
             </div>
         </div>
     </div>
@@ -674,7 +672,9 @@
                 </div>
                 <div class="project-actions">
                     <button type="button" class="btn btn-success" id="createProjectBtn" onclick="showCreateProjectModal()">+ Create New Project</button>
-                    <button type="button" class="btn btn-primary" onclick="showProjectExportModal()">📊 Export Projects</button>
+                    <button type="button" class="btn btn-secondary" onclick="generateSampleProjects()">Generate Sample Projects</button>
+                    <button type="button" class="btn btn-warning" onclick="deleteSampleProjects()">Delete Sample Projects</button>
+                    <button type="button" class="btn btn-primary" onclick="showProjectExportModal()">Export Projects</button>
                 </div>
             </div>
         </div>

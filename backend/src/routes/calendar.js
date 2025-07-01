@@ -71,14 +71,35 @@ router.get('/month/:year/:month', asyncHandler(async (req, res) => {
       })
     }
 
-    // Database mode implementation would go here
+    // Database mode implementation
+    const Assignment = require('../models/Assignment')
+
+    // Calculate date range for the month
+    const startDateStr = startDate.toISOString().split('T')[0]
+    const endDateStr = endDate.toISOString().split('T')[0]
+
+    // Get assignments for the month
+    const assignments = await Assignment.getByDateRange(startDateStr, endDateStr)
+
+    // Group assignments by date
+    const calendarData = {}
+    assignments.forEach(assignment => {
+      const dateKey = assignment.assignment_date
+      if (!calendarData[dateKey]) {
+        calendarData[dateKey] = []
+      }
+      calendarData[dateKey].push(assignment)
+    })
+
     res.json({
       success: true,
       data: {
         year: yearNum,
         month: monthNum,
-        assignments: {},
-        totalAssignments: 0
+        startDate: startDateStr,
+        endDate: endDateStr,
+        assignments: calendarData,
+        totalAssignments: assignments.length
       }
     })
   } catch (error) {
@@ -130,13 +151,21 @@ router.get('/week/:date', asyncHandler(async (req, res) => {
       })
     }
 
-    // Database mode implementation would go here
+    // Database mode implementation
+    const Assignment = require('../models/Assignment')
+
+    const weekStartStr = weekStart.toISOString().split('T')[0]
+    const weekEndStr = weekEnd.toISOString().split('T')[0]
+
+    // Get week assignments using the Assignment model
+    const weekAssignments = await Assignment.getWeekAssignments(weekStartStr)
+
     res.json({
       success: true,
       data: {
-        weekStart: weekStart.toISOString().split('T')[0],
-        weekEnd: weekEnd.toISOString().split('T')[0],
-        assignments: {}
+        weekStart: weekStartStr,
+        weekEnd: weekEndStr,
+        assignments: weekAssignments
       }
     })
   } catch (error) {

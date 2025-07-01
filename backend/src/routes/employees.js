@@ -34,11 +34,12 @@ router.get('/', asyncHandler(async (req, res) => {
 
     // Use persistent database operations
     const Employee = require('../models/Employee')
-    const employees = await Employee.getAll()
+    const result = await Employee.getAll()
 
     res.json({
       success: true,
-      data: employees
+      data: result.employees || [],
+      pagination: result.pagination
     })
   } catch (error) {
     logger.error('Error fetching employees:', error)

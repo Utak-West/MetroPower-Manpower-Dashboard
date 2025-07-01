@@ -1006,6 +1006,96 @@ async function loadProjectDetails(projectId) {
 }
 
 /**
+ * Generate sample MetroPower projects
+ */
+async function generateSampleProjects() {
+    try {
+        const sampleProjects = [
+            {
+                project_id: `SAMPLE_${Date.now()}_1`,
+                name: 'Downtown Power Grid Upgrade',
+                number: `MPP-${new Date().getFullYear()}-001`,
+                status: 'Active',
+                start_date: '2025-01-15',
+                end_date: '2025-06-30',
+                location: 'Downtown Metro Area',
+                description: 'Comprehensive upgrade of downtown electrical infrastructure including new transformers and distribution lines.',
+                budget: 2500000,
+                manager: 'Antione Harrell'
+            },
+            {
+                project_id: `SAMPLE_${Date.now()}_2`,
+                name: 'Residential Substation Installation',
+                number: `MPP-${new Date().getFullYear()}-002`,
+                status: 'Planning',
+                start_date: '2025-03-01',
+                end_date: '2025-08-15',
+                location: 'Westside Residential District',
+                description: 'Installation of new 69kV substation to serve growing residential area.',
+                budget: 1800000,
+                manager: 'Antione Harrell'
+            },
+            {
+                project_id: `SAMPLE_${Date.now()}_3`,
+                name: 'Emergency Line Repair - Highway 45',
+                number: `MPP-${new Date().getFullYear()}-003`,
+                status: 'Active',
+                start_date: '2025-01-10',
+                end_date: '2025-02-28',
+                location: 'Highway 45 Corridor',
+                description: 'Emergency repair and reinforcement of transmission lines damaged by recent storm.',
+                budget: 750000,
+                manager: 'Antione Harrell'
+            }
+        ];
+
+        for (const project of sampleProjects) {
+            await api.createProject(project);
+        }
+
+        showMessage(`Successfully generated ${sampleProjects.length} sample projects!`, 'success');
+        await loadProjects();
+
+    } catch (error) {
+        console.error('Error generating sample projects:', error);
+        showMessage('Failed to generate sample projects', 'error');
+    }
+}
+
+/**
+ * Delete all sample projects
+ */
+async function deleteSampleProjects() {
+    try {
+        const sampleProjects = projects.filter(project =>
+            project.project_id.includes('SAMPLE_') ||
+            project.name.includes('Sample') ||
+            project.description.includes('sample') ||
+            project.description.includes('test')
+        );
+
+        if (sampleProjects.length === 0) {
+            showMessage('No sample projects found to delete', 'info');
+            return;
+        }
+
+        const confirmDelete = confirm(`Are you sure you want to delete ${sampleProjects.length} sample projects? This action cannot be undone.`);
+        if (!confirmDelete) return;
+
+        for (const project of sampleProjects) {
+            await api.deleteProject(project.project_id);
+        }
+
+        showMessage(`Successfully deleted ${sampleProjects.length} sample projects!`, 'success');
+        await loadProjects();
+
+    } catch (error) {
+        console.error('Error deleting sample projects:', error);
+        showMessage('Failed to delete sample projects', 'error');
+    }
+}
+
+/**
  * Export projects data with enhanced UI feedback
  */
 async function exportProjects(format = 'excel') {
@@ -1087,13 +1177,13 @@ function showProjectExportModal() {
                     <label>Export Format:</label>
                     <div class="export-format-options">
                         <button type="button" class="btn btn-secondary" onclick="exportProjects('excel')">
-                            📊 Excel (.xlsx)
+                            Excel (.xlsx)
                         </button>
                         <button type="button" class="btn btn-primary" onclick="exportProjects('pdf')">
-                            📄 PDF Report
+                            PDF Report
                         </button>
                         <button type="button" class="btn btn-secondary" onclick="exportProjects('csv')">
-                            📋 CSV Data
+                            CSV Data
                         </button>
                     </div>
                 </div>

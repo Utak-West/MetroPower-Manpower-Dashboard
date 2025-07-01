@@ -77,7 +77,11 @@ try {
   const positionRoutes = require('../backend/src/routes/positions');
   app.use('/api/positions', ensureDatabaseInitialized, authenticate, positionRoutes);
 
-  console.log('✅ Routes loaded successfully (auth, dashboard, projects, employees, assignments, positions)');
+  // Import calendar routes with authentication
+  const calendarRoutes = require('../backend/src/routes/calendar');
+  app.use('/api/calendar', ensureDatabaseInitialized, authenticate, calendarRoutes);
+
+  console.log('✅ Routes loaded successfully (auth, dashboard, projects, employees, assignments, positions, calendar)');
 
 } catch (error) {
   console.error('❌ Failed to load routes:', error);

@@ -71,13 +71,8 @@ async function loadEmployees() {
         showLoading('staffLoading');
         hideError('staffError');
 
-        const response = await api.get('/employees');
-        // Handle the new API response structure with pagination
-        if (response.data && response.data.employees) {
-            employees = response.data.employees;
-        } else {
-            employees = response.data || [];
-        }
+        const response = await api.getEmployees();
+        employees = response.data || [];
         filteredEmployees = [...employees];
         
         hideLoading('staffLoading');
@@ -96,17 +91,50 @@ async function loadPositions() {
     try {
         const response = await api.get('/positions');
         positions = response.data || [];
+
+        // Ensure each position has a distinct color
+        assignPositionColors();
+
     } catch (error) {
         console.error('Failed to load positions:', error);
-        // Use fallback positions if API fails
+        // Use fallback positions if API fails with distinct colors
         positions = [
-            { position_id: 1, name: 'Electrician', code: 'EL', color_code: '#28A745' },
-            { position_id: 2, name: 'Field Supervisor', code: 'FS', color_code: '#3B5998' },
-            { position_id: 3, name: 'Apprentice', code: 'AP', color_code: '#F7B731' },
-            { position_id: 4, name: 'General Laborer', code: 'GL', color_code: '#6F42C1' },
-            { position_id: 5, name: 'Temp', code: 'TM', color_code: '#E52822' }
+            { position_id: 1, name: 'Electrician', code: 'EL', color_code: '#FF6B6B' },
+            { position_id: 2, name: 'Field Supervisor', code: 'FS', color_code: '#4ECDC4' },
+            { position_id: 3, name: 'Apprentice', code: 'AP', color_code: '#45B7D1' },
+            { position_id: 4, name: 'General Laborer', code: 'GL', color_code: '#96CEB4' },
+            { position_id: 5, name: 'Temp', code: 'TM', color_code: '#FFEAA7' },
+            { position_id: 6, name: 'Lineman', code: 'LM', color_code: '#DDA0DD' },
+            { position_id: 7, name: 'Foreman', code: 'FM', color_code: '#FFB347' },
+            { position_id: 8, name: 'Supervisor', code: 'SV', color_code: '#87CEEB' },
+            { position_id: 9, name: 'Operator', code: 'OP', color_code: '#F0E68C' }
         ];
     }
+
+    populateFilters();
+}
+
+/**
+ * Assign distinct colors to each position type
+ */
+function assignPositionColors() {
+    const distinctColors = [
+        '#FF6B6B', // Red - Electrician
+        '#4ECDC4', // Teal - Lineman
+        '#45B7D1', // Blue - Foreman
+        '#96CEB4', // Green - Apprentice
+        '#FFEAA7', // Yellow - Supervisor
+        '#DDA0DD', // Plum - Operator
+        '#FFB347', // Orange - Technician
+        '#87CEEB', // Sky Blue - Inspector
+        '#F0E68C'  // Khaki - Other
+    ];
+
+    positions.forEach((position, index) => {
+        if (!position.color_code) {
+            position.color_code = distinctColors[index % distinctColors.length];
+        }
+    });
 }
 
 /**

@@ -95,7 +95,7 @@ async function loadEmployees() {
         employees.forEach(employee => {
             const option = document.createElement('option');
             option.value = employee.employee_id;
-            option.textContent = `${employee.first_name} ${employee.last_name} - ${employee.position}`;
+            option.textContent = `${employee.name} - ${employee.position_name || employee.position || 'Unknown Position'}`;
             employeeSelect.appendChild(option);
         });
     } catch (error) {
@@ -140,7 +140,7 @@ async function loadAssignments() {
         errorEl.classList.add('hidden');
         tableEl.classList.add('hidden');
 
-        const response = await api.get('/assignments');
+        const response = await api.getAssignments();
         assignments = response.data || [];
         filteredAssignments = [...assignments];
 
@@ -174,13 +174,11 @@ function displayAssignments(assignmentList) {
     assignmentList.forEach(assignment => {
         const row = document.createElement('tr');
         
-        const employeeName = assignment.employee ? 
-            `${assignment.employee.first_name} ${assignment.employee.last_name}` : 
-            'Unknown Employee';
-            
-        const projectName = assignment.project ? 
-            assignment.project.name : 
-            'Unknown Project';
+        const employeeName = assignment.employee_name ||
+            (assignment.employee ? `${assignment.employee.first_name} ${assignment.employee.last_name}` : 'Unknown Employee');
+
+        const projectName = assignment.project_name ||
+            (assignment.project ? assignment.project.name : 'Unknown Project');
             
         // Use assignment_date for database mode, date for demo mode
         const assignmentDate = assignment.assignment_date || assignment.date;

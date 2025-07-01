@@ -37,13 +37,14 @@ router.get('/', asyncHandler(async (req, res) => {
 
     // Use persistent database operations
     const Project = require('../models/Project')
-    const projects = withStats === 'true'
+    const result = withStats === 'true'
       ? await Project.getAllWithStats()
       : await Project.getAll()
 
     res.json({
       success: true,
-      data: projects
+      data: result.projects || result || [],
+      pagination: result.pagination
     })
   } catch (error) {
     logger.error('Error fetching projects:', error)
