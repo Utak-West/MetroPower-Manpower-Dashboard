@@ -30,9 +30,9 @@ const createPool = () => {
       ssl: { rejectUnauthorized: false },
       min: isVercel ? 0 : config.database.pool.min, // No minimum connections for serverless
       max: isVercel ? 3 : config.database.pool.max, // Limit max connections for serverless
-      acquireTimeoutMillis: isProduction ? 5000 : config.database.pool.acquire, // Faster timeout for production
+      acquireTimeoutMillis: isProduction ? 15000 : config.database.pool.acquire, // Increased timeout for production
       idleTimeoutMillis: isVercel ? 10000 : config.database.pool.idle, // Shorter idle timeout for serverless
-      connectionTimeoutMillis: isProduction ? 5000 : 10000, // Faster connection timeout
+      connectionTimeoutMillis: isProduction ? 15000 : 10000, // Increased connection timeout
       statement_timeout: isProduction ? 15000 : 30000, // Shorter statement timeout
       query_timeout: isProduction ? 15000 : 30000, // Shorter query timeout
       application_name: 'MetroPower Dashboard'
@@ -52,9 +52,9 @@ const createPool = () => {
     ssl: config.database.ssl ? { rejectUnauthorized: false } : false,
     min: isVercel ? 0 : config.database.pool.min,
     max: isVercel ? 3 : config.database.pool.max,
-    acquireTimeoutMillis: isProduction ? 5000 : config.database.pool.acquire,
+    acquireTimeoutMillis: isProduction ? 15000 : config.database.pool.acquire,
     idleTimeoutMillis: isVercel ? 10000 : config.database.pool.idle,
-    connectionTimeoutMillis: isProduction ? 5000 : 10000,
+    connectionTimeoutMillis: isProduction ? 15000 : 10000,
     statement_timeout: isProduction ? 15000 : 30000,
     query_timeout: isProduction ? 15000 : 30000,
     application_name: 'MetroPower Dashboard'
