@@ -154,6 +154,7 @@
     "BRANCH_NAME": "Tucker Branch",
     "USE_MEMORY_DB": "false",
     "DEMO_MODE_ENABLED": "false",
+    "FORCE_PRODUCTION_MODE": "true",
     "POSTGRES_URL": "postgres://neondb_owner:npg_FIzeB8CoU3tM@ep-small-wildflower-a4s9we42-pooler.us-east-1.aws.neon.tech/neondb?sslmode=require",
     "POSTGRES_PRISMA_URL": "postgres://neondb_owner:npg_FIzeB8CoU3tM@ep-small-wildflower-a4s9we42-pooler.us-east-1.aws.neon.tech/neondb?pgbouncer=true&connect_timeout=15",
     "POSTGRES_URL_NON_POOLING": "postgres://neondb_owner:npg_FIzeB8CoU3tM@ep-small-wildflower-a4s9we42-pooler.us-east-1.aws.neon.tech/neondb?sslmode=require",

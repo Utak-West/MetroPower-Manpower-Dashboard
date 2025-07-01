@@ -9,8 +9,23 @@ const ExcelJS = require('exceljs');
 const path = require('path');
 const fs = require('fs');
 
-// File path
-const excelFilePath = path.join(__dirname, '..', 'Legacy - MB Week 6.16.25-6.22.25.xlsx');
+// File paths - check for both legacy and new files
+const legacyFilePath = path.join(__dirname, '..', 'Legacy - MB Week 6.16.25-6.22.25.xlsx');
+const newFilePath = path.join(__dirname, '..', 'MB Week 6.30.25-7.6.25.xlsx');
+
+// Determine which file to use
+let excelFilePath = legacyFilePath;
+if (fs.existsSync(newFilePath)) {
+  excelFilePath = newFilePath;
+  console.log('Using new Excel file:', newFilePath);
+} else if (fs.existsSync(legacyFilePath)) {
+  excelFilePath = legacyFilePath;
+  console.log('Using legacy Excel file:', legacyFilePath);
+} else {
+  console.error('No Excel file found. Please ensure the file exists at one of these locations:');
+  console.error('- New file:', newFilePath);
+  console.error('- Legacy file:', legacyFilePath);
+}
 
 /**
  * Parse employee name and ID from combined string
