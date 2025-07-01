@@ -12,9 +12,9 @@ const https = require('https');
 class ProductionVerifier {
     constructor() {
         this.productionUrls = [
+            'https://metropower-manpower-dashboard.vercel.app',
             'https://metropower-manpower-dashboard-8hmgfkfk3-utaks-projects.vercel.app',
-            'https://metropower-manpower-dashboard-alscle5f9-utaks-projects.vercel.app',
-            'https://metropower-manpower-dashboard.vercel.app'
+            'https://metropower-manpower-dashboard-alscle5f9-utaks-projects.vercel.app'
         ];
         this.workingUrl = null;
     }
@@ -67,16 +67,19 @@ class ProductionVerifier {
 
     async findWorkingDeployment() {
         console.log('🔍 Testing deployment URLs...');
-        
+
         for (const url of this.productionUrls) {
             try {
                 console.log(`  Testing: ${url}`);
-                const response = await this.makeRequest(url, '/health');
-                
-                if (response.statusCode === 200) {
+                // Test the main dashboard page instead of health endpoint
+                const response = await this.makeRequest(url, '/');
+
+                if (response.statusCode === 200 && response.data.includes('MetroPower Dashboard')) {
                     this.workingUrl = url;
-                    console.log(`  ✅ Working deployment found`);
+                    console.log(`  ✅ Working deployment found - Dashboard loads correctly`);
                     return;
+                } else if (response.statusCode === 200) {
+                    console.log(`  ⚠️  HTTP 200 but unexpected content`);
                 } else {
                     console.log(`  ❌ HTTP ${response.statusCode}`);
                 }
@@ -88,16 +91,25 @@ class ProductionVerifier {
 
     async testHealthEndpoint() {
         console.log('🏥 Testing health endpoint...');
-        
+
         try {
             const response = await this.makeRequest(this.workingUrl, '/health');
-            
+
             if (response.statusCode === 200) {
                 const data = JSON.parse(response.data);
                 console.log(`  ✅ Health check passed`);
                 console.log(`  📊 Status: ${data.status}`);
                 console.log(`  🗄️  Database: ${data.database || 'unknown'}`);
                 return true;
+            } else if (response.statusCode === 500) {
+                // Check if it's the HTML error page (some endpoints may still have issues)
+                if (response.data.includes('Internal Server Error')) {
+                    console.log(`  ⚠️  Health endpoint returns 500 but dashboard may still work`);
+                    console.log(`  🔍 This is a known issue with some specific endpoints`);
+                    return false; // Still mark as failed for health endpoint specifically
+                }
+                console.log(`  ❌ Health check failed: HTTP ${response.statusCode}`);
+                return false;
             } else {
                 console.log(`  ❌ Health check failed: HTTP ${response.statusCode}`);
                 return false;
