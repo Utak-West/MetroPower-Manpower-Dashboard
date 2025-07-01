@@ -23,6 +23,7 @@ const path = require('path');
 const config = require('./src/config/app');
 const logger = require('./src/utils/logger');
 const { connectDatabase } = require('./src/config/database');
+const { initializeDatabase } = require('./src/utils/runtime-db-init');
 
 // Import middleware
 const { errorHandler, notFoundHandler } = require('./src/middleware/errorHandler');
@@ -240,25 +241,33 @@ app.use(errorHandler);
 // Initialize database connection for serverless
 const initializeApp = async () => {
   try {
-    // Connect to database
-    const dbConnection = await connectDatabase();
+    logger.info('🚀 Initializing MetroPower Dashboard application...');
 
-    if (dbConnection) {
+    // Use runtime database initialization
+    const initResult = await initializeDatabase();
+
+    if (initResult.success && initResult.mode === 'database') {
       // Use persistent database
-      logger.info('Using persistent database storage');
+      logger.info('✅ Using persistent database storage');
       global.isDemoMode = false;
 
       // Initialize persistent data
       const PersistentDataService = require('./src/services/persistentDataService');
       await PersistentDataService.initializePersistentData();
+
+      logger.info(`📊 Database initialized in ${initResult.initTime}ms with ${initResult.tablesCount} tables`);
     } else {
-      // Fallback to demo mode for development
-      logger.info('Using in-memory database for development');
+      // Fallback to demo mode
+      logger.info('🎭 Using in-memory database for development/demo');
       global.isDemoMode = true;
 
       // Initialize demo service data
       const demoService = require('./src/services/demoService');
       await demoService.initializeDemoData();
+
+      if (initResult.fallback) {
+        logger.warn('⚠️  Database connection failed, running in demo mode');
+      }
     }
 
     return true;

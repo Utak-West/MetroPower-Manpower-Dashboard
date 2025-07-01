@@ -23,22 +23,29 @@ if (process.env.VERCEL) {
 }
 
 let app;
-let initializationPromise = null;
 
 try {
   // Import the main server application
   const serverModule = require('../backend/server');
   app = serverModule.app;
 
-  // Initialize the app for serverless (with proper error handling)
-  if (serverModule.initializeApp) {
-    initializationPromise = serverModule.initializeApp().catch(error => {
-      console.error('Failed to initialize app:', error);
-      console.error('Error stack:', error.stack);
-      // Don't throw here, let requests handle the error
-      return { error: error.message, stack: error.stack };
-    });
-  }
+  // Add database initialization middleware for serverless
+  const { healthCheckMiddleware } = require('../backend/src/middleware/database-init');
+
+  // Create a wrapper app that handles initialization
+  const express = require('express');
+  const wrappedApp = express();
+
+  // Add the database initialization middleware
+  wrappedApp.use(healthCheckMiddleware);
+
+  // Forward all requests to the main app after initialization
+  wrappedApp.use((req, res, next) => {
+    app(req, res, next);
+  });
+
+  app = wrappedApp;
+
 } catch (error) {
   console.error('Failed to load server:', error);
 
@@ -61,41 +68,7 @@ try {
   });
 }
 
-// Add initialization check middleware for the main app
-if (initializationPromise) {
-  const originalApp = app;
-  const express = require('express');
-  const wrappedApp = express();
 
-  wrappedApp.use(async (req, res, next) => {
-    try {
-      // Wait for initialization to complete
-      const initResult = await initializationPromise;
-      if (initResult && initResult.error) {
-        console.error('Initialization failed:', initResult.error);
-        console.error('Stack trace:', initResult.stack);
-        return res.status(500).json({
-          error: 'Application initialization failed',
-          message: initResult.error,
-          details: initResult.stack,
-          timestamp: new Date().toISOString(),
-          path: req.originalUrl
-        });
-      }
-      // Forward to the original app
-      originalApp(req, res, next);
-    } catch (error) {
-      res.status(500).json({
-        error: 'Application initialization error',
-        message: error.message,
-        timestamp: new Date().toISOString(),
-        path: req.originalUrl
-      });
-    }
-  });
-
-  app = wrappedApp;
-}
 
 // Export the Express app as a Vercel serverless function
 module.exports = app;

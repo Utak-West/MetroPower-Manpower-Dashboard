@@ -11,6 +11,8 @@
     "seed": "npm run seed --prefix backend",
     "test-db": "node scripts/test-db-connection.js",
     "vercel-build": "node scripts/vercel-build.js",
+    "test-build": "node scripts/test-build-optimization.js",
+    "test-vercel": "node scripts/test-vercel-simulation.js",
     "lint": "npm run lint --prefix backend",
     "test": "npm test --prefix backend",
     "lint:fix": "npm run lint:fix --prefix backend",

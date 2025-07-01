@@ -1,107 +1,96 @@
 #!/usr/bin/env node
 
 /**
- * Vercel Build Script
- * 
- * This script runs during Vercel deployment to set up the database
- * and perform any necessary initialization tasks.
+ * Optimized Vercel Build Script
+ *
+ * This script runs during Vercel deployment and focuses only on build-time tasks.
+ * Database initialization is moved to runtime to prevent build timeouts.
  */
 
 const path = require('path');
 const fs = require('fs');
-
-// Set up environment
-process.env.NODE_PATH = (process.env.NODE_PATH ? process.env.NODE_PATH + path.delimiter : '') + path.join(__dirname, '..', 'backend'); // More robust NODE_PATH append
-require('module').Module._initPaths();
 
 // Load environment variables
 require('dotenv').config({ path: path.join(__dirname, '..', '.env') });
 
 async function runBuild() {
   const buildStartTime = Date.now();
-  console.log('🚀 Starting Vercel build process...');
+  console.log('🚀 Starting optimized Vercel build process...');
   console.log(`📅 Build started at: ${new Date().toISOString()}`);
 
   try {
-    // Check if demo mode is enabled
-    if (process.env.DEMO_MODE_ENABLED === 'true' || process.env.USE_MEMORY_DB === 'true') {
-      console.log('🎭 Demo mode enabled - skipping database setup');
-      console.log('✅ Build completed successfully in demo mode');
-      console.log('🎉 Application will use in-memory data for demonstration');
-      return;
-    }
+    // Validate build environment
+    console.log('🔍 Validating build environment...');
 
-    // Check if we have database configuration
-    if (!process.env.DB_HOST) {
-      console.log('⚠️  No database configuration found in environment variables.');
-      console.log('   Falling back to demo mode with in-memory data.');
-      console.log('   To use a real database, set: DB_HOST, DB_PORT, DB_NAME, DB_USER, DB_PASSWORD');
-      console.log('✅ Build completed successfully in demo mode');
-      return;
-    }
+    // Check Node.js version
+    const nodeVersion = process.version;
+    console.log(`📦 Node.js version: ${nodeVersion}`);
 
-    console.log('�️  Setting up database connection...');
+    // Verify required directories exist
+    const requiredDirs = [
+      path.join(__dirname, '..', 'backend'),
+      path.join(__dirname, '..', 'frontend'),
+      path.join(__dirname, '..', 'api')
+    ];
 
-    // Import database utilities with error handling
-    let connectDatabase, query;
-    try {
-      const dbModule = require('../backend/src/config/database');
-      connectDatabase = dbModule.connectDatabase;
-      query = dbModule.query;
-    } catch (importError) {
-      console.error('❌ Failed to import database utilities:', importError.message);
-      throw new Error(`Database module import failed: ${importError.message}`);
-    }
-
-    // Test database connection with timeout
-    console.log('� Attempting database connection...');
-    const connectionTimeout = setTimeout(() => {
-      throw new Error('Database connection timeout after 30 seconds');
-    }, 30000);
-
-    await connectDatabase();
-    clearTimeout(connectionTimeout);
-    console.log('✅ Database connection established');
-
-    // Check if tables exist
-    const tablesResult = await query(`
-      SELECT table_name 
-      FROM information_schema.tables 
-      WHERE table_schema = 'public'
-    `);
-
-    if (tablesResult.rows.length === 0) {
-      console.log('🔧 No tables found. Running initial migration...');
-
-      // Read and execute migration file
-      const migrationPath = path.join(__dirname, '..', 'backend', 'src', 'migrations', '001_create_tables.sql');
-
-      if (fs.existsSync(migrationPath)) {
-        const migrationSQL = fs.readFileSync(migrationPath, 'utf8');
-        await query(migrationSQL);
-        console.log('✅ Database tables created successfully');
-      } else {
-        console.log('⚠️  Migration file not found. Please run migrations manually.');
+    for (const dir of requiredDirs) {
+      if (!fs.existsSync(dir)) {
+        throw new Error(`Required directory not found: ${dir}`);
       }
-    } else {
-      console.log('✅ Database tables already exist');
+      console.log(`✅ Directory verified: ${path.basename(dir)}`);
     }
 
-    console.log('🎉 Build process completed successfully!');
+    // Verify critical files exist
+    const criticalFiles = [
+      path.join(__dirname, '..', 'backend', 'server.js'),
+      path.join(__dirname, '..', 'api', 'index.js'),
+      path.join(__dirname, '..', 'vercel.json')
+    ];
+
+    for (const file of criticalFiles) {
+      if (!fs.existsSync(file)) {
+        throw new Error(`Critical file not found: ${file}`);
+      }
+      console.log(`✅ File verified: ${path.basename(file)}`);
+    }
+
+    // Check if database migration files exist (for runtime initialization)
+    const migrationDir = path.join(__dirname, '..', 'backend', 'src', 'migrations');
+    if (fs.existsSync(migrationDir)) {
+      const migrationFiles = fs.readdirSync(migrationDir).filter(f => f.endsWith('.sql'));
+      console.log(`📋 Found ${migrationFiles.length} migration files for runtime initialization`);
+    } else {
+      console.log('⚠️  No migration directory found - database will use default schema');
+    }
+
+    // Log environment configuration (without sensitive data)
+    console.log('🔧 Environment configuration:');
+    console.log(`   NODE_ENV: ${process.env.NODE_ENV || 'not set'}`);
+    console.log(`   DEMO_MODE_ENABLED: ${process.env.DEMO_MODE_ENABLED || 'false'}`);
+    console.log(`   USE_MEMORY_DB: ${process.env.USE_MEMORY_DB || 'false'}`);
+    console.log(`   Database configured: ${process.env.POSTGRES_URL ? 'Yes (Vercel Postgres)' : process.env.DB_HOST ? 'Yes (Custom)' : 'No'}`);
+
+    const buildTime = Date.now() - buildStartTime;
+    console.log(`⚡ Build validation completed in ${buildTime}ms`);
+    console.log('✅ Build process completed successfully!');
+    console.log('🎯 Database initialization will occur at runtime');
+    console.log(`📊 Total build time: ${buildTime}ms`);
 
   } catch (error) {
+    const buildTime = Date.now() - buildStartTime;
     console.error('❌ Build process failed:', error.message);
+    console.error(`⏱️  Failed after ${buildTime}ms`);
 
-    // If database connection fails, fall back to demo mode
-    if (error.message.includes('database') || error.message.includes('connection') || error.code === 'ECONNREFUSED') {
-      console.log('⚠️  Database connection failed, falling back to demo mode');
-      console.log('✅ Build completed successfully in demo mode');
-      console.log('🎭 Application will use in-memory data for demonstration');
-      return; // Don't exit with error, continue with demo mode
-    } else {
-      console.error('❌ Build failed with non-database error');
-      process.exit(1);
+    // Don't fail the build for non-critical errors
+    if (error.message.includes('migration') || error.message.includes('database')) {
+      console.log('⚠️  Database-related error detected, but build can continue');
+      console.log('🎭 Application will handle database initialization at runtime');
+      return;
     }
+
+    // Only exit with error for critical build failures
+    console.error('❌ Critical build error - deployment cannot continue');
+    process.exit(1);
   }
 }
 

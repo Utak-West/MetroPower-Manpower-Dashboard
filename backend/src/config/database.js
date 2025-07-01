@@ -20,21 +20,29 @@ const createPool = () => {
   // Check if Vercel Postgres environment variables are available
   if (process.env.POSTGRES_URL) {
     logger.info('Using Vercel Postgres connection string')
+
+    // Optimized settings for serverless/production deployment
+    const isProduction = process.env.NODE_ENV === 'production';
+    const isVercel = process.env.VERCEL === '1';
+
     return new Pool({
       connectionString: process.env.POSTGRES_URL,
       ssl: { rejectUnauthorized: false },
-      min: config.database.pool.min,
-      max: config.database.pool.max,
-      acquireTimeoutMillis: config.database.pool.acquire,
-      idleTimeoutMillis: config.database.pool.idle,
-      connectionTimeoutMillis: 10000,
-      statement_timeout: 30000,
-      query_timeout: 30000,
+      min: isVercel ? 0 : config.database.pool.min, // No minimum connections for serverless
+      max: isVercel ? 3 : config.database.pool.max, // Limit max connections for serverless
+      acquireTimeoutMillis: isProduction ? 5000 : config.database.pool.acquire, // Faster timeout for production
+      idleTimeoutMillis: isVercel ? 10000 : config.database.pool.idle, // Shorter idle timeout for serverless
+      connectionTimeoutMillis: isProduction ? 5000 : 10000, // Faster connection timeout
+      statement_timeout: isProduction ? 15000 : 30000, // Shorter statement timeout
+      query_timeout: isProduction ? 15000 : 30000, // Shorter query timeout
       application_name: 'MetroPower Dashboard'
     })
   }
   
   // Fall back to standard database configuration
+  const isProduction = process.env.NODE_ENV === 'production';
+  const isVercel = process.env.VERCEL === '1';
+
   const dbConfig = {
     host: config.database.host,
     port: config.database.port,
@@ -42,13 +50,13 @@ const createPool = () => {
     user: config.database.user,
     password: config.database.password,
     ssl: config.database.ssl ? { rejectUnauthorized: false } : false,
-    min: config.database.pool.min,
-    max: config.database.pool.max,
-    acquireTimeoutMillis: config.database.pool.acquire,
-    idleTimeoutMillis: config.database.pool.idle,
-    connectionTimeoutMillis: 10000,
-    statement_timeout: 30000,
-    query_timeout: 30000,
+    min: isVercel ? 0 : config.database.pool.min,
+    max: isVercel ? 3 : config.database.pool.max,
+    acquireTimeoutMillis: isProduction ? 5000 : config.database.pool.acquire,
+    idleTimeoutMillis: isVercel ? 10000 : config.database.pool.idle,
+    connectionTimeoutMillis: isProduction ? 5000 : 10000,
+    statement_timeout: isProduction ? 15000 : 30000,
+    query_timeout: isProduction ? 15000 : 30000,
     application_name: 'MetroPower Dashboard'
   }
 
