@@ -28,6 +28,7 @@ const { initializeDatabase } = require('./src/utils/runtime-db-init');
 // Import middleware
 const { errorHandler, notFoundHandler } = require('./src/middleware/errorHandler');
 const { authenticate: authMiddleware, auditLog } = require('./src/middleware/auth');
+const { ensureDatabaseInitialized } = require('./src/middleware/database-init');
 
 // Import routes
 const authRoutes = require('./src/routes/auth');
@@ -184,18 +185,18 @@ app.use('/css', express.static(path.join(frontendPath, 'css')));
 app.use('/js', express.static(path.join(frontendPath, 'js')));
 app.use('/assets', express.static(path.join(frontendPath, 'assets')));
 
-// API Routes
-app.use('/api/auth', authRoutes);
-app.use('/api/employees', authMiddleware, employeeRoutes);
-app.use('/api/projects', authMiddleware, projectRoutes);
-app.use('/api/positions', authMiddleware, positionRoutes);
-app.use('/api/assignments', authMiddleware, assignmentRoutes);
-app.use('/api/dashboard', authMiddleware, dashboardRoutes);
-app.use('/api/calendar', authMiddleware, require('./src/routes/calendar'));
-app.use('/api/exports', authMiddleware, exportRoutes);
-app.use('/api/archives', authMiddleware, archiveRoutes);
-app.use('/api/notifications', authMiddleware, notificationRoutes);
-app.use('/api/users', authMiddleware, userRoutes);
+// API Routes (with database initialization middleware)
+app.use('/api/auth', ensureDatabaseInitialized, authRoutes);
+app.use('/api/employees', ensureDatabaseInitialized, authMiddleware, employeeRoutes);
+app.use('/api/projects', ensureDatabaseInitialized, authMiddleware, projectRoutes);
+app.use('/api/positions', ensureDatabaseInitialized, authMiddleware, positionRoutes);
+app.use('/api/assignments', ensureDatabaseInitialized, authMiddleware, assignmentRoutes);
+app.use('/api/dashboard', ensureDatabaseInitialized, authMiddleware, dashboardRoutes);
+app.use('/api/calendar', ensureDatabaseInitialized, authMiddleware, require('./src/routes/calendar'));
+app.use('/api/exports', ensureDatabaseInitialized, authMiddleware, exportRoutes);
+app.use('/api/archives', ensureDatabaseInitialized, authMiddleware, archiveRoutes);
+app.use('/api/notifications', ensureDatabaseInitialized, authMiddleware, notificationRoutes);
+app.use('/api/users', ensureDatabaseInitialized, authMiddleware, userRoutes);
 
 // Socket.IO connection handling
 io.on('connection', (socket) => {

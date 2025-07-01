@@ -47,28 +47,31 @@ try {
   process.env.NODE_PATH = path.join(__dirname, '..', 'backend');
   require('module').Module._initPaths();
 
+  // Import database initialization middleware
+  const { ensureDatabaseInitialized } = require('../backend/src/middleware/database-init');
+
   // Import authentication routes
   const authRoutes = require('../backend/src/routes/auth');
-  app.use('/api/auth', authRoutes);
+  app.use('/api/auth', ensureDatabaseInitialized, authRoutes);
 
   // Import authentication middleware
   const { authenticate } = require('../backend/src/middleware/auth');
 
   // Import other essential routes
   const dashboardRoutes = require('../backend/src/routes/dashboard');
-  app.use('/api/dashboard', dashboardRoutes);
+  app.use('/api/dashboard', ensureDatabaseInitialized, dashboardRoutes);
 
   // Import projects routes with authentication
   const projectRoutes = require('../backend/src/routes/projects');
-  app.use('/api/projects', authenticate, projectRoutes);
+  app.use('/api/projects', ensureDatabaseInitialized, authenticate, projectRoutes);
 
   // Import employees routes with authentication
   const employeeRoutes = require('../backend/src/routes/employees');
-  app.use('/api/employees', authenticate, employeeRoutes);
+  app.use('/api/employees', ensureDatabaseInitialized, authenticate, employeeRoutes);
 
   // Import assignments routes with authentication
   const assignmentRoutes = require('../backend/src/routes/assignments');
-  app.use('/api/assignments', authenticate, assignmentRoutes);
+  app.use('/api/assignments', ensureDatabaseInitialized, authenticate, assignmentRoutes);
 
   console.log('✅ Routes loaded successfully (auth, dashboard, projects, employees, assignments)');
 
