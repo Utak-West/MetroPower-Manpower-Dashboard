@@ -183,10 +183,12 @@
     "FEATURE_USER_MANAGEMENT": "false",
     "FEATURE_AUDIT_LOGGING": "true",
     "CORS_ORIGIN": "*",
-    "VERCEL": "1"
+    "VERCEL": "1",
+    "VERCEL_PROTECTION_BYPASS": "true"
   },
   "regions": ["iad1"],
   "github": {
     "silent": true
-  }
+  },
+  "public": true
 }
