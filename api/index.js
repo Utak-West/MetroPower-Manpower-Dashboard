@@ -51,11 +51,26 @@ try {
   const authRoutes = require('../backend/src/routes/auth');
   app.use('/api/auth', authRoutes);
 
+  // Import authentication middleware
+  const { authenticate } = require('../backend/src/middleware/auth');
+
   // Import other essential routes
   const dashboardRoutes = require('../backend/src/routes/dashboard');
   app.use('/api/dashboard', dashboardRoutes);
 
-  console.log('✅ Routes loaded successfully');
+  // Import projects routes with authentication
+  const projectRoutes = require('../backend/src/routes/projects');
+  app.use('/api/projects', authenticate, projectRoutes);
+
+  // Import employees routes with authentication
+  const employeeRoutes = require('../backend/src/routes/employees');
+  app.use('/api/employees', authenticate, employeeRoutes);
+
+  // Import assignments routes with authentication
+  const assignmentRoutes = require('../backend/src/routes/assignments');
+  app.use('/api/assignments', authenticate, assignmentRoutes);
+
+  console.log('✅ Routes loaded successfully (auth, dashboard, projects, employees, assignments)');
 
 } catch (error) {
   console.error('❌ Failed to load routes:', error);

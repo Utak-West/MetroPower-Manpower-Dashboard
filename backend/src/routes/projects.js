@@ -292,10 +292,36 @@ router.post('/', asyncHandler(async (req, res) => {
       })
     }
 
-    // Database mode implementation would go here
-    res.status(501).json({
-      error: 'Not implemented',
-      message: 'Database mode not yet implemented'
+    // Database mode implementation
+    const Project = require('../models/Project')
+
+    // Generate project ID if not provided
+    const generatedId = project_id || `PRJ-${Date.now()}`
+
+    // Generate project number if not provided
+    const projectNumber = `${Date.now()}`
+
+    const newProjectData = {
+      project_id: generatedId,
+      name: name.trim(),
+      number: projectNumber,
+      status: status || 'Active',
+      start_date,
+      end_date: end_date || null,
+      location: location.trim(),
+      manager_id: req.user.user_id, // Use current user as manager
+      description: description?.trim() || '',
+      budget: budget || null
+    }
+
+    const newProject = await Project.create(newProjectData, req.user.user_id)
+
+    logger.info(`Project created: ${generatedId} by user ${req.user.user_id}`)
+
+    res.status(201).json({
+      success: true,
+      data: newProject,
+      message: 'Project created successfully'
     })
   } catch (error) {
     logger.error('Error creating project:', error)
@@ -387,10 +413,28 @@ router.put('/:id', asyncHandler(async (req, res) => {
       })
     }
 
-    // Database mode implementation would go here
-    res.status(501).json({
-      error: 'Not implemented',
-      message: 'Database mode not yet implemented'
+    // Database mode implementation
+    const Project = require('../models/Project')
+
+    const updateData = {
+      name: name.trim(),
+      status: status || 'Active',
+      start_date,
+      end_date: end_date || null,
+      location: location.trim(),
+      manager_id: req.user.user_id, // Use current user as manager
+      description: description?.trim() || '',
+      budget: budget || null
+    }
+
+    const updatedProject = await Project.update(projectId, updateData, req.user.user_id)
+
+    logger.info(`Project updated: ${projectId} by user ${req.user.user_id}`)
+
+    res.json({
+      success: true,
+      data: updatedProject,
+      message: 'Project updated successfully'
     })
   } catch (error) {
     logger.error('Error updating project:', error)
