@@ -11,15 +11,23 @@ const { Pool } = require('pg');
 async function setupDatabase() {
   console.log('🚀 Setting up MetroPower Dashboard database...');
   
-  // Check if we have the Vercel Postgres URL
-  if (!process.env.POSTGRES_URL) {
-    console.error('❌ POSTGRES_URL environment variable not found');
-    console.log('💡 Make sure you have connected a Vercel Postgres database');
+  // Check if we have the Vercel Postgres URL or Neon URL
+  const connectionString = process.env.POSTGRES_URL || process.env.DATABASE_URL || process.env.NEON_DATABASE_URL;
+
+  if (!connectionString) {
+    console.error('❌ No database connection string found');
+    console.log('💡 Looking for: POSTGRES_URL, DATABASE_URL, or NEON_DATABASE_URL');
+    console.log('💡 Available environment variables:');
+    Object.keys(process.env).filter(key => key.includes('POSTGRES') || key.includes('DATABASE') || key.includes('NEON')).forEach(key => {
+      console.log(`  ${key}: ${process.env[key] ? 'SET' : 'NOT SET'}`);
+    });
     process.exit(1);
   }
+
+  console.log('🔗 Using connection string:', connectionString.substring(0, 50) + '...');
   
   const pool = new Pool({
-    connectionString: process.env.POSTGRES_URL,
+    connectionString: connectionString,
     ssl: { rejectUnauthorized: false }
   });
   
