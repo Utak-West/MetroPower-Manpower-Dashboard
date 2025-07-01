@@ -176,7 +176,7 @@ app.post('/api/debug/init-db', async (req, res) => {
 // Test login endpoint
 app.post('/api/debug/test-login', async (req, res) => {
   try {
-    const { identifier = 'antione.harrell@metropower.com', password = 'password123' } = req.body;
+    const { identifier = 'antione.harrell@metropower.com', password = 'MetroPower2025!' } = req.body;
 
     console.log('Test login attempt:', { identifier, password: '***' });
 
@@ -254,7 +254,7 @@ app.get('/api/debug/test-user', async (req, res) => {
 app.get('/api/debug/test-password', async (req, res) => {
   try {
     const identifier = req.query.identifier || 'antione.harrell@metropower.com';
-    const password = req.query.password || 'password123';
+    const password = req.query.password || 'MetroPower2025!';
 
     console.log('Test password verification:', { identifier, password: '***' });
 
@@ -317,7 +317,7 @@ app.get('/api/debug/fix-passwords', async (req, res) => {
 
     // Generate correct password hashes
     const adminPasswordHash = await bcrypt.hash('MetroPower2025!', 12);
-    const managerPasswordHash = await bcrypt.hash('password123', 12);
+    const managerPasswordHash = await bcrypt.hash('MetroPower2025!', 12);
 
     console.log('Generated password hashes');
 
