@@ -73,7 +73,11 @@ try {
   const assignmentRoutes = require('../backend/src/routes/assignments');
   app.use('/api/assignments', ensureDatabaseInitialized, authenticate, assignmentRoutes);
 
-  console.log('✅ Routes loaded successfully (auth, dashboard, projects, employees, assignments)');
+  // Import positions routes with authentication
+  const positionRoutes = require('../backend/src/routes/positions');
+  app.use('/api/positions', ensureDatabaseInitialized, authenticate, positionRoutes);
+
+  console.log('✅ Routes loaded successfully (auth, dashboard, projects, employees, assignments, positions)');
 
 } catch (error) {
   console.error('❌ Failed to load routes:', error);
