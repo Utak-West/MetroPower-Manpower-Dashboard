@@ -72,11 +72,14 @@ const initializeDemoData = async () => {
     let adminPasswordHash, managerPasswordHash;
 
     try {
-      // Use the same secure password for both admin and manager users
-      const securePassword = 'MetroPower2025!';
-      adminPasswordHash = await bcrypt.hash(securePassword, 12);
+      // Admin password
+      const adminPassword = 'MetroPower2025!';
+      adminPasswordHash = await bcrypt.hash(adminPassword, 12);
       logger.info('Admin password hash created');
-      managerPasswordHash = await bcrypt.hash(securePassword, 12);
+
+      // Manager password - CHANGE THIS TO YOUR DESIRED PASSWORD
+      const managerPassword = 'NewPassword123!';  // <-- Change this password
+      managerPasswordHash = await bcrypt.hash(managerPassword, 12);
       logger.info('Manager password hash created');
     } catch (bcryptError) {
       logger.warn('Bcrypt failed, using pre-computed hashes:', bcryptError.message);
@@ -101,8 +104,8 @@ const initializeDemoData = async () => {
       },
       {
         user_id: 2,
-        username: 'antione.harrell',
-        email: 'antione.harrell@metropower.com',
+        username: 'manager',  // <-- Change this username
+        email: 'manager@metropower.com',  // <-- Change this email
         password_hash: managerPasswordHash,
         first_name: 'Antione',
         last_name: 'Harrell',
