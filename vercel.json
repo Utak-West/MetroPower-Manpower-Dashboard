@@ -19,6 +19,13 @@
       }
     },
     {
+      "src": "api/setup-db.js",
+      "use": "@vercel/node",
+      "config": {
+        "maxLambdaSize": "50mb"
+      }
+    },
+    {
       "src": "frontend/**",
       "use": "@vercel/static"
     }
@@ -31,6 +38,10 @@
     {
       "src": "/api/debug",
       "dest": "/api/debug.js"
+    },
+    {
+      "src": "/api/setup-db",
+      "dest": "/api/setup-db.js"
     },
     {
       "src": "/api/(.*)",
