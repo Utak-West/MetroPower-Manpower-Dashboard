@@ -240,15 +240,26 @@ app.use(errorHandler);
 // Initialize database connection for serverless
 const initializeApp = async () => {
   try {
-    // Set demo mode flag
-    global.isDemoMode = true;
+    // Connect to database
+    const dbConnection = await connectDatabase();
 
-    // Always use in-memory database for simplicity
-    logger.info('Using in-memory database');
+    if (dbConnection) {
+      // Use persistent database
+      logger.info('Using persistent database storage');
+      global.isDemoMode = false;
 
-    // Initialize demo service data
-    const demoService = require('./src/services/demoService');
-    await demoService.initializeDemoData();
+      // Initialize persistent data
+      const PersistentDataService = require('./src/services/persistentDataService');
+      await PersistentDataService.initializePersistentData();
+    } else {
+      // Fallback to demo mode for development
+      logger.info('Using in-memory database for development');
+      global.isDemoMode = true;
+
+      // Initialize demo service data
+      const demoService = require('./src/services/demoService');
+      await demoService.initializeDemoData();
+    }
 
     return true;
   } catch (error) {

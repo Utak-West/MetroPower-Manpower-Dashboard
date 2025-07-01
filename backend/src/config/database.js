@@ -77,17 +77,78 @@ const createPool = () => {
  * Connect to the database and test the connection
  */
 const connectDatabase = async () => {
-  // Always use in-memory database for simplicity
-  logger.info('Using in-memory database - no connection needed')
-  return null
+  try {
+    // Check if we should use persistent database
+    const useMemoryDB = process.env.USE_MEMORY_DB === 'true'
+    const isDemoMode = process.env.DEMO_MODE_ENABLED === 'true'
+
+    // Only use in-memory for local development, not production
+    if (useMemoryDB && process.env.NODE_ENV !== 'production') {
+      logger.info('Using in-memory database for local development')
+      return null
+    }
+
+    // For production or when persistent storage is needed, use real database
+    logger.info('Initializing persistent database connection...')
+
+    if (!pool) {
+      pool = createPool()
+    }
+
+    // Test the connection
+    const client = await pool.connect()
+    const result = await client.query('SELECT NOW() as current_time, version() as version')
+    client.release()
+
+    logger.info('Database connected successfully', {
+      currentTime: result.rows[0].current_time,
+      version: result.rows[0].version.substring(0, 50) + '...'
+    })
+
+    return pool
+  } catch (error) {
+    logger.error('Database connection failed:', error)
+
+    // Fallback to demo service for development only
+    if (process.env.NODE_ENV !== 'production') {
+      logger.warn('Falling back to in-memory database for development')
+      return null
+    }
+
+    throw error
+  }
 }
 
 /**
  * Execute a database query with error handling
  */
 const query = async (text, params = []) => {
-  // Always use in-memory queries
-  return executeMemoryQuery(text, params)
+  try {
+    // Check if we have a real database connection
+    if (pool) {
+      const client = await pool.connect()
+      try {
+        const result = await client.query(text, params)
+        return result
+      } finally {
+        client.release()
+      }
+    }
+
+    // Fallback to in-memory queries for development
+    if (process.env.NODE_ENV !== 'production') {
+      return executeMemoryQuery(text, params)
+    }
+
+    throw new Error('No database connection available')
+  } catch (error) {
+    logger.error('Database query error:', {
+      error: error.message,
+      query: text.substring(0, 100) + (text.length > 100 ? '...' : ''),
+      params: params.length
+    })
+    throw error
+  }
 }
 
 /**

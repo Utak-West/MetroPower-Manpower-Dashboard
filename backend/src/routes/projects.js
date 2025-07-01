@@ -35,12 +35,11 @@ router.get('/', asyncHandler(async (req, res) => {
       })
     }
 
-    // Database mode implementation would go here
-    // For now, fallback to demo service
-    const demoService = require('../services/demoService')
+    // Use persistent database operations
+    const Project = require('../models/Project')
     const projects = withStats === 'true'
-      ? await demoService.getProjectsWithStats()
-      : await demoService.getProjects()
+      ? await Project.getAllWithStats()
+      : await Project.getAll()
 
     res.json({
       success: true,

@@ -32,10 +32,9 @@ router.get('/', asyncHandler(async (req, res) => {
       })
     }
 
-    // Database mode implementation would go here
-    // For now, fallback to demo service
-    const demoService = require('../services/demoService')
-    const employees = await demoService.getEmployees()
+    // Use persistent database operations
+    const Employee = require('../models/Employee')
+    const employees = await Employee.getAll()
 
     res.json({
       success: true,
@@ -78,10 +77,9 @@ router.get('/unassigned/:date', asyncHandler(async (req, res) => {
       })
     }
 
-    // Database mode implementation would go here
-    // For now, fallback to demo service
-    const demoService = require('../services/demoService')
-    const unassignedEmployees = await demoService.getUnassignedEmployees(date)
+    // Use persistent database operations
+    const Employee = require('../models/Employee')
+    const unassignedEmployees = await Employee.getUnassignedForDate(date)
 
     res.json({
       success: true,
@@ -128,10 +126,14 @@ router.post('/', requireManager, asyncHandler(async (req, res) => {
       })
     }
 
-    // Database mode implementation would go here
-    res.status(501).json({
-      error: 'Not implemented',
-      message: 'Employee creation not yet implemented'
+    // Use persistent database operations
+    const Employee = require('../models/Employee')
+    const newEmployee = await Employee.create(employeeData, req.user.user_id)
+
+    res.status(201).json({
+      success: true,
+      message: 'Employee created successfully',
+      data: newEmployee
     })
   } catch (error) {
     logger.error('Error creating employee:', error)
@@ -168,10 +170,21 @@ router.put('/:id', requireManager, asyncHandler(async (req, res) => {
       })
     }
 
-    // Database mode implementation would go here
-    res.status(501).json({
-      error: 'Not implemented',
-      message: 'Employee updates not yet implemented'
+    // Use persistent database operations
+    const Employee = require('../models/Employee')
+    const updatedEmployee = await Employee.update(req.params.id, req.body, req.user.user_id)
+
+    if (!updatedEmployee) {
+      return res.status(404).json({
+        error: 'Employee not found',
+        message: 'Employee not found for update'
+      })
+    }
+
+    res.json({
+      success: true,
+      message: 'Employee updated successfully',
+      data: updatedEmployee
     })
   } catch (error) {
     logger.error('Error updating employee:', error)
@@ -196,10 +209,20 @@ router.delete('/:id', requireManager, asyncHandler(async (req, res) => {
       })
     }
 
-    // Database mode implementation would go here
-    res.status(501).json({
-      error: 'Not implemented',
-      message: 'Employee deletion not yet implemented'
+    // Use persistent database operations
+    const Employee = require('../models/Employee')
+    const deleted = await Employee.delete(req.params.id, req.user.user_id)
+
+    if (!deleted) {
+      return res.status(404).json({
+        error: 'Employee not found',
+        message: 'Employee not found for deletion'
+      })
+    }
+
+    res.json({
+      success: true,
+      message: 'Employee deleted successfully'
     })
   } catch (error) {
     logger.error('Error deleting employee:', error)

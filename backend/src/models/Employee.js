@@ -405,6 +405,263 @@ class Employee {
       throw error
     }
   }
+
+  /**
+   * Create a new employee
+   * @param {Object} employeeData - Employee data
+   * @param {number} createdBy - User ID who created the employee
+   * @returns {Promise<Object>} Created employee
+   */
+  static async create(employeeData, createdBy) {
+    try {
+      return await transaction(async (client) => {
+        // Generate employee ID
+        const employeeIdResult = await client.query(
+          'SELECT COALESCE(MAX(CAST(SUBSTRING(employee_id FROM 2) AS INTEGER)), 0) + 1 as next_id FROM employees WHERE employee_id ~ \'^E[0-9]+$\''
+        );
+        const employeeId = `E${employeeIdResult.rows[0].next_id}`;
+
+        // Generate employee number
+        const employeeNumberResult = await client.query(
+          'SELECT COALESCE(MAX(CAST(employee_number AS INTEGER)), 1000) + 1 as next_number FROM employees WHERE employee_number ~ \'^[0-9]+$\''
+        );
+        const employeeNumber = employeeNumberResult.rows[0].next_number.toString();
+
+        // Get or create position
+        let positionId;
+        const positionResult = await client.query(
+          'SELECT position_id FROM positions WHERE name = $1',
+          [employeeData.trade || employeeData.position || 'General Laborer']
+        );
+
+        if (positionResult.rows.length > 0) {
+          positionId = positionResult.rows[0].position_id;
+        } else {
+          // Create new position
+          const newPositionResult = await client.query(
+            'INSERT INTO positions (name, code, color_code) VALUES ($1, $2, $3) RETURNING position_id',
+            [
+              employeeData.trade || employeeData.position || 'General Laborer',
+              (employeeData.trade || employeeData.position || 'GEN').substring(0, 10).toUpperCase(),
+              '#95a5a6'
+            ]
+          );
+          positionId = newPositionResult.rows[0].position_id;
+        }
+
+        // Insert employee
+        const insertQuery = `
+          INSERT INTO employees (
+            employee_id, name, position_id, status, employee_number,
+            hire_date, phone, email, notes
+          ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+          RETURNING *
+        `;
+
+        const employeeName = `${employeeData.first_name} ${employeeData.last_name}`;
+        const result = await client.query(insertQuery, [
+          employeeId,
+          employeeName,
+          positionId,
+          employeeData.status || 'Active',
+          employeeNumber,
+          employeeData.hire_date || new Date().toISOString().split('T')[0],
+          employeeData.phone || '',
+          employeeData.email || `${employeeData.first_name?.toLowerCase()}.${employeeData.last_name?.toLowerCase()}@metropower.com`,
+          employeeData.notes || ''
+        ]);
+
+        const newEmployee = result.rows[0];
+
+        logger.info('Employee created successfully', {
+          employeeId: newEmployee.employee_id,
+          name: newEmployee.name,
+          createdBy
+        });
+
+        return newEmployee;
+      });
+    } catch (error) {
+      logger.error('Error creating employee:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Update an employee
+   * @param {string} employeeId - Employee ID
+   * @param {Object} employeeData - Updated employee data
+   * @param {number} updatedBy - User ID who updated the employee
+   * @returns {Promise<Object|null>} Updated employee or null if not found
+   */
+  static async update(employeeId, employeeData, updatedBy) {
+    try {
+      return await transaction(async (client) => {
+        // Check if employee exists
+        const existingEmployee = await client.query(
+          'SELECT * FROM employees WHERE employee_id = $1',
+          [employeeId]
+        );
+
+        if (existingEmployee.rows.length === 0) {
+          return null;
+        }
+
+        // Get or create position if trade/position changed
+        let positionId = existingEmployee.rows[0].position_id;
+        if (employeeData.trade || employeeData.position) {
+          const positionResult = await client.query(
+            'SELECT position_id FROM positions WHERE name = $1',
+            [employeeData.trade || employeeData.position]
+          );
+
+          if (positionResult.rows.length > 0) {
+            positionId = positionResult.rows[0].position_id;
+          } else {
+            // Create new position
+            const newPositionResult = await client.query(
+              'INSERT INTO positions (name, code, color_code) VALUES ($1, $2, $3) RETURNING position_id',
+              [
+                employeeData.trade || employeeData.position,
+                (employeeData.trade || employeeData.position).substring(0, 10).toUpperCase(),
+                '#95a5a6'
+              ]
+            );
+            positionId = newPositionResult.rows[0].position_id;
+          }
+        }
+
+        // Build update query
+        const updateFields = [];
+        const params = [];
+        let paramIndex = 1;
+
+        if (employeeData.first_name && employeeData.last_name) {
+          updateFields.push(`name = $${paramIndex++}`);
+          params.push(`${employeeData.first_name} ${employeeData.last_name}`);
+        }
+
+        if (positionId !== existingEmployee.rows[0].position_id) {
+          updateFields.push(`position_id = $${paramIndex++}`);
+          params.push(positionId);
+        }
+
+        if (employeeData.status) {
+          updateFields.push(`status = $${paramIndex++}`);
+          params.push(employeeData.status);
+        }
+
+        if (employeeData.phone) {
+          updateFields.push(`phone = $${paramIndex++}`);
+          params.push(employeeData.phone);
+        }
+
+        if (employeeData.email) {
+          updateFields.push(`email = $${paramIndex++}`);
+          params.push(employeeData.email);
+        }
+
+        if (employeeData.notes !== undefined) {
+          updateFields.push(`notes = $${paramIndex++}`);
+          params.push(employeeData.notes);
+        }
+
+        if (employeeData.hire_date) {
+          updateFields.push(`hire_date = $${paramIndex++}`);
+          params.push(employeeData.hire_date);
+        }
+
+        updateFields.push(`updated_at = CURRENT_TIMESTAMP`);
+
+        if (updateFields.length === 1) { // Only updated_at was added
+          return existingEmployee.rows[0]; // No changes to make
+        }
+
+        params.push(employeeId);
+        const updateQuery = `
+          UPDATE employees
+          SET ${updateFields.join(', ')}
+          WHERE employee_id = $${paramIndex}
+          RETURNING *
+        `;
+
+        const result = await client.query(updateQuery, params);
+
+        logger.info('Employee updated successfully', {
+          employeeId,
+          updatedBy
+        });
+
+        return result.rows[0];
+      });
+    } catch (error) {
+      logger.error('Error updating employee:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Delete an employee (soft delete by setting status to 'Terminated')
+   * @param {string} employeeId - Employee ID
+   * @param {number} deletedBy - User ID who deleted the employee
+   * @returns {Promise<boolean>} True if deleted, false if not found
+   */
+  static async delete(employeeId, deletedBy) {
+    try {
+      const result = await query(
+        'UPDATE employees SET status = $1, updated_at = CURRENT_TIMESTAMP WHERE employee_id = $2 AND status != $1 RETURNING employee_id',
+        ['Terminated', employeeId]
+      );
+
+      if (result.rows.length === 0) {
+        return false;
+      }
+
+      logger.info('Employee deleted (soft delete)', {
+        employeeId,
+        deletedBy
+      });
+
+      return true;
+    } catch (error) {
+      logger.error('Error deleting employee:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Get unassigned employees for a specific date
+   * @param {string} date - Date in YYYY-MM-DD format
+   * @returns {Promise<Array>} Unassigned employees
+   */
+  static async getUnassignedForDate(date) {
+    try {
+      const unassignedQuery = `
+        SELECT
+          e.employee_id,
+          e.name,
+          e.position_id,
+          p.name as position_name,
+          p.code as position_code,
+          p.color_code as position_color,
+          e.status,
+          e.employee_number,
+          e.phone,
+          e.email
+        FROM employees e
+        LEFT JOIN positions p ON e.position_id = p.position_id
+        LEFT JOIN assignments a ON e.employee_id = a.employee_id AND a.assignment_date = $1
+        WHERE e.status = 'Active' AND a.assignment_id IS NULL
+        ORDER BY e.name
+      `;
+
+      const result = await query(unassignedQuery, [date]);
+      return result.rows;
+    } catch (error) {
+      logger.error('Error getting unassigned employees:', error);
+      throw error;
+    }
+  }
 }
 
 module.exports = Employee
