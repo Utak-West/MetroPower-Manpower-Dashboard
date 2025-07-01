@@ -72,7 +72,12 @@ async function loadEmployees() {
         hideError('staffError');
 
         const response = await api.get('/employees');
-        employees = response.data || [];
+        // Handle the new API response structure with pagination
+        if (response.data && response.data.employees) {
+            employees = response.data.employees;
+        } else {
+            employees = response.data || [];
+        }
         filteredEmployees = [...employees];
         
         hideLoading('staffLoading');

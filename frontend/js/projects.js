@@ -246,7 +246,12 @@ async function loadProjects() {
         const response = await api.getProjects({ withStats: true });
         console.log('API response received:', response);
 
-        projects = response.data || [];
+        // Handle the new API response structure with pagination
+        if (response.data && response.data.projects) {
+            projects = response.data.projects;
+        } else {
+            projects = response.data || [];
+        }
         console.log('Projects loaded:', projects.length);
 
         // Initialize filter options
