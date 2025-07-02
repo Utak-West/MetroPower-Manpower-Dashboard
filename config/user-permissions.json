@@ -1,0 +1,271 @@
+{
+  "userRoles": {
+    "manager": {
+      "name": "Manager",
+      "description": "Full administrative access for project managers like Antione Harrell",
+      "permissions": {
+        "pages": {
+          "dashboard": "full",
+          "employees": "full",
+          "projects": "full",
+          "assignments": "full",
+          "reports": "full",
+          "calendar": "full"
+        },
+        "data": {
+          "employees": {
+            "create": true,
+            "read": true,
+            "update": true,
+            "delete": true,
+            "export": true
+          },
+          "projects": {
+            "create": true,
+            "read": true,
+            "update": true,
+            "delete": true,
+            "export": true
+          },
+          "assignments": {
+            "create": true,
+            "read": true,
+            "update": true,
+            "delete": true,
+            "export": true,
+            "bulkOperations": true
+          },
+          "positions": {
+            "create": true,
+            "read": true,
+            "update": true,
+            "delete": true
+          },
+          "timeTracking": {
+            "create": true,
+            "read": true,
+            "update": true,
+            "delete": true,
+            "approve": true,
+            "export": true
+          }
+        },
+        "features": {
+          "userManagement": true,
+          "systemSettings": true,
+          "dataImport": true,
+          "dataExport": true,
+          "reportGeneration": true,
+          "bulkOperations": true,
+          "dragAndDropScheduling": true,
+          "budgetAccess": true,
+          "payrollAccess": true
+        }
+      },
+      "defaultUsers": [
+        {
+          "email": "antione.harrell@metropower.com",
+          "firstName": "Antione",
+          "lastName": "Harrell",
+          "title": "Assistant Project Manager"
+        }
+      ]
+    },
+    "fieldSupervisor": {
+      "name": "Field Supervisor",
+      "description": "Project-specific access for field supervisors and crew leaders",
+      "permissions": {
+        "pages": {
+          "dashboard": "read",
+          "employees": "read",
+          "projects": "read",
+          "assignments": "limited",
+          "reports": "limited",
+          "calendar": "read"
+        },
+        "data": {
+          "employees": {
+            "create": false,
+            "read": true,
+            "update": false,
+            "delete": false,
+            "export": false,
+            "filter": "assigned_to_supervisor_projects"
+          },
+          "projects": {
+            "create": false,
+            "read": true,
+            "update": false,
+            "delete": false,
+            "export": false,
+            "filter": "supervisor_assigned_projects"
+          },
+          "assignments": {
+            "create": false,
+            "read": true,
+            "update": true,
+            "delete": false,
+            "export": false,
+            "filter": "supervisor_project_assignments",
+            "bulkOperations": false
+          },
+          "positions": {
+            "create": false,
+            "read": true,
+            "update": false,
+            "delete": false
+          },
+          "timeTracking": {
+            "create": true,
+            "read": true,
+            "update": true,
+            "delete": false,
+            "approve": false,
+            "export": false,
+            "filter": "supervisor_crew_time"
+          }
+        },
+        "features": {
+          "userManagement": false,
+          "systemSettings": false,
+          "dataImport": false,
+          "dataExport": false,
+          "reportGeneration": false,
+          "bulkOperations": false,
+          "dragAndDropScheduling": false,
+          "budgetAccess": false,
+          "payrollAccess": false,
+          "statusUpdates": true,
+          "progressReporting": true
+        }
+      }
+    },
+    "employee": {
+      "name": "Employee",
+      "description": "View-only access for individual employees to see their assignments",
+      "permissions": {
+        "pages": {
+          "dashboard": "personal",
+          "employees": "personal",
+          "projects": "assigned",
+          "assignments": "personal",
+          "reports": "none",
+          "calendar": "personal"
+        },
+        "data": {
+          "employees": {
+            "create": false,
+            "read": true,
+            "update": false,
+            "delete": false,
+            "export": false,
+            "filter": "own_record_only"
+          },
+          "projects": {
+            "create": false,
+            "read": true,
+            "update": false,
+            "delete": false,
+            "export": false,
+            "filter": "assigned_projects_only"
+          },
+          "assignments": {
+            "create": false,
+            "read": true,
+            "update": true,
+            "delete": false,
+            "export": false,
+            "filter": "own_assignments_only",
+            "bulkOperations": false,
+            "allowedUpdates": ["Status", "Notes"]
+          },
+          "positions": {
+            "create": false,
+            "read": true,
+            "update": false,
+            "delete": false,
+            "filter": "own_position_only"
+          },
+          "timeTracking": {
+            "create": true,
+            "read": true,
+            "update": true,
+            "delete": false,
+            "approve": false,
+            "export": false,
+            "filter": "own_time_entries_only"
+          }
+        },
+        "features": {
+          "userManagement": false,
+          "systemSettings": false,
+          "dataImport": false,
+          "dataExport": false,
+          "reportGeneration": false,
+          "bulkOperations": false,
+          "dragAndDropScheduling": false,
+          "budgetAccess": false,
+          "payrollAccess": false,
+          "statusUpdates": true,
+          "timeEntry": true,
+          "personalSchedule": true
+        }
+      }
+    }
+  },
+  "pageAccessControl": {
+    "dashboard": {
+      "managers": "full_dashboard",
+      "fieldSupervisors": "project_specific_dashboard",
+      "employees": "personal_dashboard"
+    },
+    "employees": {
+      "managers": "all_employees",
+      "fieldSupervisors": "assigned_crew_only",
+      "employees": "own_profile_only"
+    },
+    "projects": {
+      "managers": "all_projects",
+      "fieldSupervisors": "assigned_projects_only",
+      "employees": "assigned_projects_readonly"
+    },
+    "assignments": {
+      "managers": "all_assignments",
+      "fieldSupervisors": "project_assignments_only",
+      "employees": "own_assignments_only"
+    },
+    "reports": {
+      "managers": "all_reports",
+      "fieldSupervisors": "project_reports_only",
+      "employees": "no_access"
+    }
+  },
+  "dataFilters": {
+    "supervisor_projects": "Project Manager = current_user.name OR Assigned Supervisors CONTAINS current_user.name",
+    "employee_assignments": "Employee = current_user.linked_employee_record",
+    "employee_projects": "Assignments.Employee = current_user.linked_employee_record",
+    "supervisor_crew": "Assignments.Project IN supervisor_projects",
+    "manager_all": "no_filter"
+  },
+  "authenticationSettings": {
+    "signupEnabled": false,
+    "inviteOnly": true,
+    "emailVerification": true,
+    "passwordRequirements": {
+      "minLength": 8,
+      "requireUppercase": true,
+      "requireLowercase": true,
+      "requireNumbers": true,
+      "requireSpecialChars": false
+    },
+    "sessionTimeout": "8 hours",
+    "multiFactorAuth": false,
+    "singleSignOn": false
+  },
+  "defaultPermissions": {
+    "newUsers": "employee",
+    "guestAccess": false,
+    "publicPages": [],
+    "loginRequired": true
+  }
+}

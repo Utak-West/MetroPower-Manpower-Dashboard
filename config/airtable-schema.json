@@ -1,0 +1,648 @@
+{
+  "baseName": "MetroPower Workforce Management",
+  "description": "Complete workforce management system for MetroPower electrical contracting operations",
+  "tables": {
+    "employees": {
+      "name": "Employees",
+      "primaryField": "Full Name",
+      "description": "Complete employee directory with contact information, positions, and employment details",
+      "fields": [
+        {
+          "name": "Employee ID",
+          "type": "singleLineText",
+          "required": true,
+          "unique": true,
+          "description": "Unique identifier (format: EMP-001)"
+        },
+        {
+          "name": "Full Name",
+          "type": "singleLineText",
+          "required": true,
+          "description": "First and Last Name"
+        },
+        {
+          "name": "First Name",
+          "type": "singleLineText",
+          "required": true
+        },
+        {
+          "name": "Last Name",
+          "type": "singleLineText",
+          "required": true
+        },
+        {
+          "name": "Position",
+          "type": "singleSelect",
+          "options": [
+            {"name": "Apprentice", "color": "blue"},
+            {"name": "Electrician", "color": "green"},
+            {"name": "Field Supervisor", "color": "orange"},
+            {"name": "General Laborer", "color": "gray"},
+            {"name": "Service Tech", "color": "purple"},
+            {"name": "Temp", "color": "yellow"},
+            {"name": "Foreman", "color": "red"},
+            {"name": "Lineman", "color": "teal"}
+          ],
+          "required": true
+        },
+        {
+          "name": "Email",
+          "type": "email",
+          "required": false
+        },
+        {
+          "name": "Phone",
+          "type": "phoneNumber",
+          "required": true
+        },
+        {
+          "name": "Hire Date",
+          "type": "date",
+          "dateFormat": "US",
+          "required": true
+        },
+        {
+          "name": "Status",
+          "type": "singleSelect",
+          "options": [
+            {"name": "Active", "color": "green"},
+            {"name": "Inactive", "color": "red"},
+            {"name": "Vacation", "color": "blue"},
+            {"name": "Medical", "color": "orange"},
+            {"name": "Military", "color": "purple"}
+          ],
+          "defaultValue": "Active"
+        },
+        {
+          "name": "Skills",
+          "type": "multipleSelect",
+          "options": [
+            {"name": "Electrical Wiring", "color": "blue"},
+            {"name": "Panel Installation", "color": "green"},
+            {"name": "Conduit Running", "color": "orange"},
+            {"name": "Troubleshooting", "color": "red"},
+            {"name": "Safety Certified", "color": "yellow"},
+            {"name": "Equipment Operation", "color": "purple"},
+            {"name": "Blueprint Reading", "color": "teal"}
+          ]
+        },
+        {
+          "name": "Emergency Contact Name",
+          "type": "singleLineText"
+        },
+        {
+          "name": "Emergency Contact Phone",
+          "type": "phoneNumber"
+        },
+        {
+          "name": "Pay Rate",
+          "type": "currency",
+          "symbol": "$",
+          "precision": 2
+        },
+        {
+          "name": "Notes",
+          "type": "multilineText"
+        },
+        {
+          "name": "Profile Photo",
+          "type": "multipleAttachments"
+        },
+        {
+          "name": "Years Experience",
+          "type": "number",
+          "precision": 1
+        },
+        {
+          "name": "Certifications",
+          "type": "multipleSelect",
+          "options": [
+            {"name": "OSHA 10", "color": "green"},
+            {"name": "OSHA 30", "color": "blue"},
+            {"name": "Electrical License", "color": "orange"},
+            {"name": "First Aid/CPR", "color": "red"}
+          ]
+        },
+        {
+          "name": "Created Date",
+          "type": "createdTime"
+        },
+        {
+          "name": "Last Modified",
+          "type": "lastModifiedTime"
+        }
+      ],
+      "views": [
+        {
+          "name": "All Active Employees",
+          "type": "grid",
+          "filter": "Status = 'Active'",
+          "sort": [{"field": "Last Name", "direction": "asc"}],
+          "fields": ["Full Name", "Position", "Phone", "Email", "Status"]
+        },
+        {
+          "name": "By Position",
+          "type": "grid",
+          "groupBy": "Position",
+          "sort": [{"field": "Position", "direction": "asc"}]
+        },
+        {
+          "name": "New Hires (Last 90 Days)",
+          "type": "grid",
+          "filter": "IS_AFTER(Hire Date, DATEADD(TODAY(), -90, 'days'))",
+          "sort": [{"field": "Hire Date", "direction": "desc"}]
+        },
+        {
+          "name": "Inactive Employees",
+          "type": "grid",
+          "filter": "Status != 'Active'"
+        },
+        {
+          "name": "Contact List",
+          "type": "grid",
+          "fields": ["Full Name", "Phone", "Email", "Emergency Contact Name", "Emergency Contact Phone"]
+        }
+      ]
+    },
+    "projects": {
+      "name": "Projects",
+      "primaryField": "Project Name",
+      "description": "Active and completed projects with timeline, budget, and assignment tracking",
+      "fields": [
+        {
+          "name": "Project Name",
+          "type": "singleLineText",
+          "required": true
+        },
+        {
+          "name": "Project ID",
+          "type": "singleLineText",
+          "required": true,
+          "unique": true,
+          "description": "Format: PRJ-2025-001"
+        },
+        {
+          "name": "Location/Address",
+          "type": "singleLineText",
+          "required": true
+        },
+        {
+          "name": "Start Date",
+          "type": "date",
+          "dateFormat": "US",
+          "required": true
+        },
+        {
+          "name": "End Date",
+          "type": "date",
+          "dateFormat": "US"
+        },
+        {
+          "name": "Status",
+          "type": "singleSelect",
+          "options": [
+            {"name": "Planning", "color": "yellow"},
+            {"name": "Active", "color": "green"},
+            {"name": "On Hold", "color": "orange"},
+            {"name": "Completed", "color": "blue"},
+            {"name": "Cancelled", "color": "red"}
+          ],
+          "defaultValue": "Planning"
+        },
+        {
+          "name": "Project Manager",
+          "type": "singleLineText",
+          "defaultValue": "Antione Harrell"
+        },
+        {
+          "name": "Budget",
+          "type": "currency",
+          "symbol": "$",
+          "precision": 2
+        },
+        {
+          "name": "Description",
+          "type": "multilineText"
+        },
+        {
+          "name": "Client Name",
+          "type": "singleLineText"
+        },
+        {
+          "name": "Priority",
+          "type": "singleSelect",
+          "options": [
+            {"name": "Low", "color": "gray"},
+            {"name": "Medium", "color": "yellow"},
+            {"name": "High", "color": "orange"},
+            {"name": "Critical", "color": "red"}
+          ],
+          "defaultValue": "Medium"
+        },
+        {
+          "name": "Completion Percentage",
+          "type": "percent",
+          "precision": 0
+        },
+        {
+          "name": "Estimated Hours",
+          "type": "number",
+          "precision": 0
+        },
+        {
+          "name": "Actual Hours",
+          "type": "rollup",
+          "linkedTable": "Time Tracking",
+          "rollupField": "Total Hours",
+          "aggregation": "SUM"
+        },
+        {
+          "name": "Assigned Employees Count",
+          "type": "count",
+          "linkedTable": "Assignments"
+        },
+        {
+          "name": "Notes",
+          "type": "multilineText"
+        },
+        {
+          "name": "Created Date",
+          "type": "createdTime"
+        },
+        {
+          "name": "Last Modified",
+          "type": "lastModifiedTime"
+        }
+      ],
+      "views": [
+        {
+          "name": "Active Projects",
+          "type": "grid",
+          "filter": "Status = 'Active'",
+          "sort": [{"field": "Priority", "direction": "desc"}]
+        },
+        {
+          "name": "By Priority",
+          "type": "grid",
+          "groupBy": "Priority",
+          "sort": [{"field": "Priority", "direction": "desc"}]
+        },
+        {
+          "name": "Ending Soon (30 Days)",
+          "type": "grid",
+          "filter": "IS_BEFORE(End Date, DATEADD(TODAY(), 30, 'days'))",
+          "sort": [{"field": "End Date", "direction": "asc"}]
+        },
+        {
+          "name": "Project Timeline",
+          "type": "calendar",
+          "dateField": "Start Date",
+          "colorField": "Status"
+        },
+        {
+          "name": "Completed Projects",
+          "type": "grid",
+          "filter": "Status = 'Completed'",
+          "sort": [{"field": "End Date", "direction": "desc"}]
+        }
+      ]
+    },
+    "assignments": {
+      "name": "Assignments",
+      "primaryField": "Assignment ID",
+      "description": "Daily employee assignments to projects with task details and status tracking",
+      "fields": [
+        {
+          "name": "Assignment ID",
+          "type": "formula",
+          "formula": "CONCATENATE({Employee}, ' - ', {Project}, ' - ', DATETIME_FORMAT({Assignment Date}, 'MM/DD/YYYY'))"
+        },
+        {
+          "name": "Employee",
+          "type": "multipleRecordLinks",
+          "linkedTable": "Employees",
+          "required": true
+        },
+        {
+          "name": "Project",
+          "type": "multipleRecordLinks",
+          "linkedTable": "Projects",
+          "required": true
+        },
+        {
+          "name": "Assignment Date",
+          "type": "date",
+          "dateFormat": "US",
+          "required": true
+        },
+        {
+          "name": "Task Description",
+          "type": "multilineText"
+        },
+        {
+          "name": "Location",
+          "type": "singleLineText"
+        },
+        {
+          "name": "Status",
+          "type": "singleSelect",
+          "options": [
+            {"name": "Assigned", "color": "yellow"},
+            {"name": "In Progress", "color": "blue"},
+            {"name": "Completed", "color": "green"},
+            {"name": "Cancelled", "color": "red"}
+          ],
+          "defaultValue": "Assigned"
+        },
+        {
+          "name": "Start Time",
+          "type": "singleLineText",
+          "description": "Format: 8:00 AM"
+        },
+        {
+          "name": "End Time",
+          "type": "singleLineText",
+          "description": "Format: 5:00 PM"
+        },
+        {
+          "name": "Hours Scheduled",
+          "type": "number",
+          "precision": 1,
+          "defaultValue": 8
+        },
+        {
+          "name": "Overtime Hours",
+          "type": "number",
+          "precision": 1,
+          "defaultValue": 0
+        },
+        {
+          "name": "Notes",
+          "type": "multilineText"
+        },
+        {
+          "name": "Weather Conditions",
+          "type": "singleSelect",
+          "options": [
+            {"name": "Clear", "color": "green"},
+            {"name": "Rainy", "color": "blue"},
+            {"name": "Snow", "color": "gray"},
+            {"name": "Extreme Heat", "color": "red"},
+            {"name": "Extreme Cold", "color": "purple"}
+          ]
+        },
+        {
+          "name": "Equipment Used",
+          "type": "multipleSelect",
+          "options": [
+            {"name": "Ladder", "color": "blue"},
+            {"name": "Drill", "color": "green"},
+            {"name": "Wire Strippers", "color": "orange"},
+            {"name": "Multimeter", "color": "red"},
+            {"name": "Conduit Bender", "color": "purple"},
+            {"name": "Safety Harness", "color": "yellow"}
+          ]
+        },
+        {
+          "name": "Employee Position",
+          "type": "lookup",
+          "linkedTable": "Employees",
+          "lookupField": "Position"
+        },
+        {
+          "name": "Project Status",
+          "type": "lookup",
+          "linkedTable": "Projects",
+          "lookupField": "Status"
+        },
+        {
+          "name": "Created Date",
+          "type": "createdTime"
+        },
+        {
+          "name": "Last Modified",
+          "type": "lastModifiedTime"
+        }
+      ],
+      "views": [
+        {
+          "name": "Today's Assignments",
+          "type": "grid",
+          "filter": "IS_SAME({Assignment Date}, TODAY(), 'day')",
+          "sort": [{"field": "Start Time", "direction": "asc"}],
+          "groupBy": "Project"
+        },
+        {
+          "name": "This Week",
+          "type": "grid",
+          "filter": "IS_SAME({Assignment Date}, TODAY(), 'week')",
+          "sort": [{"field": "Assignment Date", "direction": "asc"}]
+        },
+        {
+          "name": "By Employee",
+          "type": "grid",
+          "groupBy": "Employee",
+          "sort": [{"field": "Assignment Date", "direction": "desc"}]
+        },
+        {
+          "name": "By Project",
+          "type": "grid",
+          "groupBy": "Project",
+          "sort": [{"field": "Assignment Date", "direction": "desc"}]
+        },
+        {
+          "name": "Calendar View",
+          "type": "calendar",
+          "dateField": "Assignment Date",
+          "colorField": "Project"
+        },
+        {
+          "name": "Unassigned Today",
+          "type": "grid",
+          "filter": "AND(IS_SAME({Assignment Date}, TODAY(), 'day'), Status = 'Assigned')"
+        },
+        {
+          "name": "Completed This Week",
+          "type": "grid",
+          "filter": "AND(IS_SAME({Assignment Date}, TODAY(), 'week'), Status = 'Completed')"
+        }
+      ]
+    },
+    "positions": {
+      "name": "Positions",
+      "primaryField": "Position Name",
+      "description": "Job positions with pay rates, requirements, and responsibilities",
+      "fields": [
+        {
+          "name": "Position Name",
+          "type": "singleLineText",
+          "required": true,
+          "unique": true
+        },
+        {
+          "name": "Pay Grade",
+          "type": "singleSelect",
+          "options": [
+            {"name": "Entry Level", "color": "gray"},
+            {"name": "Intermediate", "color": "blue"},
+            {"name": "Advanced", "color": "green"},
+            {"name": "Senior", "color": "orange"},
+            {"name": "Management", "color": "red"}
+          ]
+        },
+        {
+          "name": "Base Pay Rate",
+          "type": "currency",
+          "symbol": "$",
+          "precision": 2
+        },
+        {
+          "name": "Overtime Rate",
+          "type": "formula",
+          "formula": "{Base Pay Rate} * 1.5"
+        },
+        {
+          "name": "Responsibilities",
+          "type": "multilineText"
+        },
+        {
+          "name": "Required Skills",
+          "type": "multipleSelect",
+          "options": [
+            {"name": "Electrical Knowledge", "color": "blue"},
+            {"name": "Safety Training", "color": "red"},
+            {"name": "Physical Fitness", "color": "green"},
+            {"name": "Team Leadership", "color": "orange"},
+            {"name": "Problem Solving", "color": "purple"}
+          ]
+        },
+        {
+          "name": "Minimum Experience",
+          "type": "singleSelect",
+          "options": [
+            {"name": "0-1 years", "color": "gray"},
+            {"name": "1-3 years", "color": "blue"},
+            {"name": "3-5 years", "color": "green"},
+            {"name": "5+ years", "color": "orange"}
+          ]
+        },
+        {
+          "name": "Certification Required",
+          "type": "checkbox"
+        },
+        {
+          "name": "Active",
+          "type": "checkbox",
+          "defaultValue": true
+        },
+        {
+          "name": "Employee Count",
+          "type": "count",
+          "linkedTable": "Employees"
+        }
+      ]
+    },
+    "timeTracking": {
+      "name": "Time Tracking",
+      "primaryField": "Time Entry ID",
+      "description": "Daily time tracking with pay calculations and approval workflow",
+      "fields": [
+        {
+          "name": "Time Entry ID",
+          "type": "formula",
+          "formula": "CONCATENATE({Employee}, ' - ', DATETIME_FORMAT({Date}, 'MM/DD/YYYY'))"
+        },
+        {
+          "name": "Employee",
+          "type": "multipleRecordLinks",
+          "linkedTable": "Employees",
+          "required": true
+        },
+        {
+          "name": "Project",
+          "type": "multipleRecordLinks",
+          "linkedTable": "Projects",
+          "required": true
+        },
+        {
+          "name": "Date",
+          "type": "date",
+          "dateFormat": "US",
+          "required": true
+        },
+        {
+          "name": "Clock In",
+          "type": "singleLineText",
+          "description": "Format: 8:00 AM"
+        },
+        {
+          "name": "Clock Out",
+          "type": "singleLineText",
+          "description": "Format: 5:00 PM"
+        },
+        {
+          "name": "Regular Hours",
+          "type": "number",
+          "precision": 2,
+          "defaultValue": 8
+        },
+        {
+          "name": "Overtime Hours",
+          "type": "number",
+          "precision": 2,
+          "defaultValue": 0
+        },
+        {
+          "name": "Break Time",
+          "type": "number",
+          "precision": 2,
+          "defaultValue": 0.5,
+          "description": "Hours deducted for breaks"
+        },
+        {
+          "name": "Total Hours",
+          "type": "formula",
+          "formula": "{Regular Hours} + {Overtime Hours} - {Break Time}"
+        },
+        {
+          "name": "Regular Pay",
+          "type": "formula",
+          "formula": "{Regular Hours} * {Employee Pay Rate}"
+        },
+        {
+          "name": "Overtime Pay",
+          "type": "formula",
+          "formula": "{Overtime Hours} * ({Employee Pay Rate} * 1.5)"
+        },
+        {
+          "name": "Total Pay",
+          "type": "formula",
+          "formula": "{Regular Pay} + {Overtime Pay}"
+        },
+        {
+          "name": "Notes",
+          "type": "multilineText"
+        },
+        {
+          "name": "Approved",
+          "type": "checkbox",
+          "defaultValue": false
+        },
+        {
+          "name": "Approved By",
+          "type": "singleLineText"
+        },
+        {
+          "name": "Employee Pay Rate",
+          "type": "lookup",
+          "linkedTable": "Employees",
+          "lookupField": "Pay Rate"
+        },
+        {
+          "name": "Created Date",
+          "type": "createdTime"
+        }
+      ]
+    }
+  }
+}

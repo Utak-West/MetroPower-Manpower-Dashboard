@@ -1,0 +1,386 @@
+{
+  "appConfiguration": {
+    "appName": "MetroPower Dashboard",
+    "subdomain": "metropower-dashboard",
+    "primaryColor": "#1e3a8a",
+    "secondaryColor": "#f59e0b",
+    "backgroundColor": "#f8fafc",
+    "textColor": "#1f2937",
+    "font": "Inter",
+    "layout": "fullWidth",
+    "navigation": "topNavigation"
+  },
+  "pages": {
+    "dashboard": {
+      "name": "Dashboard",
+      "url": "/dashboard",
+      "layout": "fullWidth",
+      "access": "loggedInUsers",
+      "components": [
+        {
+          "type": "customHTML",
+          "name": "headerComponent",
+          "position": "top",
+          "content": "<div style=\"background: linear-gradient(135deg, #1e3a8a 0%, #2563eb 100%); color: white; padding: 20px; display: flex; justify-content: space-between; align-items: center; border-radius: 12px; margin-bottom: 24px;\"><div style=\"display: flex; align-items: center;\"><img src=\"[LOGO_URL]\" alt=\"MetroPower\" style=\"height: 40px; margin-right: 15px; border-radius: 8px;\"><div><h1 style=\"margin: 0; font-size: 24px; font-weight: 700;\">MetroPower Dashboard</h1><p style=\"margin: 0; opacity: 0.9; font-size: 14px;\">Tucker Branch - Workforce Management</p></div></div><div style=\"text-align: right;\"><p style=\"margin: 0; font-weight: 600;\">Welcome, {{current_user.email}}</p><p style=\"margin: 0; font-size: 14px; opacity: 0.8;\">{{current_date}}</p></div></div>"
+        },
+        {
+          "type": "metricsRow",
+          "name": "statisticsCards",
+          "layout": "fourColumns",
+          "metrics": [
+            {
+              "title": "Total Active Employees",
+              "dataSource": "Employees",
+              "chartType": "number",
+              "filter": "Status = 'Active'",
+              "color": "#10b981",
+              "icon": "users"
+            },
+            {
+              "title": "Active Projects",
+              "dataSource": "Projects",
+              "chartType": "number",
+              "filter": "Status = 'Active'",
+              "color": "#3b82f6",
+              "icon": "briefcase"
+            },
+            {
+              "title": "Today's Assignments",
+              "dataSource": "Assignments",
+              "chartType": "number",
+              "filter": "Assignment Date = TODAY()",
+              "color": "#f59e0b",
+              "icon": "calendar"
+            },
+            {
+              "title": "Unassigned Today",
+              "dataSource": "Assignments",
+              "chartType": "number",
+              "filter": "AND(Assignment Date = TODAY(), Status = 'Assigned')",
+              "color": "#ef4444",
+              "icon": "alert-triangle"
+            }
+          ]
+        },
+        {
+          "type": "buttonGroup",
+          "name": "quickActions",
+          "layout": "horizontal",
+          "buttons": [
+            {
+              "text": "Manage Assignments",
+              "action": "navigate",
+              "target": "/assignments",
+              "style": "primary",
+              "icon": "calendar-plus"
+            },
+            {
+              "text": "View Staff",
+              "action": "navigate",
+              "target": "/employees",
+              "style": "secondary",
+              "icon": "users"
+            },
+            {
+              "text": "Projects",
+              "action": "navigate",
+              "target": "/projects",
+              "style": "secondary",
+              "icon": "briefcase"
+            },
+            {
+              "text": "Reports",
+              "action": "navigate",
+              "target": "/reports",
+              "style": "secondary",
+              "icon": "file-text"
+            }
+          ]
+        },
+        {
+          "type": "tableBlock",
+          "name": "todaysAssignments",
+          "title": "Today's Assignments",
+          "dataSource": "Assignments",
+          "view": "Today's Assignments",
+          "fields": ["Employee", "Project", "Task Description", "Status", "Start Time"],
+          "actions": ["edit", "viewDetails"],
+          "styling": {
+            "compactRows": true,
+            "alternatingColors": true,
+            "headerStyle": "bold"
+          },
+          "permissions": {
+            "edit": "managers"
+          }
+        },
+        {
+          "type": "alertBlock",
+          "name": "unassignedAlert",
+          "condition": "unassignedEmployees > 0",
+          "type": "warning",
+          "message": "{{unassignedCount}} employees need assignments for today",
+          "actionButton": {
+            "text": "Assign Now",
+            "action": "navigate",
+            "target": "/assignments"
+          }
+        }
+      ]
+    },
+    "employees": {
+      "name": "Staff Management",
+      "url": "/employees",
+      "layout": "fullWidth",
+      "access": "managersAndSupervisors",
+      "components": [
+        {
+          "type": "pageHeader",
+          "title": "Staff Management",
+          "subtitle": "Manage MetroPower workforce - Tucker Branch",
+          "actions": [
+            {
+              "text": "Add New Employee",
+              "action": "openForm",
+              "target": "addEmployeeForm",
+              "style": "primary",
+              "icon": "user-plus",
+              "permissions": "managers"
+            }
+          ]
+        },
+        {
+          "type": "filterBlock",
+          "name": "employeeFilters",
+          "filters": [
+            {
+              "field": "Position",
+              "type": "dropdown",
+              "source": "Positions",
+              "placeholder": "Filter by Position"
+            },
+            {
+              "field": "Status",
+              "type": "dropdown",
+              "options": ["Active", "Inactive", "Vacation", "Medical", "Military"],
+              "placeholder": "Filter by Status"
+            },
+            {
+              "field": "Full Name",
+              "type": "textInput",
+              "placeholder": "Search by name"
+            },
+            {
+              "field": "Hire Date",
+              "type": "dateRange",
+              "placeholder": "Hire date range"
+            }
+          ],
+          "clearFiltersButton": true
+        },
+        {
+          "type": "cardsBlock",
+          "name": "employeeGrid",
+          "dataSource": "Employees",
+          "view": "All Active Employees",
+          "cardLayout": {
+            "profilePhoto": "Profile Photo",
+            "title": "Full Name",
+            "subtitle": "Position",
+            "fields": ["Phone", "Email", "Status", "Years Experience"],
+            "badges": ["Position", "Status"],
+            "actions": ["viewDetails", "edit", "assignToProject"]
+          },
+          "styling": {
+            "cardsPerRow": 3,
+            "cardSpacing": "medium",
+            "shadowLevel": "light"
+          },
+          "permissions": {
+            "edit": "managers",
+            "delete": "managers"
+          }
+        },
+        {
+          "type": "modalForm",
+          "name": "employeeDetailsModal",
+          "trigger": "viewDetails",
+          "title": "Employee Details",
+          "tabs": [
+            {
+              "name": "Personal Info",
+              "fields": ["Full Name", "Position", "Email", "Phone", "Hire Date", "Status"]
+            },
+            {
+              "name": "Skills & Certifications",
+              "fields": ["Skills", "Certifications", "Years Experience"]
+            },
+            {
+              "name": "Emergency Contact",
+              "fields": ["Emergency Contact Name", "Emergency Contact Phone"]
+            },
+            {
+              "name": "Assignment History",
+              "type": "relatedRecords",
+              "source": "Assignments",
+              "linkField": "Employee"
+            }
+          ],
+          "actions": ["edit", "delete"],
+          "permissions": {
+            "edit": "managers",
+            "delete": "managers"
+          }
+        },
+        {
+          "type": "form",
+          "name": "addEmployeeForm",
+          "title": "Add New Employee",
+          "dataSource": "Employees",
+          "fields": [
+            "Employee ID",
+            "First Name",
+            "Last Name",
+            "Position",
+            "Email",
+            "Phone",
+            "Hire Date",
+            "Status",
+            "Skills",
+            "Emergency Contact Name",
+            "Emergency Contact Phone",
+            "Pay Rate",
+            "Notes"
+          ],
+          "validation": {
+            "required": ["Employee ID", "First Name", "Last Name", "Position", "Phone", "Hire Date"],
+            "emailFormat": "Email",
+            "phoneFormat": "Phone"
+          },
+          "successAction": "returnToList"
+        }
+      ]
+    },
+    "projects": {
+      "name": "Project Management",
+      "url": "/projects",
+      "layout": "fullWidth",
+      "access": "managersAndSupervisors",
+      "components": [
+        {
+          "type": "pageHeader",
+          "title": "Project Management",
+          "subtitle": "Track active and completed projects",
+          "actions": [
+            {
+              "text": "New Project",
+              "action": "openForm",
+              "target": "addProjectForm",
+              "style": "primary",
+              "icon": "plus",
+              "permissions": "managers"
+            }
+          ]
+        },
+        {
+          "type": "cardsBlock",
+          "name": "projectCards",
+          "dataSource": "Projects",
+          "view": "Active Projects",
+          "cardLayout": {
+            "title": "Project Name",
+            "subtitle": "Location/Address",
+            "fields": ["Start Date", "End Date", "Status", "Completion Percentage", "Assigned Employees Count"],
+            "badges": ["Status", "Priority"],
+            "progressBar": "Completion Percentage",
+            "actions": ["viewDetails", "edit", "assignEmployees"]
+          },
+          "styling": {
+            "cardsPerRow": 2,
+            "cardSpacing": "large"
+          }
+        },
+        {
+          "type": "calendarBlock",
+          "name": "projectTimeline",
+          "title": "Project Timeline",
+          "dataSource": "Projects",
+          "dateField": "Start Date",
+          "endDateField": "End Date",
+          "titleField": "Project Name",
+          "colorField": "Status",
+          "views": ["month", "week", "list"]
+        }
+      ]
+    },
+    "assignments": {
+      "name": "Assignment Management",
+      "url": "/assignments",
+      "layout": "fullWidth",
+      "access": "allLoggedInUsers",
+      "components": [
+        {
+          "type": "pageHeader",
+          "title": "Assignment Management",
+          "subtitle": "Schedule and track daily employee assignments"
+        },
+        {
+          "type": "calendarBlock",
+          "name": "assignmentCalendar",
+          "dataSource": "Assignments",
+          "dateField": "Assignment Date",
+          "titleField": "Employee + Project",
+          "colorField": "Project",
+          "views": ["month", "week", "day"],
+          "dragAndDrop": {
+            "enabled": true,
+            "permissions": "managers"
+          }
+        },
+        {
+          "type": "form",
+          "name": "quickAssignmentForm",
+          "title": "Quick Assignment",
+          "dataSource": "Assignments",
+          "layout": "inline",
+          "fields": [
+            {
+              "name": "Employee",
+              "type": "linkedRecord",
+              "source": "Employees",
+              "filter": "Status = 'Active'"
+            },
+            {
+              "name": "Project",
+              "type": "linkedRecord",
+              "source": "Projects",
+              "filter": "Status = 'Active'"
+            },
+            "Assignment Date",
+            "Task Description",
+            "Location",
+            "Start Time",
+            "End Time"
+          ],
+          "bulkAssignment": true,
+          "templates": true
+        },
+        {
+          "type": "tableBlock",
+          "name": "dailyAssignmentList",
+          "title": "Daily Assignments",
+          "dataSource": "Assignments",
+          "view": "This Week",
+          "groupBy": "Assignment Date",
+          "fields": ["Employee", "Project", "Task Description", "Status", "Start Time", "Location"],
+          "actions": ["edit", "complete", "cancel"],
+          "permissions": {
+            "edit": "managersAndSupervisors",
+            "complete": "allUsers",
+            "cancel": "managers"
+          }
+        }
+      ]
+    }
+  }
+}
